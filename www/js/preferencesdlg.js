@@ -17,8 +17,8 @@ var defaultpreferenceslist = "[{\
                                             \"autoreport_interval\":\"50\",\
                                             \"interval_positions\":\"3\",\
                                             \"interval_status\":\"3\",\
-                                            \"xy_feedrate\":\"2500\",\
-                                            \"z_feedrate\":\"300\",\
+                                            \"xy_feedrate\":\"1000\",\
+                                            \"z_feedrate\":\"100\",\
                                             \"a_feedrate\":\"100\",\
                                             \"b_feedrate\":\"100\",\
                                             \"c_feedrate\":\"100\",\
