@@ -75,10 +75,6 @@ const maslowMsgHandling = (msg) => {
         document.getElementById(id).value = value;
         loadedValues[id] = value;
     }
-    const fullDimensionAction = (id, value) => {
-        stdAction(id, value);
-        return stdDimensionAction(value);
-    }
     const stdDimensionAction = (value) => parseFloat(value);
     const nullAction = () => { };
 
@@ -88,8 +84,7 @@ const maslowMsgHandling = (msg) => {
         "calibration_grid_height_mm_Y": (value) => stdAction("gridHeight", value),
         "Retract_Current_Threshold": (value) => stdAction("retractionForce", value),
         "vertical": (value) => stdAction("machineOrientation", value === "false" ? "horizontal" : "vertical"),
-        "trX": (value) => {initialGuess.tr.x = fullDimensionAction("machineWidth", value)},
-        "trY": (value) => {initialGuess.tr.y = fullDimensionAction("machineHeight", value)},
+        "Extend_Dist": (value) => stdAction("extendDist", value),
         "trZ": (value) => {initialGuess.tr.z = stdDimensionAction(value)},
         "tlX": (value) => {initialGuess.tl.x = stdDimensionAction(value)},
         "tlY": (value) => {initialGuess.tl.y = stdDimensionAction(value)},
@@ -146,6 +141,7 @@ function loadConfigValues() {
     SendPrinterCommand(`$/${M}_trX`);
     SendPrinterCommand(`$/${M}_trY`);
     SendPrinterCommand(`$/${M}_Acceptable_Calibration_Threshold`);
+    SendPrinterCommand(`$/${M}_Extend_Dist`);
 }
 
 /** Load all of the corner values */
@@ -164,8 +160,7 @@ function saveConfigValues() {
     let gridSize = document.getElementById('gridSize').value;
     let retractionForce = document.getElementById('retractionForce').value;
     let machineOrientation = document.getElementById('machineOrientation').value;
-    let machineWidth = document.getElementById('machineWidth').value;
-    let machineHeight = document.getElementById('machineHeight').value;
+    let extendDist = document.getElementById('extendDist').value;
 
     var gridSpacingWidth = gridWidth / (gridSize - 1);
     var gridSpacingHeight = gridHeight / (gridSize - 1);
@@ -191,12 +186,8 @@ function saveConfigValues() {
     if (machineOrientation != loadedValues['machineOrientation']) {
         sendCommand(`$/${M}_vertical=${machineOrientation === 'horizontal' ? 'false' : 'true'}`);
     }
-    if (machineWidth != loadedValues['machineWidth'] || machineHeight != loadedValues['machineHeight']) {
-        sendCommand(`$/${M}_tlX=0`);
-        sendCommand(`$/${M}_tlY=${machineHeight}`);
-        sendCommand(`$/${M}_trX=${machineWidth}`);
-        sendCommand(`$/${M}_trY=${machineHeight}`);
-        sendCommand(`$/${M}_brX=${machineWidth}`);
+    if (extendDist != loadedValues['extendDist']) {
+        sendCommand(`$/${M}_Extend_Dist=${extendDist}`);
     }
 
     refreshSettings(current_setting_filter);
