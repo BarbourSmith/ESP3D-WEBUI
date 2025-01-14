@@ -557,7 +557,7 @@ function findMaxFitness(measurements) {
       setTimeout(iterate, 0);
     } else {
       if (1 / bestGuess.fitness < acceptableCalibrationThreshold) {
-        messagesBox.value += '\nWARNING FITNESS TOO LOW. DO NOT USE THESE CALIBRATION VALUES!';
+        messagesBox.value += '\nWARNING FITNESS TOO LOW. DO NOT USE THESE CALIBRATION VALUES! Should Recalibrate';
       }
 
       messagesBox.textContent += '\nCalibration values:';
@@ -611,6 +611,23 @@ function findMaxFitness(measurements) {
           final: true,
           guess: bestGuess
         }, true);
+
+        log_info("Attempting to compute again");
+
+        //Add +-50 to each of the corner anchor points and try again
+        initialGuess.tl.x = initialGuess.tl.x + Math.random() * 100 - 50;
+        initialGuess.tl.y = initialGuess.tl.y + Math.random() * 100 - 50;
+        initialGuess.tr.x = initialGuess.tr.x + Math.random() * 100 - 50;
+        initialGuess.tr.y = initialGuess.tr.y + Math.random() * 100 - 50;
+        initialGuess.br.x = initialGuess.br.x + Math.random() * 100 - 50;
+
+        //Reset the counters
+        stagnantCounter = 0;
+        totalCounter = 0;
+        bestGuess = JSON.parse(JSON.stringify(initialGuess));
+
+        //Restart the iteration
+        setTimeout(iterate, 0);
       }
     }
   }
