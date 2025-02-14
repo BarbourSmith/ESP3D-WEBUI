@@ -1,3 +1,4 @@
+import loadHTML from "./bun_loadhtml";
 import html from "bun-plugin-html";
 import { platform } from "bun-utilities/os";
 import { minifySync } from "@swc/html";
@@ -158,66 +159,67 @@ const build = async () => {
 		naming: "[dir]/[name].[ext]",
 		minify: { whitespace: true, syntax: true, identifiers: false },
 		plugins: [
-			html({
-				inline: true,
-				keepOriginalPaths: false,
-				async preprocessor(processor) {
-					const files = processor.getFiles();
+			loadHTML,
+			// html({
+			// 	inline: true,
+			// 	keepOriginalPaths: false,
+			// 	async preprocessor(processor) {
+			// 		const files = processor.getFiles();
 
-					// CSS also gets processed, but it falls right through this loop unaffected
+			// 		// CSS also gets processed, but it falls right through this loop unaffected
 
-					//  Process JS / TS before the HTML
-					for (const file of files) {
-						if (![".js", ".ts"].includes(file.extension)) {
-							continue;
-						}
-						let jsFile = "";
-						// biome-ignore lint/complexity/noForEach: <explanation>
-						["loadHTML.js", "langUtils.js", "common.js", "app.js"].forEach((fileName) => {
-							if (jsFile) {
-								return;
-							}
-							if (file.path.endsWith(fileName)) {
-								jsFile = fileName;
-							}
-						});
-						console.log(`Processing JS/TS file '${file.path}' as '${jsFile}'`);
-						switch (jsFile) {
-							case "loadHTML.js":
-								console.warn(
-									`Skipping processing of JS/TS file '${file.path}'. This file is only used when doing debug runs.`,
-								);
-								break;
-							case "langUtils.js": {
-								const fcLang = await limitedLanguageImports(await file.content);
-								processor.writeFile(file.path, fcLang);
-								break;
-							}
-							case "common.js": {
-								const fcAbsImp = await absolutifyImports(await file.content);
-								processor.writeFile(file.path, addBuildDate(fcAbsImp));
-								break;
-							}
-							case "app.js": {
-								const fcImp = await stripImports(await file.content);
-								processor.writeFile(file.path, fcImp);
-								break;
-							}
-						}
-					}
+			// 		//  Process JS / TS before the HTML
+			// 		for (const file of files) {
+			// 			if (![".js", ".ts"].includes(file.extension)) {
+			// 				continue;
+			// 			}
+			// 			let jsFile = "";
+			// 			// biome-ignore lint/complexity/noForEach: <explanation>
+			// 			["loadHTML.js", "langUtils.js", "common.js", "app.js"].forEach((fileName) => {
+			// 				if (jsFile) {
+			// 					return;
+			// 				}
+			// 				if (file.path.endsWith(fileName)) {
+			// 					jsFile = fileName;
+			// 				}
+			// 			});
+			// 			console.log(`Processing JS/TS file '${file.path}' as '${jsFile}'`);
+			// 			switch (jsFile) {
+			// 				case "loadHTML.js":
+			// 					console.warn(
+			// 						`Skipping processing of JS/TS file '${file.path}'. This file is only used when doing debug runs.`,
+			// 					);
+			// 					break;
+			// 				case "langUtils.js": {
+			// 					const fcLang = await limitedLanguageImports(await file.content);
+			// 					processor.writeFile(file.path, fcLang);
+			// 					break;
+			// 				}
+			// 				case "common.js": {
+			// 					const fcAbsImp = await absolutifyImports(await file.content);
+			// 					processor.writeFile(file.path, addBuildDate(fcAbsImp));
+			// 					break;
+			// 				}
+			// 				case "app.js": {
+			// 					const fcImp = await stripImports(await file.content);
+			// 					processor.writeFile(file.path, fcImp);
+			// 					break;
+			// 				}
+			// 			}
+			// 		}
 
-					for (const file of files) {
-						if (file.extension !== ".html") {
-							// Now we're only processing html files
-							continue;
-						}
-						console.log(`Processing HTML file '${file.path}'`);
-						const fc = await file.content;
-						const fcRep = await loadAndReplaceHTML(file.path, fc);
-						processor.writeFile( file.path, fcRep );
-					}
-				},
-			}),
+			// 		for (const file of files) {
+			// 			if (file.extension !== ".html") {
+			// 				// Now we're only processing html files
+			// 				continue;
+			// 			}
+			// 			console.log(`Processing HTML file '${file.path}'`);
+			// 			const fc = await file.content;
+			// 			// const fcRep = await loadAndReplaceHTML(file.path, fc);
+			// 			// processor.writeFile( file.path, fcRep );
+			// 		}
+			// 	},
+			// }),
 		],
 	});
 };
