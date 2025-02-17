@@ -38,9 +38,19 @@ const logindlg = (closefunc, check_first = false) => {
 	}
 };
 
+const parseResponse = (response_text, action = "") => {
+	let response = {};
+	try {
+		response = JSON.parse(response_text);
+	} catch (error) {
+		console.error(`Parsing the response from the '${action}' failed. This is probably a programmer error.`);
+	}
+	return response;
+}
+
 function checkloginsuccess(response_text) {
-	const response = JSON.parse(response_text);
-	if (typeof response.authentication_lvl !== "undefined") {
+	const response = parseResponse(response_text, "check for login success");
+	if ("authentication_lvl" in response && typeof response.authentication_lvl !== "undefined") {
 		if (response.authentication_lvl !== "guest") {
 			if (typeof response.authentication_lvl !== "undefined") {
 				setHTML("current_auth_level", `(${trans_text_item(response.authentication_lvl)})`);
@@ -66,7 +76,8 @@ function login_password_OnKeyUp(event) {
 }
 
 function loginfailed(error_code, response_text) {
-	const response = JSON.parse(response_text);
+	const response = parseResponse(response_text, "failed login attempt");
+
 	setHTML("login_title", trans_text_item(response.status || "Identification invalid!"));
 	conErr(error_code, response_text);
 	displayBlock("login_content");
@@ -75,8 +86,8 @@ function loginfailed(error_code, response_text) {
 }
 
 function loginsuccess(response_text) {
-	const response = JSON.parse(response_text);
-	if (typeof response.authentication_lvl !== "undefined") {
+	const response = parseResponse(response_text, "login success");
+	if ("authentication_lvl" in response && typeof response.authentication_lvl !== "undefined") {
 		setHTML("current_auth_level", `(${trans_text_item(response.authentication_lvl)})`);
 	}
 	displayNone("login_loader");

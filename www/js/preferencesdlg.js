@@ -562,6 +562,7 @@ const SavePreferences = () => {
     if (CheckForHttpCommLock()) {
         return;
     }
+
     console.log("save prefs");
 
     const blob = new Blob([BuildPreferencesJson()], { type: "application/json" });

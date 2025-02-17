@@ -25,12 +25,16 @@ const MaslowErrMsgKeyValueSuffix = "This is probably a programming error\nKey-Va
 
 /** Perform maslow specific-ish info message handling */
 const maslowInfoMsgHandling = (msg) => {
-	if (msg.startsWith("MINFO: ")) {
-		maslowStatus = JSON.parse(msg.substring(7));
+	if (msg.startsWith('MINFO: ')) {
+		try {
+			maslowStatus = JSON.parse(msg.substring(7));
+		} catch (error) {
+			console.error("Parsing the 'MINFO' message failed, the maslow status has not been changed. This is probably a programmer error.");
+		}
 		return true;
 	}
 
-	if (msg.startsWith("[MSG:INFO: Heartbeat")) {
+	if (msg.startsWith('[MSG:INFO: Heartbeat')) {
 		lastHeartBeatTime = new Date().getTime();
 		return true;
 	}

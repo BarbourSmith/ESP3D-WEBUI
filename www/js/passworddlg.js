@@ -54,8 +54,14 @@ function checkpassword() {
 }
 
 function ChangePasswordfailed(error_code, response_text) {
-	const response = JSON.parse(response_text);
-	if (typeof response.status !== "undefined") {
+	let response = {};
+	try {
+		response = JSON.parse(response_text);
+	} catch (error) {
+		console.error("Change password failed. And then processing the response message about the failure also failed. This is probably a programmer error.");
+	}
+
+	if ("status" in response && typeof response.status !== "undefined") {
 		setHTML("password_content", trans_text_item(response.status));
 	}
 	conErr(error_code, response_text || "");
