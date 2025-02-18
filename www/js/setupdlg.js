@@ -14,7 +14,7 @@ import {
     setPrefValue,
     SavePreferences,
     build_language_list,
-    trans_text_item,
+    trx_text_item,
     build_control_from_pos,
     build_HTML_setting_list,
     define_esp_role,
@@ -61,7 +61,7 @@ const setupdlg = () => {
     setHTML("setupStepLinks", content.join("\n"));
     addActions(actions);
 
-    setHTML("wizard_button", trans_text_item("Start"));
+    setHTML("wizard_button", trx_text_item("Start"));
     // point the wizard button at the next step
     id("wizard_button").title = wizardSteps[0].next;
     id("wizard_button").addEventListener("click", setupDlgContinue);
@@ -85,8 +85,8 @@ const setupdlg = () => {
 
 const td = (content) => `<td>${content}</td>`;
 const table = (content) => `<table><tr>${content}</tr></table>`;
-const heading = (label) => `<h4>${trans_text_item(label)}</h4><hr>`;
-const buildControlItem = (label, pos, actions, extra) => (trans_text_item(label) + table(build_control_from_pos(pos, actions, extra)));
+const heading = (label) => `<h4>${trx_text_item(label)}</h4><hr>`;
+const buildControlItem = (label, pos, actions, extra) => (trx_text_item(label) + table(build_control_from_pos(pos, actions, extra)));
 const hardRule = () => "<hr>\n";
 const div = (name) => `<div id='${name}'>`;
 const endDiv = () => "</div>";
@@ -213,9 +213,9 @@ const step0ContentAndActions = (stepName = "startstep") => {
     const sll = "setup_language_list";
     let content = "";
     content += heading("Setup Wizard");
-    content += `${trans_text_item("This wizard will help you to configure the basic settings.")}<br/>`;
+    content += `${trx_text_item("This wizard will help you to configure the basic settings.")}<br/>`;
     content += `${div(sll) + endDiv()}<br/>`;
-    content += `<span>${trans_text_item("Press start to proceed.")}</span>`;
+    content += `<span>${trx_text_item("Press start to proceed.")}</span>`;
 
     setHTML(stepName, content);
 
@@ -236,7 +236,7 @@ const step1ContentAndActions = (stepName = "step1") => {
 
     setHTML(stepName, content);
     addActions(actions);
-    setHTML("wizard_button", trans_text_item("Continue"));
+    setHTML("wizard_button", trx_text_item("Continue"));
 }
 
 const step2ContentAndActions = (stepName = "step2") => {
@@ -247,13 +247,13 @@ const step2ContentAndActions = (stepName = "step2") => {
     content += heading("WiFi Configuration");
 
     content += buildControlItem("Define ESP role:", common.EP_WIFI_MODE, actions, define_esp_role);
-    content += `${trans_text_item("AP define access point / STA allows to join existing network")}<br/>`;
+    content += `${trx_text_item("AP define access point / STA allows to join existing network")}<br/>`;
 
     content += hardRule();
 
     content += div("setup_STA");
     content += buildControlItem("What access point ESP need to be connected to:", common.EP_STA_SSID, actions);
-    content += `${trans_text_item("You can use scan button, to list available access points.")}<br/>`;
+    content += `${trx_text_item("You can use scan button, to list available access points.")}<br/>`;
     content += hardRule();
     content += buildControlItem("Password to join access point:", common.EP_STA_PASSWORD, actions);
     content += endDiv();
@@ -308,12 +308,12 @@ const step2ContentAndActions = (stepName = "step2") => {
 const step4Content = (stepName = "endstep") => {
     let content = "";
     content += heading("Setup Wizard Completed");
-    content += `<span>${trans_text_item("Setup is finished.")}</span><br/>`;
-    content += `<span>${trans_text_item("After closing, you will still be able to change or to fine tune your settings in the main interface anytime.")}</span><br/>`;
-    content += `<span>${trans_text_item("You may need to restart the board to apply the new settings and connect again")}</span>`;
+    content += `<span>${trx_text_item("Setup is finished.")}</span><br/>`;
+    content += `<span>${trx_text_item("After closing, you will still be able to change or to fine tune your settings in the main interface anytime.")}</span><br/>`;
+    content += `<span>${trx_text_item("You may need to restart the board to apply the new settings and connect again")}</span>`;
 
     setHTML(stepName, content);
-    setHTML("wizard_button", trans_text_item("Close"));
+    setHTML("wizard_button", trx_text_item("Close"));
 }
 
 export { setupdlg };

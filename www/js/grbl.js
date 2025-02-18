@@ -12,7 +12,7 @@ import {
   setHTML,
   alertdlg,
   SendPrinterCommand,
-  trans_text_item,
+  trx_text_item,
   sendCommand,
   displayNone,
   displayTable,
@@ -116,7 +116,7 @@ const build_axis_selection = () => {
   html.push("</select>");
 
   setHTML("axis_selection", html.join("\n"));
-  setHTML("axis_label", `${trans_text_item('Axis')}:`);
+  setHTML("axis_label", `${trx_text_item('Axis')}:`);
   id("control_select_axis").addEventListener("change", control_changeaxis);
   setClickability("axis_selection", true);
 }
@@ -166,7 +166,7 @@ function grbl_set_probe_detected(state) {
 const onprobemaxtravelChange = () => {
   const travel = Number.parseFloat(getValue("grblpanel_probemaxtravel"));
   if (travel > 9999 || travel <= 0 || Number.isNaN(travel) || travel === null) {
-    alertdlg(trans_text_item("Out of range"), trans_text_item("Value of maximum probe travel must be between 1 mm and 9999 mm !"));
+    alertdlg(trx_text_item("Out of range"), trx_text_item("Value of maximum probe travel must be between 1 mm and 9999 mm !"));
     return false;
   }
   return true;
@@ -175,7 +175,7 @@ const onprobemaxtravelChange = () => {
 const onprobefeedrateChange = () => {
   const feedratevalue = Number.parseInt(getValue("grblpanel_probefeedrate"));
   if (feedratevalue <= 0 || feedratevalue > 9999 || Number.isNaN(feedratevalue) || feedratevalue === null) {
-    alertdlg(trans_text_item("Out of range"), trans_text_item("Value of probe feedrate must be between 1 mm/min and 9999 mm/min !"));
+    alertdlg(trx_text_item("Out of range"), trx_text_item("Value of probe feedrate must be between 1 mm/min and 9999 mm/min !"));
     return false;
   }
   return true;
@@ -184,7 +184,7 @@ const onprobefeedrateChange = () => {
 const onproberetractChange = () => {
   const thickness = Number.parseFloat(getValue("grblpanel_proberetract"));
   if (thickness < 0 || thickness > 999 || Number.isNaN(thickness) || thickness === null) {
-    alertdlg(trans_text_item("Out of range"), trans_text_item("Value of probe retract must be between 0 mm and 9999 mm !"));
+    alertdlg(trx_text_item("Out of range"), trx_text_item("Value of probe retract must be between 0 mm and 9999 mm !"));
     return false;
   }
   return true;
@@ -193,7 +193,7 @@ const onproberetractChange = () => {
 const onprobetouchplatethicknessChange = () => {
   const thickness = Number.parseFloat(getValue("grblpanel_probetouchplatethickness"));
   if (thickness < 0 || thickness > 999 || Number.isNaN(thickness) || thickness === null) {
-    alertdlg(trans_text_item("Out of range"), trans_text_item("Value of probe touch plate thickness must be between 0 mm and 9999 mm !"));
+    alertdlg(trx_text_item("Out of range"), trx_text_item("Value of probe touch plate thickness must be between 0 mm and 9999 mm !"));
     return false;
   }
   return true;
@@ -233,7 +233,7 @@ function enablePolling() {
     return;
   }
   setValue("grblpanel_interval_status", 0);
-  alertdlg(trans_text_item("Out of range"), trans_text_item("Value of auto-check must be between 0s and 99s !!"));
+  alertdlg(trx_text_item("Out of range"), trx_text_item("Value of auto-check must be between 0s and 99s !!"));
   disablePolling();
   reportNone();
 }
@@ -438,7 +438,7 @@ function show_grbl_position(wpos, mpos) {
 }
 
 const show_grbl_status = (stateName = "", message = "", hasSD = false) => {
-  setHTML("grbl_status_text", translate_text_item(message))
+  setHTML("grbl_status_text", trx_text_item(message))
   setClickability("clear_status_btn", stateName === "Alarm");
 
   if (!stateName) {
@@ -555,7 +555,7 @@ function grblGetProbeResult(response) {
 
 function probe_failed_notification() {
   finalize_probing();
-  alertdlg(trans_text_item("Error"), trans_text_item("Probe failed !"));
+  alertdlg(trx_text_item("Error"), trx_text_item("Probe failed !"));
   beep(3, 140, 261);
 }
 const modalModes = [
@@ -578,27 +578,27 @@ const modalModes = [
 
 const grblGetModal = (msg) => {
   const common = new Common();
-  common.GCodeModal.modes = msg.replace("[GC:", "").replace("]", "");
-  const modes = common.GCodeModal.modes.split(" ");
-  common.GCodeModal.parking = undefined; // Otherwise there is no way to turn it off
-  common.GCodeModal.program = ""; // Otherwise there is no way to turn it off
+  common.modal.modes = msg.replace("[GC:", "").replace("]", "");
+  const modes = common.modal.modes.split(" ");
+  common.modal.parking = undefined; // Otherwise there is no way to turn it off
+  common.modal.program = ""; // Otherwise there is no way to turn it off
   // biome-ignore lint/complexity/noForEach: <explanation>
   modes.forEach((mode) => {
     if (mode === "M9") {
-      common.GCodeModal.flood = mode;
-      common.GCodeModal.mist = mode;
+      common.modal.flood = mode;
+      common.modal.mist = mode;
     } else {
       switch (mode.charAt(0)) {
-        case "T": common.GCodeModal.tool = mode.substring(1); break;
-        case "F": common.GCodeModal.feedrate = mode.substring(1); break;
-        case "S": common.GCodeModal.spindle = mode.substring(1); break;
+        case "T": common.modal.tool = mode.substring(1); break;
+        case "F": common.modal.feedrate = mode.substring(1); break;
+        case "S": common.modal.spindle = mode.substring(1); break;
         default:
           // biome-ignore lint/complexity/noForEach: <explanation>
           modalModes.forEach((modeType) => {
             // biome-ignore lint/complexity/noForEach: <explanation>
             modeType.values.forEach((s) => {
               if (mode === s) {
-                common.GCodeModal[modeType.name] = mode;
+                common.modal[modeType.name] = mode;
               }
             });
           });
@@ -748,7 +748,7 @@ const grblHandleMessage = (msg) => {
       probe_failed_notification();
     }
     if (grbl_error_msg.length === 0) {
-      grbl_error_msg = trans_text_item(msg.trim());
+      grbl_error_msg = trx_text_item(msg.trim());
     }
     return;
   }

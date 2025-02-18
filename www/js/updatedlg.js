@@ -15,7 +15,7 @@ import {
 	httpCmd,
 	SendFileHttp,
 	SendGetHttp,
-	trans_text_item,
+	trx_text_item,
 	CheckForHttpCommLock,
 } from "./common.js";
 
@@ -40,17 +40,17 @@ const updatedlg = () => {
 	id("fw_file_name").addEventListener("mouseup", updateDlgFileMouseUp);
 	id("uploadfw_button").addEventListener("click", UploadUpdatefile);
 
-	setHTML("fw_file_name", trans_text_item("No file chosen"));
+	setHTML("fw_file_name", trx_text_item("No file chosen"));
 	displayNone(["prgfw", "uploadfw-button"]);
 	setHTML("updatemsg", "");
 	setValue("fw-select", "");
-	setHTML("fw_update_dlg_title", trans_text_item("ESP3D Update").replace("ESP3D", "FluidNC"));
+	setHTML("fw_update_dlg_title", trx_text_item("ESP3D Update").replace("ESP3D", "FluidNC"));
 	showModal();
 };
 
 function closeUpdateDialog(msg) {
 	if (update_ongoing) {
-		alertdlg(trans_text_item("Busy..."), trans_text_item("Update is ongoing, please wait and retry."));
+		alertdlg(trx_text_item("Busy..."), trx_text_item("Update is ongoing, please wait and retry."));
 		return;
 	}
 	closeModal(msg);
@@ -62,7 +62,7 @@ function checkupdatefile() {
 	switch (files.length) {
 		case 0:
 			displayNone("uploadfw-button");
-			setHTML("fw_file_name", trans_text_item("No file chosen"));
+			setHTML("fw_file_name", trx_text_item("No file chosen"));
 			break;
 		case 1:
 			displayBlock("uploadfw_button");
@@ -70,13 +70,13 @@ function checkupdatefile() {
 			break;
 		default:
 			displayBlock("uploadfw-button");
-			setHTML("fw_file_name", trans_text_item("$n files").replace("$n", files.length));
+			setHTML("fw_file_name", trx_text_item("$n files").replace("$n", files.length));
 			break;
 	}
 }
 
 function UploadUpdatefile() {
-	confirmdlg(trans_text_item("Please confirm"), trans_text_item("Update Firmware ?"), StartUploadUpdatefile);
+	confirmdlg(trx_text_item("Please confirm"), trx_text_item("Update Firmware ?"), StartUploadUpdatefile);
 }
 
 function StartUploadUpdatefile(response) {
@@ -102,13 +102,13 @@ function StartUploadUpdatefile(response) {
 	displayNone(["fw-select_form", "uploadfw-button"]);
 	update_ongoing = true;
 	displayBlock(["updatemsg", "prgfw"]);
-	setHTML("updatemsg", `${trans_text_item("Uploading")} ${fileList.join(" ")}`);
+	setHTML("updatemsg", `${trx_text_item("Uploading")} ${fileList.join(" ")}`);
 
 	SendFileHttp(httpCmd.fwUpdate, formData, UpdateProgressDisplay, updatesuccess, updatefailed);
 }
 
 function updatesuccess(response) {
-	setHTML("updatemsg", trans_text_item("Restarting, please wait...."));
+	setHTML("updatemsg", trx_text_item("Restarting, please wait...."));
 	setHTML("fw_file_name", "");
 	let i = 0;
 	// biome-ignore lint/style/useConst: <explanation>
@@ -121,7 +121,7 @@ function updatesuccess(response) {
 		x.value = i;
 		setHTML(
 			"updatemsg",
-			`${trans_text_item("Restarting, please wait....")} ${41 - i} ${trans_text_item("seconds")}`,
+			`${trx_text_item("Restarting, please wait....")} ${41 - i} ${trx_text_item("seconds")}`,
 		);
 		if (i > x.max) {
 			update_ongoing = false;
@@ -135,18 +135,18 @@ function updatesuccess(response) {
 function updatefailed(error_code, response) {
 	displayBlock("fw_select_form");
 	displayNone(["prgfw", "uploadfw_button"]);
-	setHTML("fw_file_name", trans_text_item("No file chosen"));
+	setHTML("fw_file_name", trx_text_item("No file chosen"));
 	displayNone("uploadfw_button");
 	setValue("fw_select", "");
 
 	const common = new Common();
 	if (common.esp_error_code !== 0) {
-		alertdlg(trans_text_item("Error"), stdErrMsg(`(${common.esp_error_code})`, common.esp_error_message));
-		setHTML("updatemsg", trans_text_item("Upload failed : ") + common.esp_error_message);
+		alertdlg(trx_text_item("Error"), stdErrMsg(`(${common.esp_error_code})`, common.esp_error_message));
+		setHTML("updatemsg", trx_text_item("Upload failed : ") + common.esp_error_message);
 		common.esp_error_code = 0;
 	} else {
-		alertdlg(trans_text_item("Error"), stdErrMsg(error_code, response));
-		setHTML("updatemsg", stdErrMsg(error_code, response, trans_text_item("Upload failed")));
+		alertdlg(trx_text_item("Error"), stdErrMsg(error_code, response));
+		setHTML("updatemsg", stdErrMsg(error_code, response, trx_text_item("Upload failed")));
 	}
 
 	conErr(error_code, response);

@@ -6,7 +6,7 @@ import {
     httpCmdType,
 	buildHttpCommandCmd,
     SendGetHttp,
-    trans_text_item,
+    trx_text_item,
     Common,
 } from "./common.js";
 
@@ -48,8 +48,8 @@ function SendPrinterCommandSuccess(response) { }
 
 function SendPrinterCommandFailed(error_code, response) {
     const errMsg = (error_code === 0)
-        ? trans_text_item("Connection error")
-        : stdErrMsg(error_code, HTMLDecode(response), trans_text_item("Error"));
+        ? trx_text_item("Connection error")
+        : stdErrMsg(error_code, HTMLDecode(response), trx_text_item("Error"));
     Monitor_output_Update(`${errMsg}\n`);
     conErr(error_code, HTMLDecode(response), "SendPrinterCommand error");
 }

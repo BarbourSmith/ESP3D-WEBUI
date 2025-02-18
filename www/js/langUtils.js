@@ -48,19 +48,10 @@ const getCurrentTrans = (selLang) => {
     return currenttrans;
 }
 
-/** Translate the supplied item_text, putting it into a `<span>` tag if required */
-const translate_text_item = (item_text, selLang, withtag = false) => {
+/** Translate the supplied item_text */
+const translate_text_item = (item_text, selLang) => {
     const currenttrans = getCurrentTrans(selLang);
-
-    let translated_content = currenttrans[item_text];
-    if (typeof translated_content === 'undefined') {
-        translated_content = item_text;
-    }
-    if (withtag) {
-        return `<span english_content="${item_text}" translate>${translated_content}</span>`;
-    }
-
-    return translated_content;
+    return item_text in currenttrans ? currenttrans[item_text] : item_text;
 }
 
 export { build_language_list, translate_text_item };

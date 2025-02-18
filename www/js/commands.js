@@ -7,7 +7,7 @@ import {
 	httpCmdType,
 	buildHttpCommandCmd,
 	SendGetHttp,
-	trans_text_item,
+	trx_text_item,
 	process_socket_response,
 	getValue,
 	setValue,
@@ -85,10 +85,10 @@ const Monitor_output_Update = (message) => {
 		out = out.replace("<", "&lt;");
 		out = out.replace(">", "&gt;");
 		if (valueStartsWith(out, ["ALARM:", "Hold:", "Door:"]) ) {
-			out = `<font color='orange'><b>${out}${trans_text_item(out.trim())}</b></font>\n`;
+			out = `<font color='orange'><b>${out}${trx_text_item(out.trim())}</b></font>\n`;
 		}
 		if (valueStartsWith(out, ["error:"])) {
-			out = `<font color='red'><b>${out.toUpperCase()}${trans_text_item(out.trim())}</b></font>\n`;
+			out = `<font color='red'><b>${out.toUpperCase()}${trx_text_item(out.trim())}</b></font>\n`;
 		}
 		output += out;
 	}
@@ -162,11 +162,11 @@ function SendCustomCommandSuccess(response) {
 function SendCustomCommandFailed(error_code, response) {
 	const errMsg =
 		error_code === 0
-			? trans_text_item("Connection error")
+			? trx_text_item("Connection error")
 			: stdErrMsg(
 				error_code,
 				HTMLDecode(response),
-				trans_text_item("Error"),
+				trx_text_item("Error"),
 			);
 	Monitor_output_Update(`${errMsg}\n`);
 

@@ -18,7 +18,7 @@ import {
 	buildHttpFilesCmd,
 	SendFileHttp,
 	SendGetHttp,
-	trans_text_item,
+	trx_text_item,
 	CheckForHttpCommLock,
 } from "./common.js";
 
@@ -57,7 +57,7 @@ const SPIFFSdlg = (root) => {
 		common.SPIFFS_currentpath = root;
 	}
 	setValue("SPIFFS-select", "");
-	setHTML("SPIFFS_file_name", trans_text_item("No file chosen"));
+	setHTML("SPIFFS_file_name", trx_text_item("No file chosen"));
 	displayNone(["SPIFFS_uploadbtn", "SPIFFS_prg", "uploadSPIFFSmsg", "SPIFFS_select_files"]);
 	showModal();
 	refreshSPIFFS();
@@ -65,7 +65,7 @@ const SPIFFSdlg = (root) => {
 
 function closeSPIFFSDialog(msg) {
 	if (SPIFFS_upload_ongoing) {
-		alertdlg(trans_text_item("Busy..."), trans_text_item("Upload is ongoing, please wait and retry."));
+		alertdlg(trx_text_item("Busy..."), trx_text_item("Upload is ongoing, please wait and retry."));
 		return;
 	}
 	closeModal(msg);
@@ -113,7 +113,7 @@ const SPIFFSnavbar = () => {
 	});
 };
 
-const SPIFFS_Createdir = () => inputdlg(trans_text_item("Please enter directory name"), trans_text_item("Name:"), processSPIFFS_Createdir);
+const SPIFFS_Createdir = () => inputdlg(trx_text_item("Please enter directory name"), trx_text_item("Name:"), processSPIFFS_Createdir);
 
 function processSPIFFS_Createdir(answer) {
 	if (answer.length > 0) {
@@ -140,12 +140,12 @@ function processSPIFFSDelete(answer) {
 
 function SPIFFSDelete(filename) {
 	SPIFFS_currentfile = filename;
-	confirmdlg(trans_text_item("Please Confirm"), trans_text_item("Confirm deletion of file: ") + filename, processSPIFFSDelete);
+	confirmdlg(trx_text_item("Please Confirm"), trx_text_item("Confirm deletion of file: ") + filename, processSPIFFSDelete);
 }
 
 function SPIFFSDeleteDir(filename) {
 	SPIFFS_currentfile = filename;
-	confirmdlg(trans_text_item("Please Confirm"), trans_text_item("Confirm deletion of directory: ") + filename, processSPIFFSDeleteDir);
+	confirmdlg(trx_text_item("Please Confirm"), trx_text_item("Confirm deletion of directory: ") + filename, processSPIFFSDeleteDir);
 }
 
 function processSPIFFSDeleteDir(answer) {
@@ -159,7 +159,7 @@ let old_file_name = "";
 
 function SPIFFSRename(filename) {
 	old_file_name = filename;
-	inputdlg(trans_text_item("New file name"), trans_text_item("Name:"), processSPIFFSRename, old_file_name);
+	inputdlg(trx_text_item("New file name"), trx_text_item("Name:"), processSPIFFSRename, old_file_name);
 }
 
 function processSPIFFSRename(new_file_name) {
@@ -198,7 +198,7 @@ function SPIFFSsuccess(response) {
 function SPIFFSfailed(error_code, response) {
 	id("SPIFFS_loader").style.visibility = "hidden";
 	displayBlock(["refreshSPIFFSbtn", "refreshSPIFFSbtn"]);
-	alertdlg(trans_text_item("Error"), stdErrMsg(error_code, response));
+	alertdlg(trx_text_item("Error"), stdErrMsg(error_code, response));
 	conErr(error_code, response);
 }
 
@@ -208,11 +208,11 @@ function SPIFFSbutton(btnId, btnClass, icon) {
 }
 
 const buildSPIFFSTotalBar = (jsonresponse) => {
-	let content = `${trans_text_item("Total:")} ${jsonresponse.total}`;
-	content += `&nbsp;&nbsp;|&nbsp;&nbsp;${trans_text_item("Used:")} ${jsonresponse.used}&nbsp;`;
+	let content = `${trx_text_item("Total:")} ${jsonresponse.total}`;
+	content += `&nbsp;&nbsp;|&nbsp;&nbsp;${trx_text_item("Used:")} ${jsonresponse.used}&nbsp;`;
 	content += `<meter min='0' max='100' high='90' value='${jsonresponse.occupation}'></meter>&nbsp;${jsonresponse.occupation}%`;
 	if (jsonresponse.status !== "Ok") {
-		content += `<br/>${trans_text_item(jsonresponse.status)}`;
+		content += `<br/>${trx_text_item(jsonresponse.status)}`;
 	}
 
 	return content;
@@ -297,7 +297,7 @@ function SPIFFSdispatchfilestatus(jsonresponse) {
 function refreshSPIFFS() {
 	setValue("SPIFFS_select", "");
 	setHTML("uploadSPIFFSmsg", "");
-	setHTML("SPIFFS_file_name", trans_text_item("No file chosen"));
+	setHTML("SPIFFS_file_name", trx_text_item("No file chosen"));
 	displayNone(["SPIFFS_uploadbtn", "refreshSPIFFSbtn", "SPIFFS_select_files"]);
 	SPIFFSSendCommand("list", "all");
 }
@@ -311,12 +311,12 @@ function checkSPIFFSfiles() {
 		if (files.length === 1) {
 			setHTML("SPIFFS_file_name", files[0].name);
 		} else {
-			const tmp = trans_text_item("$n files");
+			const tmp = trx_text_item("$n files");
 			setHTML("SPIFFS_file_name", tmp.replace("$n", files.length));
 		}
 		id("SPIFFS_uploadbtn").click();
 	} else {
-		setHTML("SPIFFS_file_name", trans_text_item("No file chosen"));
+		setHTML("SPIFFS_file_name", trx_text_item("No file chosen"));
 	}
 }
 
@@ -342,13 +342,13 @@ function SPIFFS_UploadFile() {
 	displayNone(["SPIFFS-select_form", "SPIFFS_uploadbtn"]);
 	SPIFFS_upload_ongoing = true;
 	displayBlock(["uploadSPIFFSmsg", "SPIFFS_prg"]);
-	setHTML("uploadSPIFFSmsg", `${translate_text_item("Uploading")} ${fileList.join(" ")}`);
+	setHTML("uploadSPIFFSmsg", `${trx_text_item("Uploading")} ${fileList.join(" ")}`);
 	SendFileHttp(httpCmd.files, formData, SPIFFSUploadsuccess, SPIFFSUploadfailed);
 }
 
 function SPIFFSUploadsuccess(response) {
 	setValue("SPIFFS-select", "");
-	setHTML("SPIFFS_file_name", trans_text_item("No file chosen"));
+	setHTML("SPIFFS_file_name", trx_text_item("No file chosen"));
 	displayBlock(["SPIFFS-select_form", "refreshSPIFFSbtn"]);
 	displayNone(["SPIFFS_prg", "SPIFFS_uploadbtn"]);
 	setHTML("uploadSPIFFSmsg", "");
@@ -370,12 +370,12 @@ function SPIFFSUploadfailed(error_code, response) {
 	conErr(stdErrMsg(error_code, response));
 	const common = new Common();
 	if (common.esp_error_code !== 0) {
-		alertdlg(trans_text_item("Error"), stdErrMsg(`(${common.esp_error_code})`, common.esp_error_message));
-		setHTML("SPIFFS_status", trans_text_item("Error : ") + common.esp_error_message);
+		alertdlg(trx_text_item("Error"), stdErrMsg(`(${common.esp_error_code})`, common.esp_error_message));
+		setHTML("SPIFFS_status", trx_text_item("Error : ") + common.esp_error_message);
 		common.esp_error_code = 0;
 	} else {
-		alertdlg(trans_text_item("Error"), stdErrMsg(error_code, response));
-		setHTML("SPIFFS_status", stdErrMsg(error_code, response, trans_text_item("Upload failed")));
+		alertdlg(trx_text_item("Error"), stdErrMsg(error_code, response));
+		setHTML("SPIFFS_status", stdErrMsg(error_code, response, trx_text_item("Upload failed")));
 	}
 	SPIFFS_upload_ongoing = false;
 	refreshSPIFFS();

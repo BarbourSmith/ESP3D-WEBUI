@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import {
-	displayBlock, displayNone, setHTML, trans_text_item,
+	displayBlock, displayNone, setHTML, trx_text_item,
 	maslowMsgHandling,
 	loadedValues,
 } from "../common.js";
@@ -28,7 +28,7 @@ describe("scanwifidlg", () => {
 		displayBlock("AP_scan_loader");
 		displayNone("AP_scan_list");
 		displayBlock("AP_scan_status");
-		setHTML("AP_scan_status", trans_text_item("Scanning"));
+		setHTML("AP_scan_status", trx_text_item("Scanning"));
 		displayNone("refresh_scanwifi_btn");
 		//removeIf(production)
 		const testResponse = [

@@ -16,7 +16,7 @@ import {
 	SendRealtimeCmd,
 	StartProbeProcess,
 	setSpindleSpeed,
-	trans_text_item,
+	trx_text_item,
 	setHTML,
 	get_icon_svg,
 } from "./common.js";
@@ -107,7 +107,7 @@ const grblpanel = () => {
 
 	id("global_reset_btn").addEventListener("click", grbl_reset);
 
-	const clearAlarmTitle = `<span class="tooltip-text">${trans_text_item("Clear Alarm")}</span>`
+	const clearAlarmTitle = `<span class="tooltip-text">${trx_text_item("Clear Alarm")}</span>`
 	const bellIcon = get_icon_svg("bell", {h: "1.8em", w: "2em", t: "translate(50,1200) scale(1,-1)", v:"-200 -200 1700 1600", color: "black"});
 	const alarmIcon = bellIcon.replace("</path>", '</path><circle cx="600" cy="600" r="700" stroke="red" stroke-width="100" fill="none"></circle><line x1="106" y1="106" x2="1094" y2="1094" stroke="red" stroke-width="100"></line>');
 	setHTML("clear_status_btn", `${clearAlarmTitle}${alarmIcon}`);

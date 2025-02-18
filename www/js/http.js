@@ -1,4 +1,4 @@
-import { Common, alertdlg, httpCmd, setHTML, trans_text_item, logindlg, pageID } from "./common.js";
+import { Common, alertdlg, httpCmd, setHTML, trx_text_item, logindlg } from "./common.js";
 
 /** A list of various command objects that can be used as a queue */
 const cmd_list = [];
@@ -65,7 +65,7 @@ const validateProcessing = (cmd, step = "") => {
     }
 
     if (cmd_list.length > max_cmd) {
-        http_errorfn(cmd, 503, trans_text_item("Server not responding"));
+        http_errorfn(cmd, 503, trx_text_item("Server not responding"));
         // Exceeded the cmd_list maximum size, this should probably be retried once other commands have been processed and removed
         return -2;
     }
@@ -256,7 +256,7 @@ const process_cmd = (cmd) => {
         default:
             // Unknown command type
             // This should never be true, but just in case we will handle it
-            http_handleError(cmd, 400, trans_text_item(`Unknown command type '${cmdType}'`));
+            http_handleError(cmd, 400, trx_text_item(`Unknown command type '${cmdType}'`));
             break;
     }
 }
@@ -320,14 +320,14 @@ const SendFileHttp = (cmd, postdata, result_fn, error_fn) => {
 const GetIdentificationStatusSuccess = (response_text) => {
     if (!response_text) {
         // treat as guest
-        setHTML("current_ID", trans_text_item("guest"));
+        setHTML("current_ID", trx_text_item("guest"));
         setHTML("current_auth_level", "");
         return;
     }
     const response = JSON.parse(response_text);
     if (typeof response.authentication_lvl !== "undefined") {
         if (response.authentication_lvl === "guest") {
-            setHTML("current_ID", trans_text_item("guest"));
+            setHTML("current_ID", trx_text_item("guest"));
             setHTML("current_auth_level", "");
         }
     }
@@ -341,7 +341,7 @@ const GetIdentificationStatus = () => {
 const ProcessHttpCommand = (cmd) => {
     const common = new Common();
     if (common.http_communication_locked) {
-        http_errorfn(503, trans_text_item("Communication locked!"));
+        http_errorfn(503, trx_text_item("Communication locked!"));
         console.warn("locked");
         return;
     }
@@ -371,7 +371,7 @@ const ProcessHttpCommand = (cmd) => {
 const CheckForHttpCommLock = () => {
     const common = new Common();
     if (common.http_communication_locked) {
-        alertdlg(trans_text_item("Busy..."), trans_text_item("Communications are currently locked, please wait and retry."));
+        alertdlg(trx_text_item("Busy..."), trx_text_item("Communications are currently locked, please wait and retry."));
         console.warn("communication locked");
     }
     return common.http_communication_locked;

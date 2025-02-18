@@ -1,5 +1,5 @@
 import {
-	trans_text_item,
+	trx_text_item,
 	conErr,
 	displayBlock,
 	displayNone,
@@ -25,7 +25,7 @@ const logindlg = (closefunc, check_first = false) => {
 	id("login_submit_btn").addEventListener("click", SubmitLogin);
 
 	const iconOptions = { t: "translate(50,1200) scale(1,-1)" };
-	const buildTitle = (icon, label) => `${get_icon_svg(icon, iconOptions)}<span id="login_title">${trans_text_item(label)}</span>`;
+	const buildTitle = (icon, label) => `${get_icon_svg(icon, iconOptions)}<span id="login_title">${trx_text_item(label)}</span>`;
 	setHTML("login_title_container", buildTitle("login", "Identification requested"));
 
 	displayNone("login_loader");
@@ -53,7 +53,7 @@ function checkloginsuccess(response_text) {
 	if ("authentication_lvl" in response && typeof response.authentication_lvl !== "undefined") {
 		if (response.authentication_lvl !== "guest") {
 			if (typeof response.authentication_lvl !== "undefined") {
-				setHTML("current_auth_level", `(${trans_text_item(response.authentication_lvl)})`);
+				setHTML("current_auth_level", `(${trx_text_item(response.authentication_lvl)})`);
 			}
 			if (typeof response.user !== "undefined") {
 				setHTML("current_ID", response.user);
@@ -78,17 +78,17 @@ function login_password_OnKeyUp(event) {
 function loginfailed(error_code, response_text) {
 	const response = parseResponse(response_text, "failed login attempt");
 
-	setHTML("login_title", trans_text_item(response.status || "Identification invalid!"));
+	setHTML("login_title", trx_text_item(response.status || "Identification invalid!"));
 	conErr(error_code, response_text);
 	displayBlock("login_content");
-	setHTML("current_ID", trans_text_item("guest"));
+	setHTML("current_ID", trx_text_item("guest"));
 	displayNone(["login_loader", "logout_menu", "logout_menu_divider", "password_menu"]);
 }
 
 function loginsuccess(response_text) {
 	const response = parseResponse(response_text, "login success");
 	if ("authentication_lvl" in response && typeof response.authentication_lvl !== "undefined") {
-		setHTML("current_auth_level", `(${trans_text_item(response.authentication_lvl)})`);
+		setHTML("current_auth_level", `(${trx_text_item(response.authentication_lvl)})`);
 	}
 	displayNone("login_loader");
 	displayBlock(["logout_menu", "logout_menu_divider", "password_menu"]);
@@ -109,13 +109,13 @@ function SubmitLogin() {
 }
 
 function DisconnectionSuccess(response_text) {
-	setHTML("current_ID", trans_text_item("guest"));
+	setHTML("current_ID", trx_text_item("guest"));
 	setHTML("current_auth_level", "");
 	displayNone(["logout_menu", "logout_menu_divider", "password_menu"]);
 }
 
 function DisconnectionFailed(error_code, response) {
-	setHTML("current_ID", trans_text_item("guest"));
+	setHTML("current_ID", trx_text_item("guest"));
 	setHTML("current_auth_level", "");
 	displayNone(["logout_menu", "logout_menu_divider", "password_menu"]);
 	conErr(error_code, response);

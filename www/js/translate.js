@@ -1,7 +1,7 @@
 import { translate_text_item, getPrefValue, HTMLDecode } from "./common.js";
 
-/** Call translate_text_tem, already knowing what the selected language is */
-const trans_text_item = (item_text, withtag = false) => {
+/** Call translate_text_item, already knowing what the selected language is */
+const trx_text_item = (item_text, withtag = false) => {
 	const selLang = getPrefValue("language_list");
 	return translate_text_item(item_text, selLang, withtag);
 }
@@ -41,4 +41,4 @@ const translate_text = (lang = "") => {
 	}
 };
 
-export { translate_text, trans_text_item };
+export { translate_text, trx_text_item };

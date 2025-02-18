@@ -9,7 +9,7 @@ import {
 	grblHandleMessage,
 	reportNone,
 	clear_cmd_list,
-	trans_text_item,
+	trx_text_item,
 	UIdisableddlg,
 	valueStartsWith,
 } from "./common.js";
@@ -75,7 +75,7 @@ const Disable_interface = (lostconnection) => {
 		event_source.removeEventListener("DHT", DHT_events, false);
 	}
 	ws_source.close();
-	document.title += `('${HTMLDecode(trans_text_item("Disabled"))})`;
+	document.title += `('${HTMLDecode(trx_text_item("Disabled"))})`;
 	UIdisableddlg(lostcon);
 };
 

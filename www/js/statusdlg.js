@@ -14,7 +14,7 @@ import {
 	httpCmdType,
 	buildHttpCommandCmd,
 	SendGetHttp,
-	trans_text_item,
+	trx_text_item,
 } from "./common.js";
 
 const statusDlgCancel = () => closeModal("cancel");
@@ -53,7 +53,7 @@ const buildSettingList = (dataDef) => {
 	const settingList = ["<dl>"];
 	for (let i = 0; i < dataDef.length; i++) {
 		const data = dataDef[i];
-		settingList.push(`<dt>${trans_text_item(data.name)}</dt><dd class='text-info'>${data.value || ""}</dd>`);
+		settingList.push(`<dt>${trx_text_item(data.name)}</dt><dd class='text-info'>${data.value || ""}</dd>`);
 	}
 	settingList.push("</dl>");
 	return settingList.join("\n");

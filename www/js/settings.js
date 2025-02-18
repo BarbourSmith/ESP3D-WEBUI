@@ -19,7 +19,7 @@ import {
   httpCmdType,
   buildHttpCommandCmd,
   SendGetHttp,
-  trans_text_item,
+  trx_text_item,
   restartdlg,
   CheckForHttpCommLock,
   setClassName,
@@ -79,7 +79,7 @@ const sId = (sEntry, j, pf = "") => `${pf}${sEntry.id}_${j}`;
 
 /** Build a select option, includes ugly workaround for OSX Chrome and Safari.
  * Also note that the `translate` attribute is set to yes to instruct the browser to use its own translation
- * Therefore do NOT supply a span with translation details to this function e.g. from a call to `trans_text_item`
+ * Therefore do NOT supply a span with translation details to this function e.g. from a call to `trx_text_item`
  */
 const bOpt = (value, isSelected, label) =>
   `<option value='${value}' ${isSelected ? "selected " : ""}translate="yes">${label}${browser_is("MacOSX") ? "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" : ""}</option>\n`;
@@ -131,6 +131,12 @@ function update_UI_setting() {
   }
 }
 
+/** Build a span with the translated text */
+const trx_span = (item_text) => {
+    const translated_content = trx_text_item(item_text)
+    return `<span english_content="${item_text}" translate>${translated_content}</span>`;
+}
+
 /** to generate setting editor in setting or setup */
 const build_control_from_index = (i, actions, extra_set_function = (i) => { }) => {
   let content = "<table>";
@@ -143,7 +149,7 @@ const build_control_from_index = (i, actions, extra_set_function = (i) => { }) =
       }
       content += "<tr><td style='vertical-align: middle;'>";
       if (scl[i].type === "F") {
-        content += trans_text_item(scl[i].Options[j].display, true);
+        content += trx_span(scl[i].Options[j].display);
         content += "</td><td>&nbsp;</td><td>";
       }
 
@@ -191,7 +197,7 @@ const build_control_from_index = (i, actions, extra_set_function = (i) => { }) =
       content += "<input class='hide_it'></input>";
       content += "<div class='input-group-btn'>";
       const btnId = sId(scl[i], j, "btn_");
-      content += `<button id='${btnId}' class='btn btn-default' translate english_content='Set'>${trans_text_item("Set")}</button>`;
+      content += `<button id='${btnId}' class='btn btn-default' translate english_content='Set'>${trx_text_item("Set")}</button>`;
       actions.push({
         id: btnId,
         type: "click",
@@ -287,7 +293,7 @@ const build_HTML_setting_list = (filter) => {
   for (let i = 0; i < scl.length; i++) {
     const fname = scl[i].F.trim().toLowerCase();
     if (fname === "network" || fname === filter || filter === "all") {
-      let tr = `<tr><td style='vertical-align:middle'>${trans_text_item(scl[i].label, true)}`;
+      let tr = `<tr><td style='vertical-align:middle'>${trx_span(scl[i].label)}`;
       const tooltip = CONFIG_TOOLTIPS[scl[i].label.substring(1)];
       if (tooltip) {
         tr += '<div class="tooltip" style="padding-left: 20px; margin-top: 10px;">';
@@ -563,7 +569,7 @@ function settingsetvalue(i, j = 0) {
   //if not valid show error
   if (!isvalid) {
     setsettingerror(i);
-    alertdlg(trans_text_item("Out of range"), `${trans_text_item("Value must be ") + setting_error_msg} !`);
+    alertdlg(trx_text_item("Out of range"), `${trx_text_item("Value must be ")}${setting_error_msg} !`);
   } else {
     //value is ok save it
     setting_lasti = i;
@@ -631,7 +637,7 @@ function setESPsettingsSuccess(response) {
 
 function setESPsettingsfailed(error_code, response) {
   const errMsg = stdErrMsg(error_code, response);
-  alertdlg(trans_text_item("Set failed"), errMsg);
+  alertdlg(trx_text_item("Set failed"), errMsg);
   conErr(errMsg);
   setBtn(setting_lasti, setting_lastj, "btn-danger");
   const iconName = `icon_setting_${setting_lasti}_${setting_lastj}`;
@@ -644,7 +650,7 @@ function getESPsettingsSuccess(response) {
   displayNone("settings_loader");
   displayBlock("settings_refresh_btn");
   if (!process_settings_answer(response)) {
-    getESPsettingsfailed(406, trans_text_item("Wrong data"));
+    getESPsettingsfailed(406, trx_text_item("Wrong data"));
     console.log(response);
     return;
   }
@@ -656,11 +662,11 @@ function getESPsettingsfailed(error_code, response) {
   conErr(error_code, response);
   displayNone("settings_loader");
   displayBlock(["settings_status", "settings_refresh_btn"]);
-  setHTML("settings_status", stdErrMsg(error_code, response, trans_text_item("Failed")));
+  setHTML("settings_status", stdErrMsg(error_code, response, trx_text_item("Failed")));
 }
 
 const restart_esp = () => {
-  confirmdlg(trans_text_item("Please Confirm"), trans_text_item("Restart FluidNC"), process_restart_esp);
+  confirmdlg(trx_text_item("Please Confirm"), trx_text_item("Restart FluidNC"), process_restart_esp);
 };
 
 function process_restart_esp(answer) {

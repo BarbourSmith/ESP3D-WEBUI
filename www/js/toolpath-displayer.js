@@ -720,7 +720,7 @@ class ToolpathDisplayer {
 		initialMoves = true;
 		displayHandlers.position = initialPosition;
 		const common = new Common();
-		displayHandlers.modal = common.GCodeModal;
+		displayHandlers.modal = common.modal;
 		new Toolpath(displayHandlers).loadFromLinesSync(gcodeLines);
 
 		drawTool(initialPosition);
@@ -745,7 +745,7 @@ class ToolpathDisplayer {
 		}
 
 		const common = new Common();
-		tpDisplayer().showToolpath(gcode, common.GCodeModal, position);
+		tpDisplayer().showToolpath(gcode, common.modal, position);
 	}
 }
 

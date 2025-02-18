@@ -181,7 +181,7 @@ import {
 } from "./tablet.js";
 import { drawTPBtns } from "./tabletControls.js";
 import { arrayToXYZ, refreshGcode, tpDisplayer, tpInit } from "./toolpath-displayer.js";
-import { translate_text, trans_text_item } from "./translate.js";
+import { translate_text, trx_text_item } from "./translate.js";
 import { UIdisableddlg } from "./UIdisableddlg.js";
 import { updatedlg } from "./updatedlg.js";
 
@@ -507,7 +507,7 @@ export {
 	// from "./toolpath-displayer.js";
 	arrayToXYZ, refreshGcode, tpDisplayer, tpInit,
 	// from translate.js
-	translate_text, trans_text_item,
+	translate_text, trx_text_item,
 	// from UIdisableddlg.js
 	UIdisableddlg,
 	// from updatedlg.js

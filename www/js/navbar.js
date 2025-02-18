@@ -11,7 +11,7 @@ import {
 	configtab,
 	changepassworddlg,
 	showpreferencesdlg,
-	trans_text_item,
+	trx_text_item,
 	logindlg,
 	DisconnectLogin,
 	setupdlg,
@@ -24,7 +24,7 @@ const navBarConfigTabLink = (event) => opentab(event, "configtab", "mainuitabsco
 const navBarSettingTabLink = (event) => opentab(event, "settingstab", "mainuitabscontent", "mainuitablinks");
 const navBarTabletTabLink = (event) => opentab(event, "tablettab", "mainuitabscontent", "mainuitablinks");
 
-const navBarLogout = () => confirmdlg(translate_text_item("Disconnection requested"), translate_text_item("Please confirm disconnection."), DisconnectLogin);
+const navBarLogout = () => confirmdlg(trx_text_item("Disconnection requested"), trx_text_item("Please confirm disconnection."), DisconnectLogin);
 
 /** Set up the event handlers for the navbar */
 const navbar = () => {
@@ -46,8 +46,8 @@ const navbar = () => {
 	id("logout_menu").addEventListener("click", navBarLogout);
 
 	const iconOptions = { t: "translate(50,1200) scale(1,-1)" };
-	const buildTabLinkItem = (icon, label) => `${get_icon_svg(icon, iconOptions)}<span>${trans_text_item(label)}</span>`;
-	// const buildConfigTabLinkItem = (icon, label) => `${get_icon_svg(icon, iconOptions)}<span id='tab_printer_configuration'><span>${trans_text_item(label)}</span></span>`;
+	const buildTabLinkItem = (icon, label) => `${get_icon_svg(icon, iconOptions)}<span>${trx_text_item(label)}</span>`;
+	// const buildConfigTabLinkItem = (icon, label) => `${get_icon_svg(icon, iconOptions)}<span id='tab_printer_configuration'><span>${trx_text_item(label)}</span></span>`;
 	setHTML("maintablink", buildTabLinkItem("tasks", ""));
 	setHTML("camtablink", buildTabLinkItem("facetime-video", "Camera"));
 	// setHTML("configtablink", buildTabLinkItem("wrench", "Printer"));
@@ -59,7 +59,7 @@ const navbar = () => {
 	setHTML("dropdownSetup", get_icon_svg("align-justify", iconDDOptions));
 	setHTML("dropdownAuth", `${get_icon_svg("align-justify", iconDDOptions)}<span id="current_ID"></span><span id="current_auth_level"></span>`);
 
-	const buildDropDownItem = (title, icon) => `<span class="pull-right">${trans_text_item(title)}</span><span class="pull-left">${get_icon_svg(icon, iconOptions)}</span><span class="clearfix"></span>`
+	const buildDropDownItem = (title, icon) => `<span class="pull-right">${trx_text_item(title)}</span><span class="pull-left">${get_icon_svg(icon, iconOptions)}</span><span class="clearfix"></span>`
 	// setHTML("FW_github", buildDropDownItem("Firmware", "cog"));
 	// setHTML("UI_github", buildDropDownItem("Interface", "eye-open"));
 	setHTML("showPreferencesDlg", buildDropDownItem("Preferences", "star"));
@@ -101,7 +101,7 @@ const ontoggleLock = (forcevalue) => {
 
 	const jogUIElem = id("JogUI");
 	if (getChecked("lock_UI") !== "false") {
-		setHTML("lock_UI_btn_txt", trans_text_item("Unlock interface"));
+		setHTML("lock_UI_btn_txt", trx_text_item("Unlock interface"));
 		disable_items(id("maintab"), true);
 		disable_items(id("configtab"), true);
 		enableItem("progress_btn");
@@ -115,7 +115,7 @@ const ontoggleLock = (forcevalue) => {
 			displayNone("JogUI");
 		}
 	} else {
-		setHTML("lock_UI_btn_txt", trans_text_item("Lock interface"));
+		setHTML("lock_UI_btn_txt", trx_text_item("Lock interface"));
 		disable_items(id("maintab"), false);
 		disable_items(id("configtab"), false);
 		enableItem("settings_update_fw_btn");

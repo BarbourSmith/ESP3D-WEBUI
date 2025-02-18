@@ -46,7 +46,7 @@ const translated_list = [];
 					//endRemoveIf(production)
 				}
 				content = All[i].getAttribute("english_content");
-				translated_content = trans_text_item(content);
+				translated_content = trx_text_item(content);
 	
 				All[i].innerHTML = translated_content;
 			}
@@ -66,7 +66,7 @@ const translated_list = [];
 				}
 				content = All[i].getAttribute("english_content");
 	
-				translated_content = HTMLDecode(trans_text_item(content));
+				translated_content = HTMLDecode(trx_text_item(content));
 				All[i].setAttribute("placeholder", translated_content);
 			}
 		}

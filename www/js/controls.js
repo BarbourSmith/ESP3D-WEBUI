@@ -13,7 +13,7 @@ import {
 	SendPrinterCommand,
 	buildHttpFileGetCmd,
 	SendGetHttp,
-	trans_text_item,
+	trx_text_item,
 	showmacrodlg,
 } from "./common.js";
 
@@ -140,7 +140,7 @@ function onPosIntervalChange() {
 		setChecked("autocheck_position", false);
 		setValue("controlpanel_interval_positions", 0);
 		if (interval !== 0) {
-			alertdlg(trans_text_item("Out of range"), trans_text_item("Value of auto-check must be between 0s and 99s !!"));
+			alertdlg(trx_text_item("Out of range"), trx_text_item("Value of auto-check must be between 0s and 99s !!"));
 		}
 		on_autocheck_position();
 	}
