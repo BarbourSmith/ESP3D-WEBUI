@@ -1,5 +1,4 @@
 import loadHTML from "./bun_loadhtml";
-import html from "bun-plugin-html";
 import { platform } from "bun-utilities/os";
 import { minifySync } from "@swc/html";
 
@@ -86,104 +85,6 @@ const stripImports = async (fileContents: string) => {
 	return fcImp;
 };
 
-const loadAndReplaceHTML = async (filePath: string, fileContents: string) => {
-	const fcLower = fileContents.toLowerCase();
-	const hasLoadHTML = fcLower.includes("loadhtml");
-	const hasSVG = fcLower.includes(".svg");
-	console.log(`Processing '${filePath}'`);
-	if (!hasLoadHTML && !hasSVG) {
-		// Leave the file as-is - and move on
-		console.log(`No 'loadhtml' or '.svg' in '${filePath}'`);
-		return fileContents;
-	}
-
-	let fcProcessed = fileContents;
-
-	if (hasLoadHTML) {
-		console.log(`Processing '${filePath}' for included HTML files`);
-		// Remove the script that does the html loading - we won't need it after bundling
-		const regexScript = /\<script.*loadhtml.*>\<\/script>/gim;
-		const fcNoLoad = fileContents.replace(regexScript, "");
-
-		// Now find all of the places where the above script was used
-		const regexHTML = /\<div\s+id\s*=\s*['"](?<htmlpath>.*\.html)['"]\s*class.*loadhtml.*><\/div>/gm;
-		const loadHTMLResults = [...fcNoLoad.matchAll(regexHTML)];
-		if (!loadHTMLResults.length) {
-			// Leave the file as-is-ish - and move on
-			return fcNoLoad;
-		}
-
-		// Finally replace the original `div` with the actual file
-		let fcReplLoad = fcNoLoad;
-		for (let ix = 0; ix < loadHTMLResults.length; ix++) {
-			const lhr = loadHTMLResults[ix];
-			const childFilePath = lhr[1].replace("./sub/", "./www/sub/");
-			const hFile = Bun.file(childFilePath);
-			let hText = await hFile.text();
-			if (hText.includes(".svg")) {
-				const regexSVG = /\<img\s+src\s*=\s*['"](?<svgpath>.*\.svg)['"].*><\/img>/gim;
-				const findSVGResults = [...hText.matchAll(regexSVG)];
-				if (findSVGResults.length) {
-					console.log(`found SVGs in ${childFilePath}`);
-					for (let jx = 0; jx < findSVGResults.length; jx++) {
-						const svr = findSVGResults[jx];
-						const svgPath = svr[1].replace("../images/", "./www/images/");
-						const svgFile = Bun.file(svgPath);
-						const svgExists = await svgFile.exists();
-						if (svgExists) {
-							hText = hText.replace(svr[0], await svgFile.text());
-						}
-					}
-				}
-			}
-			fcReplLoad = fcReplLoad.replace(lhr[0], hText);
-
-			if (hText.includes("loadhtml")) {
-				fcReplLoad = await loadAndReplaceHTML(childFilePath, fcReplLoad);
-			}
-		}
-
-		fcProcessed = fcReplLoad;
-	}
-
-	return fcProcessed;
-};
-
-const build = async () => {
-	await Bun.build({
-		entrypoints: ["./www/index.html", "./www/js/app.js"],
-		outdir: "./dist",
-		target: "browser",
-		format: "esm",
-		splitting: false,
-		naming: "[dir]/[name].[ext]",
-		minify: { whitespace: true, syntax: true, identifiers: false },
-		plugins: [
-			loadHTML,
-			// html({
-			// 	inline: true,
-			// 	keepOriginalPaths: false,
-			// 	async preprocessor(processor) {
-			// 		const files = processor.getFiles();
-
-			// 		// CSS also gets processed, but it falls right through this loop unaffected
-
-			// 		//  Process JS / TS before the HTML
-			// 		for (const file of files) {
-			// 			if (![".js", ".ts"].includes(file.extension)) {
-			// 				continue;
-			// 			}
-			// 			let jsFile = "";
-			// 			// biome-ignore lint/complexity/noForEach: <explanation>
-			// 			["loadHTML.js", "langUtils.js", "common.js", "app.js"].forEach((fileName) => {
-			// 				if (jsFile) {
-			// 					return;
-			// 				}
-			// 				if (file.path.endsWith(fileName)) {
-			// 					jsFile = fileName;
-			// 				}
-			// 			});
-			// 			console.log(`Processing JS/TS file '${file.path}' as '${jsFile}'`);
 			// 			switch (jsFile) {
 			// 				case "loadHTML.js":
 			// 					console.warn(
@@ -206,20 +107,18 @@ const build = async () => {
 			// 					break;
 			// 				}
 			// 			}
-			// 		}
 
-			// 		for (const file of files) {
-			// 			if (file.extension !== ".html") {
-			// 				// Now we're only processing html files
-			// 				continue;
-			// 			}
-			// 			console.log(`Processing HTML file '${file.path}'`);
-			// 			const fc = await file.content;
-			// 			// const fcRep = await loadAndReplaceHTML(file.path, fc);
-			// 			// processor.writeFile( file.path, fcRep );
-			// 		}
-			// 	},
-			// }),
+const build = async () => {
+	await Bun.build({
+		entrypoints: ["./www/index.html", "./www/js/app.js"],
+		outdir: "./dist",
+		target: "browser",
+		format: "esm",
+		splitting: false,
+		naming: "[dir]/[name].[ext]",
+		minify: { whitespace: true, syntax: true, identifiers: false },
+		plugins: [
+			loadHTML,
 		],
 	});
 };
