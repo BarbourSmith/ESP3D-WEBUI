@@ -1,65 +1,27 @@
-import loadHTML from "./bun_loadhtml";
+import type { BuildConfig } from "bun";
 import { platform } from "bun-utilities/os";
-import { minifySync } from "@swc/html";
+import { readdir } from "node:fs/promises";
+import path from "node:path";
+import loadHTML from "./bun_loadhtml";
+import limitedLanguage from "./bun_limitedLanguage";
 
-const cleanDist = () => {
-	console.log("No file delete function in bun yet. So no `cleanDist`");
+const getOutDir = (config: BuildConfig) => ("outdir" in config && config.outdir) ? config.outdir : "./dist";
+/** Get the full path of the index.html file in the output dir */
+const getIndexPath = (config: BuildConfig) => path.join(import.meta.dir, getOutDir(config), "index.html");
 
-	console.log(Bun.env.npm_lifecycle_script);
-	console.log(import.meta.dir);
-};
-
-const pathDiv = (path: string) => path.replaceAll("\\", platform() !== "windows" ? "/" : "\\\\");
-
-const limitedLanguageImports = async (fileContents: string, inclLang: string[] = ["en"]) => {
-	const langUtilsFile = [];
-	/** This should correspond exactly with `language_list in `langUtils.js` */
-	const language_list = [
-		["de", "germantrans"],
-		["en", "englishtrans"],
-		["es", "spanishtrans"],
-		["fr", "frenchtrans"],
-		["it", "italiantrans"],
-		["ja", "japanesetrans"],
-		["hu", "hungariantrans"],
-		["pl", "polishtrans"],
-		["ptbr", "ptbrtrans"],
-		["ru", "russiantrans"],
-		["tr", "turkishtrans"],
-		["uk", "ukrtrans"],
-		["zh_CN", "zh_CN_trans"],
-	];
-	for (let ix = 0; ix < language_list.length; ix++) {
-		const lang = language_list[ix];
-		if (inclLang.includes(lang[0])) {
-			const absPath = pathDiv(`${import.meta.dir}\\www\\js\\language\\${lang[0]}.json`);
-			langUtilsFile.push(`import ${lang[1]} from "${absPath}" with {type: "json"};`);
+const cleanDist = async (config: BuildConfig) => {
+	const outdir = getOutDir(config);
+	const fullOutDir = path.join(import.meta.dir, outdir);
+	console.log(`Cleaning the output directory ${fullOutDir}`);
+	const files = await readdir(fullOutDir, { recursive: true });
+	for (const f of files.sort((a, b) => b.length - a.length)) {
+		const ff = path.join(fullOutDir, f)
+		try {
+			await Bun.file(ff).delete();
+		} catch (error) {
+			console.warn(`Can't remove directories, such as ${ff} .... yet`);
 		}
 	}
-	// Add in the original file
-	langUtilsFile.push(fileContents);
-
-	return langUtilsFile.join("\n");
-};
-
-/** Change all import filepaths to their absolute version */
-const absolutifyImports = async (fileContents: string) => {
-	const regexImp = /}\s*from\s*['"](?<imppath>.*)['"]\;/gm;
-	const impResults = [...fileContents.matchAll(regexImp)];
-	if (!impResults.length) {
-		// Leave the file as-is - and move on
-		return fileContents;
-	}
-
-	let fcAbsImp = fileContents;
-	const repPath = `${import.meta.dir}\\www\\js\\`;
-	for (let ix = 0; ix < impResults.length; ix++) {
-		const ir = impResults[ix];
-		const impFilePath = pathDiv(ir[1].replace("./", repPath));
-		fcAbsImp = fcAbsImp.replace(ir[1], impFilePath);
-		console.log(`Replaced '${ir[1]}' with '${impFilePath}'`);
-	}
-	return fcAbsImp;
 };
 
 const addBuildDate = (fileContents: string) => {
@@ -68,50 +30,11 @@ const addBuildDate = (fileContents: string) => {
 	return fileContents.replace(regex, subst);
 }
 
-/** Strip all import filepaths on the assumption that they are already imported */
-const stripImports = async (fileContents: string) => {
-	const regexImp = /^import\s*{(.|\s)*?}\s*from\s*['"].*['"]\;/gm;
-	const impResults = [...fileContents.matchAll(regexImp)];
-	if (!impResults.length) {
-		// Leave the file as-is - and move on
-		return fileContents;
-	}
-
-	let fcImp = fileContents;
-	for (let ix = 0; ix < impResults.length; ix++) {
-		const ir = impResults[ix];
-		fcImp = fcImp.replace(ir[0], "");
-	}
-	return fcImp;
-};
-
-			// 			switch (jsFile) {
-			// 				case "loadHTML.js":
-			// 					console.warn(
-			// 						`Skipping processing of JS/TS file '${file.path}'. This file is only used when doing debug runs.`,
-			// 					);
-			// 					break;
-			// 				case "langUtils.js": {
-			// 					const fcLang = await limitedLanguageImports(await file.content);
-			// 					processor.writeFile(file.path, fcLang);
-			// 					break;
-			// 				}
-			// 				case "common.js": {
-			// 					const fcAbsImp = await absolutifyImports(await file.content);
-			// 					processor.writeFile(file.path, addBuildDate(fcAbsImp));
-			// 					break;
-			// 				}
-			// 				case "app.js": {
-			// 					const fcImp = await stripImports(await file.content);
-			// 					processor.writeFile(file.path, fcImp);
-			// 					break;
-			// 				}
-			// 			}
-
-const build = async () => {
+const build = async (config: BuildConfig) => {
 	await Bun.build({
-		entrypoints: ["./www/index.html", "./www/js/app.js"],
-		outdir: "./dist",
+		entrypoints: ("entrypoints" in config && config.entrypoints) ? config.entrypoints : ["./www/index.html"],
+		outdir: getOutDir(config),
+		define: ("define" in config && config.define) ? config.define : { language: "en" },
 		target: "browser",
 		format: "esm",
 		splitting: false,
@@ -119,53 +42,65 @@ const build = async () => {
 		minify: { whitespace: true, syntax: true, identifiers: false },
 		plugins: [
 			loadHTML,
+			limitedLanguage,
 		],
 	});
 };
 
-/** One final replacement to effectively merge common.js and app.js together in the html */
-const mergeInlineScript = async () => {
-	const indexFile = Bun.file("./dist/index.html");
-	const data = (await indexFile.text()).replace('</script><script type="module">window.onload', ";window.onload");
-	// Keep a record of our changes
-	Bun.write("./dist/index.html", data);
+const mergeInline = async (config: BuildConfig, contType: string, regexType: RegExp, tag: string) => {
+	const indexInPath = getIndexPath(config);
+	const indexFile = Bun.file(indexInPath);
+	const decoder = new TextDecoder();
+	const indexBuff = await indexFile.arrayBuffer();
+	let indexContents = decoder.decode(indexBuff);
+	const outputContents = [];
+
+	console.log(`Merging ${contType} into ${indexInPath}`);
+	const typeResults = [...indexContents.matchAll(regexType)];
+	if (typeResults.length) {
+		for (let jx = 0; jx < typeResults.length; jx++) {
+			const tsr = typeResults[jx];
+			const tPath = path.join(getOutDir(config), tsr[1]);
+			const tFile = Bun.file(tPath);
+			const tExists = await tFile.exists();
+			if (tExists) {
+				const tBuff = await tFile.arrayBuffer();
+				const tText = decoder.decode(tBuff);
+				const splitContents = indexContents.split(tsr[0]);
+				outputContents.push(splitContents[0]);
+				outputContents.push(`<${tag}>`);
+				outputContents.push(tText);
+				outputContents.push(`</${tag}>`);
+				outputContents.push(splitContents[1]);
+				indexContents = splitContents[1];
+			}
+		}
+	} else {
+		outputContents.push(indexContents);
+		console.warn(`Did not find a ${contType} link in ${indexInPath} . This was unexpected.`);
+	}
+
+	await Bun.write(indexInPath, outputContents.join("\n"));
 }
 
-const compress = async () => {
-	const indexFile = Bun.file("./dist/index.html");
+/** One final replacement to effectively merge all the css and js together in the html */
+const mergeInlineScript = async (config: BuildConfig) => {
+	await mergeInline(config, "CSS", /\<link\s+rel\s*=\s*['"]stylesheet['"].*href\s*=\s*['"](?<cssFile>.*?)['"](\/)?\>/igm, "style");
+	await mergeInline(config, "JS", /<script\s+type\s*=\s*['"]module['"].*src\s*=\s*['"](?<jsFile>.*)['"]><\/script>/igm, "script");
+}
+
+const compress = async (config: BuildConfig) => {
+	const indexInPath = getIndexPath(config);
+	const indexOutPath = `${indexInPath}.gz`;
+	const indexFile = Bun.file(indexInPath);
 	const data = await indexFile.arrayBuffer();
-	// const { code, map } = minifySync(data, {
-	// 		// filename?: string;
-	// 		// iframeSrcdoc?: boolean;
-	// 		scriptingEnabled: true,
-	// 		// forceSetHtml5Doctype?: boolean;
-	// 		collapseWhitespaces: "all",
-	// 		removeEmptyMetadataElements: true,
-	// 		removeComments: true,
-	// 		// preserveComments?: string[],
-	// 		minifyConditionalComments: true,
-	// 		removeEmptyAttributes: true,
-	// 		removeRedundantAttributes: "all",
-	// 		collapseBooleanAttributes: true,
-	// 		normalizeAttributes: true,
-	// 		minifyJson: true,
-	// 		// TODO improve me after typing `@swc/css`
-	// 		minifyJs: true,
-	// 		minifyCss: true,
-	// 		// minifyAdditionalScriptsContent?: [string, MinifierType][];
-	// 		// minifyAdditionalAttributes?: [string, MinifierType][];
-	// 		// sortSpaceSeparatedAttributeValues?: boolean;
-	// 		// // sortAttributes?: boolean;
-	// 		// tagOmission?: boolean;
-	// 		// selfClosingVoidElements?: boolean;
-	// 		// quotes?: boolean;
-	// });
 	const compressed = Bun.gzipSync(data, { level: 9 });
-	Bun.write("./dist/index.html.gz", compressed);
+	Bun.write(indexOutPath, compressed);
 };
 
 console.log("Running the build");
-cleanDist();
-await build();
-await mergeInlineScript();
-await compress();
+const baseConfig: BuildConfig = { entrypoints: ["./www/index.html"], outdir: "./dist", define: { language: "en" } };
+await cleanDist(baseConfig);
+await build(baseConfig);
+await mergeInlineScript(baseConfig);
+await compress(baseConfig);

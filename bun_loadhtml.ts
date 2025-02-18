@@ -16,7 +16,9 @@ const loadAndReplaceSVG = async (hText: string, childFilePath: string, spaces = 
 		const svgFile = Bun.file(svgPath);
 		const svgExists = await svgFile.exists();
 		if (svgExists) {
-			svgCheckText = svgCheckText.replace(svr[0], await svgFile.text());
+			const decoder = new TextDecoder();
+			const svgBuff = await svgFile.arrayBuffer();
+			svgCheckText = svgCheckText.replace(svr[0], decoder.decode(svgBuff));
 		}
 	}
 
@@ -29,14 +31,14 @@ const loadAndReplaceHTML = async (filePath: string, fileContents: string, spaces
 	const hasSVG = fcLower.includes(".svg");
 	if (!hasLoadHTML && !hasSVG) {
 		// Leave the file as-is - and move on
-		console.log(`${spaces}No 'loadhtml' or '.svg' in '${filePath}'`);
+		// console.log(`${spaces}No 'loadhtml' or '.svg' in '${filePath}'`);
 		return fileContents;
 	}
 
 	let fcProcessed = fileContents;
 
 	if (hasLoadHTML) {
-		console.log(`${spaces}Processing '${filePath}' for included HTML files`);
+		// console.log(`${spaces}Processing '${filePath}' for included HTML files`);
 		// Remove the script that does the html loading - we won't need it after bundling
 		const regexScript = /\<script.*loadhtml.*>\<\/script>/gim;
 		const fcNoLoad = fileContents.replace(regexScript, "");
@@ -50,13 +52,15 @@ const loadAndReplaceHTML = async (filePath: string, fileContents: string, spaces
 		}
 
 		// Finally replace the original `div` with the actual file
+		const decoder = new TextDecoder();
 		let fcReplLoad = fcNoLoad;
 		for (let ix = 0; ix < loadHTMLResults.length; ix++) {
 			const lhr = loadHTMLResults[ix];
 			const childFilePath = lhr[1].replace("./sub/", "./www/sub/");
-			console.info(`${spaces}Processing included HTML ${childFilePath}`);
+			// console.info(`${spaces}Processing included HTML ${childFilePath}`);
 			const hFile = Bun.file(childFilePath);
-			const hText = await loadAndReplaceSVG(await hFile.text(), childFilePath, `${spaces}  `);
+			const hBuff = await hFile.arrayBuffer();
+			const hText = await loadAndReplaceSVG(decoder.decode(hBuff), childFilePath, `${spaces}  `);
 			fcReplLoad = fcReplLoad.replace(lhr[0], hText);
 
 			if (hText.includes("loadhtml")) {
@@ -73,20 +77,15 @@ const loadAndReplaceHTML = async (filePath: string, fileContents: string, spaces
 const loadHTML: BunPlugin = {
 	name: "Load HTML",
 	setup(build) {
-		build.onLoad({ filter: /\.(html|htm)$/ }, async ({ path, namespace, loader }) => {
-			console.info(`Got path:${path}, namespace:${namespace}`);
-			const fc = await Bun.file(path).text();
-			const fcRep = await loadAndReplaceHTML(path, fc);
+		build.onLoad({ filter: /\.(html|htm)$/ }, async ({ path }) => {
+			const decoder = new TextDecoder();
+			console.info(`Loading ${path} for 'load HTML' processing`);
+			const fcBuff = await Bun.file(path).arrayBuffer();
+			const fcRep = await loadAndReplaceHTML(path, decoder.decode(fcBuff));
 			return {
 				contents: fcRep,
 				loader: "html",
 			};
-		});
-		build.onLoad({ filter: /\.loadHTML.js$/ }, async ({ path, namespace, loader }) => {
-			console.info(`Got path:${path}, namespace:${namespace}`);
-			const fc = await Bun.file(path).text();
-			const fcRep = await loadAndReplaceHTML(path, fc);
-			return;
 		});
 	},
 };
