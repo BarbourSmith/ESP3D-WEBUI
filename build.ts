@@ -1,5 +1,4 @@
 import type { BuildConfig } from "bun";
-import { platform } from "bun-utilities/os";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 import loadHTML from "./bun_loadhtml";
@@ -24,12 +23,6 @@ const cleanDist = async (config: BuildConfig) => {
 	}
 };
 
-const addBuildDate = (fileContents: string) => {
-	const regex = /this\.web_ui_version\s*=\s*['"](?<uiversion>.*)['"]/;
-	const subst = `this.web_ui_version="$<uiversion> (BuildDate: ${new Date().toUTCString()})"`;
-	return fileContents.replace(regex, subst);
-}
-
 const build = async (config: BuildConfig) => {
 	await Bun.build({
 		entrypoints: ("entrypoints" in config && config.entrypoints) ? config.entrypoints : ["./www/index.html"],
@@ -47,7 +40,7 @@ const build = async (config: BuildConfig) => {
 	});
 };
 
-const mergeInline = async (config: BuildConfig, contType: string, regexType: RegExp, tag: string) => {
+const mergeInline = async (config: BuildConfig, contType: string, regexType: RegExp, tagOrRepl: string) => {
 	const indexInPath = getIndexPath(config);
 	const indexFile = Bun.file(indexInPath);
 	const decoder = new TextDecoder();
@@ -66,13 +59,18 @@ const mergeInline = async (config: BuildConfig, contType: string, regexType: Reg
 			if (tExists) {
 				const tBuff = await tFile.arrayBuffer();
 				const tText = decoder.decode(tBuff);
-				const splitContents = indexContents.split(tsr[0]);
-				outputContents.push(splitContents[0]);
-				outputContents.push(`<${tag}>`);
-				outputContents.push(tText);
-				outputContents.push(`</${tag}>`);
-				outputContents.push(splitContents[1]);
-				indexContents = splitContents[1];
+
+				if (contType === "BuildDate") {
+					outputContents.push(indexContents.replace(regexType, tagOrRepl));
+				} else {
+					const splitContents = indexContents.split(tsr[0]);
+					outputContents.push(splitContents[0]);
+					outputContents.push(`<${tagOrRepl}>`);
+					outputContents.push(tText);
+					outputContents.push(`</${tagOrRepl}>`);
+					outputContents.push(splitContents[1]);
+					indexContents = splitContents[1];
+				}
 			}
 		}
 	} else {
@@ -87,6 +85,7 @@ const mergeInline = async (config: BuildConfig, contType: string, regexType: Reg
 const mergeInlineScript = async (config: BuildConfig) => {
 	await mergeInline(config, "CSS", /\<link\s+rel\s*=\s*['"]stylesheet['"].*href\s*=\s*['"](?<cssFile>.*?)['"](\/)?\>/igm, "style");
 	await mergeInline(config, "JS", /<script\s+type\s*=\s*['"]module['"].*src\s*=\s*['"](?<jsFile>.*)['"]><\/script>/igm, "script");
+	// await mergeInline(config, "BuildDate", /this\.web_ui_version\s*=\s*['"](?<uiversion>.*)['"]/gm, `this.web_ui_version="$<uiversion> (BuildDate: ${new Date().toUTCString()})"`);
 }
 
 const compress = async (config: BuildConfig) => {
