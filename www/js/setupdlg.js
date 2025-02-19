@@ -41,7 +41,7 @@ const setupdlg = () => {
     const common = new Common();
     common.setup_is_done = false;
 
-    displayNone("main_ui");
+    // displayNone("main_ui");
     setHTML("settings_list_data", "");
 
     const modal = setactiveModal("setupdlg.html", setupdone);
@@ -113,7 +113,7 @@ function setupdone(response) {
     build_HTML_setting_list(common.current_setting_filter);
     SavePreferences();
     translate_text(getPrefValue("language_list"));
-    displayUndoNone("main_ui");
+    // displayUndoNone("main_ui");
     closeModal("setup done");
 }
 

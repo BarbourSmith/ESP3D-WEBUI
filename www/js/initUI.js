@@ -188,12 +188,7 @@ function initUI_4() {
 		display_boot_progress();
 		build_HTML_setting_list(common.current_setting_filter);
 		closeModal();
-		show_main_UI();
 	}
-}
-
-function show_main_UI() {
-	displayUndoNone("main_ui");
 }
 
 export { Set_page_title, update_UI_firmware_target, initUI };
