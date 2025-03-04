@@ -103,7 +103,7 @@ const grblpanel = () => {
 
     id("grblcontroltablink").addEventListener("click", grblPanelControlTabLink);
     id("grblspindletablink").addEventListener("click", grblPanelSpindleTabLink);
-    id("grblpanel_probetablink").addEventListener("click", grblPanelProbeTabLink);
+    id("grblprobetablink").addEventListener("click", grblPanelProbeTabLink);
 
 	id("global_reset_btn").addEventListener("click", grbl_reset);
 

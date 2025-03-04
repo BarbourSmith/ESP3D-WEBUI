@@ -47,11 +47,14 @@ function SendPrinterCommand(prnCmd, echo_on, processfn, errorfn, cmd_code, max_c
 function SendPrinterCommandSuccess(response) { }
 
 function SendPrinterCommandFailed(error_code, response) {
+    const resp = HTMLDecode((response || "").trim());
     const errMsg = (error_code === 0)
         ? trx_text_item("Connection error")
-        : stdErrMsg(error_code, HTMLDecode(response), trx_text_item("Error"));
+        : stdErrMsg(error_code, resp, trx_text_item("Error"));
+
     Monitor_output_Update(`${errMsg}\n`);
-    conErr(error_code, HTMLDecode(response), "SendPrinterCommand error");
+
+    conErr(error_code, resp, "printer cmd Error");
 }
 
 export { SendPrinterCommand };

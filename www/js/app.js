@@ -7,71 +7,68 @@ import {
 	tabletInit,
 } from "./common.js";
 
-window.onload = () => {
-	//to check if javascript is disabled like in android preview
-	displayNone("loadingmsg");
+let failSafe = 10;
+
+function loadApp() {
 	console.log("Connect to board");
 
-	// These are all falsey, indicating nothing has been loaded
-	let connectDlg = "";
-	let controlsPanel = "";
-	let navbarLoaded = "";
-	let tabletTab = "";
+	const startUp = {
+		connect: { msg: "", fldId: "connectdlg.html", errMsg: "Error loading connect dialog:" },
+		controls: { msg: "", fldId: "controlPanel", errMsg: "Error loading controls panel:" },
+		navBar: { msg: "", fldId: "navbar", errMsg: "Error loading navigation bar:" },
+		tabletTab: { msg: "", fldId: "tablettab", errMsg: "Error loading tablet tab:" }
+	};
 
-	let failSafe = 10;
+	const doPanelStartUp = (panel) => {
+		if (panel.msg || !id(panel.fldId) || typeof panel.fn !== "function") {
+			return;
+		}
+
+		//to check if javascript is disabled like in android preview
+		displayNone("loadingmsg");
+
+		panel.msg = "loading";
+		try {
+			panel.fn(true);
+			panel.msg = "loaded";
+		} catch (err) {
+			console.error(panel.errMsg, err);
+			panel.msg = "failed";
+		}
+	}
 
 	let startUpInt = setInterval(() => {
+		// Because things might not be fully resolved yet, we define the function references in here
+		try {
+			startUp.connect.fn = connectdlg;
+			startUp.controls.fn = ControlsPanel;
+			startUp.navBar.fn = navbar;
+			startUp.tabletTab.fn = tabletInit;
+		} catch (error) {
+			console.warn("Error setting up function references:", error);
+			// Ensure that we always break out of this
+			failSafe--;
+			return;
+		}
+
+
 		// Check for various key HTML panels and load them up
-		if (!connectDlg && id("connectdlg.html")) {
-			connectDlg = "loading";
-			try {
-				connectdlg(true);
-				connectDlg = "loaded";
-			} catch (err) {
-				console.error("Error loading connect dialog:", err);
-				connectDlg = "failed";
-			}
-		}
+		doPanelStartUp(startUp.connect);
+		doPanelStartUp(startUp.controls);
+		doPanelStartUp(startUp.navBar);
+		doPanelStartUp(startUp.tabletTab);
 
-		if (!controlsPanel && id("controlPanel")) {
-			controlsPanel = "loading";
-			try {
-				ControlsPanel();
-				controlsPanel = "loaded";
-			} catch (err) {
-				console.error("Error loading controls panel:", err);
-				controlsPanel = "failed";
-			}
-		}
-
-		if (!navbarLoaded && id("navbar")) {
-			navbarLoaded = "loading";
-			try {
-				navbar();
-				navbarLoaded = "loaded";
-			} catch (err) {
-				console.error("Error loading navigation bar:", err);
-				navbarLoaded = "failed";
-			}
-		}
-
-		if (!tabletTab && id("tablettab")) {
-			tabletTab = "loading";
-			try {
-				tabletInit();
-				tabletTab = "loaded";
-			} catch (err) {
-				console.error("Error loading tablet tab:", err);
-				tabletTab = "failed";
-			}
-		}
-
-		if ((connectDlg && controlsPanel && navbarLoaded && tabletTab) || failSafe <= 0) {
+		if ((startUp.connect.msg && startUp.controls.msg && startUp.navBar.msg && startUp.tabletTab.msg) || failSafe <= 0) {
 			clearInterval(startUpInt);
 			startUpInt = null;
 		}
 
 		// Ensure that we always break out of this
 		failSafe--;
-	}, 500);
-};
+	}, 500,);
+}
+
+window.addEventListener("load", (event) => {
+	// Wait half a second before firing up
+	setTimeout(() => { loadApp(); }, 1000);
+});

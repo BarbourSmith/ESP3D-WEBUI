@@ -33,6 +33,26 @@ const getValue = (name) => id(name)?.value || id(name)?.innerText;
  */
 const getValueTrimmed = (name) => String(getValue(name) || "").trim();
 
+/** Gets an element's `value` value, or its `innerText` value.
+ * And then tries to treat it as a float.
+ * 
+ * Returns a 'NaN' if the element:
+ * * does not exist,
+ * * does not have a `value` or `innerText` value or
+ * * can't be converted to a float
+ */
+const getValueFloat = (name) => Number.parseFloat(getValue(name) || "");
+
+/** Gets an element's `value` value, or its `innerText` value.
+ * And then tries to treat it as an integer.
+ * 
+ * Returns a 'NaN' if the element:
+ * * does not exist,
+ * * does not have a `value` or `innerText` value or
+ * * can't be converted to an integer
+ */
+const getValueInt = (name) => Number.parseInt(getValue(name) || "");
+
 /** Return an element's `innerText` value, or its `value` value.
  * If the element does not exist or does not have a `value` or `innerText` value `undefined` is returned.
  * This does the opposite of getValue, which checks the `value` value first. */
