@@ -152,13 +152,12 @@ function build_HTML_config_list() {
 	}
 	if (content.length) {
 		setHTML("config_list_data", content);
-		// biome-ignore lint/complexity/noForEach: <explanation>
-		actions.forEach((action) => {
+		for (const action of actions) {
 			const elem = id(action.id);
 			if (elem) {
 				elem.addEventListener(action.type, action.method);
 			}
-		});
+		};
 	}
 	displayNone(["config_loader", "config_status"]);
 	displayBlock(["config_list_content", "config_refresh_btn"]);

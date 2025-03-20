@@ -81,13 +81,12 @@ function process_scanWifi_answer(response_text) {
 	}
 	setHTML("AP_scan_data", content);
 
-	// biome-ignore lint/complexity/noForEach: <explanation>
-	actions.forEach((action) => {
+	for (const action of actions) {
 		const elem = id(action.id);
 		if (elem) {
 			elem.addEventListener("click", (event) => action.method(action.index));
 		}
-	});
+	};
 
 	return result;
 }

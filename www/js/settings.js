@@ -314,13 +314,12 @@ const build_HTML_setting_list = (filter) => {
 
   // From settingstab
   setHTML("settings_list_data", content);
-  // biome-ignore lint/complexity/noForEach: <explanation>
-  actions.forEach((action) => {
+  for (const action of actions) {
     const elem = id(action.id);
     if (elem) {
       elem.addEventListener(action.type, action.method);
     }
-  });
+  };
   if (filter === "tree") {
     // TODO: figure out what the correct 'result' should be here - this is a guess
     document.querySelector("#setting__meta_0").value = common.fwData.result;

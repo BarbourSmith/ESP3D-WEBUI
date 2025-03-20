@@ -139,13 +139,12 @@ const maslowMsgHandling = (msg) => {
 				return maslowErrorMsgHandling(`error: No 'name' value specified for '${key}' in the reference table. ${errMsgSuffix}`);
 			}
 			// Traverse through to the required entity
-			// biome-ignore lint/complexity/noForEach: <explanation>
-			cfgVal.name.split(".").forEach((namePart) => {
+			for (const namePart of cfgVal.name.split(".")) {
 				if (!(namePart in dimEnt)) {
 					dimEnt[namePart] = null;
 				}
 				dimEnt = dimEnt[namePart];
-			});
+			};
 			dimEnt = stdDimensionAction(value);
 		}
 			break;
@@ -189,30 +188,27 @@ const allConfigKeys = () => Object.keys(cfgDef).filter((key) => cfgDef[key].type
 
 /** Used to populate the config popup when it loads */
 const loadConfigValues = () => {
-	// biome-ignore lint/complexity/noForEach: <explanation>
-	allConfigKeys().forEach((key) => {
+	for (const key of allConfigKeys()) {
 		const cmd = `$/${M}_${key}`;
 		SendPrinterCommand(cmd);
-	});
+	};
 };
 
 /** Load all of the corner values */
 const loadCornerValues = () => {
-	// biome-ignore lint/complexity/noForEach: <explanation>
-	Object.keys(cfgDef).filter((key) => cfgDef[key].type === "D").forEach((key) => {
+	for (const key of Object.keys(cfgDef).filter((key) => cfgDef[key].type === "D")) {
 		const cmd = `$/${M}_${key}`;
 		SendPrinterCommand(cmd);
-	});
+	};
 };
 
 const saveConfigValues = () => {
 	// Get all of the config data as entered, and as already loaded
-	// biome-ignore lint/complexity/noForEach: <explanation>
-	allConfigKeys().forEach((key) => {
+	for (const key of allConfigKeys()) {
 		const cfgVal = cfgDef[key];
 		cfgVal.val = getValue(cfgVal.name);
 		cfgVal.loadedVal = loadedValues(cfgVal.name);
-	});
+	};
 
 	const gridSpacingWidth = cfgDef.calibration_grid_width_mm_X.val / (cfgDef.calibration_grid_size.val - 1);
 	const gridSpacingHeight = cfgDef.calibration_grid_height_mm_Y.val / (cfgDef.calibration_grid_size.val - 1);
@@ -224,8 +220,7 @@ const saveConfigValues = () => {
 	}
 
 	// Save the individual values
-	// biome-ignore lint/complexity/noForEach: <explanation>
-	allConfigKeys().forEach((key) => {
+	for (const key of allConfigKeys) {
 		const cfgVal = cfgDef[key];
 		const value = typeof cfgVal.val === "undefined"
 			? cfgVal.loadedVal
@@ -234,7 +229,7 @@ const saveConfigValues = () => {
 			const cmd = `$/${M}_${key}=${value}`;
 			sendCommand(cmd);
 		}
-	});
+	};
 
 	const common = new Common();
 	refreshSettings(common.current_setting_filter);

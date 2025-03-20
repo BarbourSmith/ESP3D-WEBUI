@@ -7,8 +7,9 @@ const setDisplay = (name, val) => {
   }
   const names = Array.isArray(name) ? name : [name];
   const elems = names.map((name) => id(name)).filter((elem) => elem);
-  // biome-ignore lint/complexity/noForEach: <explanation>
-  elems.forEach((elem) => { elem.style.display = val;});
+  for (const elem of elems) {
+    elem.style.display = val;
+  };
 }
 
 /** Set the display style of the element (or elements) identified by name(s) to 'none' */

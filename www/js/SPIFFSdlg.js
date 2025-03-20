@@ -104,13 +104,12 @@ const SPIFFSnavbar = () => {
 	}
 
 	setHTML("SPIFFS_path", buildTable(buildTr(content)));
-	// biome-ignore lint/complexity/noForEach: <explanation>
-	actions.forEach((action) => {
+	for (const action of actions) {
 		const elem = id(action.id);
 		if (elem) {
 			elem.addEventListener("click", (event) => action.method(action.path));
 		}
-	});
+	};
 };
 
 const SPIFFS_Createdir = () => inputdlg(trx_text_item("Please enter directory name"), trx_text_item("Name:"), processSPIFFS_Createdir);
@@ -283,13 +282,12 @@ function SPIFFSdispatchfilestatus(jsonresponse) {
 	}
 
 	setHTML("SPIFFS_file_list", content);
-	// biome-ignore lint/complexity/noForEach: <explanation>
-	actions.forEach((action) => {
+	for (const action of actions) {
 		const elem = id(action.id);
 		if (elem) {
 			elem.addEventListener("click", (event) => action.method(action.filename));
 		}
-	});
+	};
 
 	SPIFFSnavbar();
 }

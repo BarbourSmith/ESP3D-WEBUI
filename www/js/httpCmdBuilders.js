@@ -5,7 +5,7 @@ import { files_currentPath, pageID } from "./common.js";
 const httpCmd = {
     command: "/command",
     fileGet: "/",
-    /** Perform a GET file action. Mostly used by files.js (i.e. not SPIFFs) */
+    /** Perform a GET or POST file action. Used by files.js and tablet.js (i.e. not SPIFFs) */
     fileUpload: "/upload",
     /** Perform a files action.
      * For a POST this is used with FormData.
@@ -33,11 +33,38 @@ const getParam = (params, paramName, defaultValue = "") => {
         : defaultValue;
 }
 
+/** Do a deep copy of the obj */
+const deepCopy = (obj) => JSON.parse(JSON.stringify(obj));
+
+/** Build out command based on the supplied parameters, and whether a given parameter should be encoded or not */
+const buildHttpCmd = (httpcmd, params = {}, encKeys = [], noEncKeys = []) => {
+    const cmd = [];
+    const prms = deepCopy(params);
+
+    for (const key of Object.keys(prms)) {
+        let pVal = getParam(prms, key);
+        if (!pVal) {
+            continue;
+        }
+        // If the key is not in the `noEncKeys` list then it will be encoded
+        if (![noEncKeys].includes(key)) {
+            pVal = encodeURIComponent(pVal);
+        }
+        // If the key is in the `encKeys` list then it will be encoded
+        if ([encKeys].includes(key)) {
+            pVal = encodeURIComponent(pVal);
+        }
+        // If this is the first part of the command then prefix it with the httpcmd
+        cmd.push(`${!cmd.length ? httpcmd : ""}?${key}=${pVal}`);
+    }
+
+    return cmd.join("&");
+}
+
 /** Build a full `/login` GET command, encoding the supplied params excluding DISCONNECT (and SUBMIT) */
 const buildHttpLoginCmd = (params = {}) => {
     const cmd = [];
-    // Do a deep copy of the params
-    let prms = JSON.parse(JSON.stringify(params));
+    let prms = deepCopy(params);
 
     if ("DISCONNECT" in prms && prms.DISCONNECT === "yes") {
         // Disconnect - throw away any other parameters
@@ -47,69 +74,22 @@ const buildHttpLoginCmd = (params = {}) => {
         prms.SUBMIT = "yes";
     }
 
-    // biome-ignore lint/complexity/noForEach: <explanation>
-    Object.keys(prms).forEach((key) => {
-        let pVal = getParam(prms, key);
-        if (pVal) {
-            if (!["DISCONNECT", "SUBMIT"].includes(key)) {
-                pVal = encodeURIComponent(pVal);
-            }
-            if (cmd.length) {
-                cmd.push(`${key}=${pVal}`);
-            } else {
-                cmd.push(`${httpCmd.login}?${key}=${pVal}`);
-            }
-        }
-    });
-
-    return cmd.join("&");
+    return buildHttpCmd(httpCmd.login, prms, [], ["DISCONNECT", "SUBMIT"]);
 }
 
 /** Build a full `/files` GET command, encoding all the supplied params excluding `action` */
-const buildHttpFilesCmd = (params = {}) => {
-    const cmd = [];
-
-    // biome-ignore lint/complexity/noForEach: <explanation>
-    Object.keys(params).forEach((key) => {
-        let pVal = getParam(params, key);
-        if (pVal) {
-            if (!["action"].includes(key)) {
-                pVal = encodeURIComponent(pVal);
-            }
-            if (cmd.length) {
-                cmd.push(`${key}=${pVal}`);
-            } else {
-                cmd.push(`${httpCmd.files}?${key}=${pVal}`);
-            }
-        }
-    });
-
-    return cmd.join("&");
-}
+const buildHttpFilesCmd = (params = {}) => buildHttpCmd(httpCmd.files, params, [], ["action"]);
 
 /** Build a full `/upload` GET command, encoding the supplied `name`, `newname` and `path` values */
 const buildHttpFileCmd = (params = { action: "", path: "", filename: "" }) => {
+    const prms = deepCopy(params);
     // `path` is special, it always goes into the command, and it always goes first
-    const path = getParam(params, "path", files_currentPath());
-    const cmdInfo = [`Performing http '${httpCmd.fileUpload}' GET command for path:'${path}'`];
-    const cmd = [`${httpCmd.fileUpload}?path=${encodeURIComponent(path)}`];
+    const path = encodeURIComponent(getParam(prms, "path", files_currentPath()));
 
-    // biome-ignore lint/complexity/noForEach: <explanation>
-    Object.keys(params).forEach((key) => {
-        if (key !== "path") {
-            let pVal = getParam(params, key);
-            if (pVal) {
-                cmdInfo.push(`with ${key}:'${pVal}'`);
-                if (["name", "newname"].includes(key)) {
-                    pVal = encodeURIComponent(pVal);
-                }
-                cmd.push(`${key}=${pVal}`);
-            }
-        }
-    });
+    // Remove path from the params
+    prms.path = undefined;
 
-    console.info(cmdInfo.join(" "));
-    return cmd.join("&");
+    return buildHttpCmd(`${httpCmd.fileUpload}?path=${path}`, prms, ["name", "newname"]);
 }
 
 /** Build a simple file GET command. For some reason the filename is not encoded */
@@ -122,8 +102,8 @@ const buildHttpCommandCmd = (cmdType, cmd) => `${httpCmd.command}?${cmdType}=${e
 
 /** Build the supplied data into a blob, then a file, ready for inclusion as form data */
 const BuildFormDataFiles = (filename, filedata, options) => {
-	const blob = new Blob(filedata, options);
-	return new File([blob], filename);
+    const blob = new Blob(filedata, options);
+    return new File([blob], filename);
 }
 
 export { httpCmd, httpCmdType, BuildFormDataFiles, buildHttpLoginCmd, buildHttpFilesCmd, buildHttpFileCmd, buildHttpFileGetCmd, buildHttpCommandCmd };

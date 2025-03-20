@@ -600,13 +600,12 @@ function files_build_display_filelist(displaylist = true) {
 		}
 
 		fileListElem.innerHTML = content;
-		// biome-ignore lint/complexity/noForEach: <explanation>
-		actions.forEach((action) => {
+		for (const action of actions) {
 			const elem = id(action.id);
 			if (elem) {
 				elem.addEventListener("click", (event) => action.method(action.index));
 			}
-		});
+		};
 		displayBlock("files_fileList");
 	}
 
@@ -708,7 +707,7 @@ function files_start_upload() {
 	for (let i = 0; i < fileList.length; i++) {
 		const file = fileList[i];
 		const fullFilename = `${path}${file.name}`;
-		//append file size first to check updload is complete
+		//append file size first to check upload is complete
 		formData.append(`${fullFilename}S`, file.size);
 		formData.append("myfile[]", file, fullFilename);
 		console.info(`Preparing ${fullFilename} for upload`);

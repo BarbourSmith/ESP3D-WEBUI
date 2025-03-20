@@ -285,13 +285,12 @@ function control_build_macro_ui() {
 		actions.push({ id: `control_macro_${i}`, method: (event) => macro_command(entry.target, entry.filename) });
 	}
 	setHTML("Macro_list", content);
-	// biome-ignore lint/complexity/noForEach: <explanation>
-	actions.forEach((action) => {
+	for (const action of actions) {
 		const elem = id(action.id);
 		if (elem) {
 			elem.addEventListener("click", action.method);
 		}
-	});
+	};
 }
 
 function macro_command(target, filename) {

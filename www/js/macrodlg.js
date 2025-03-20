@@ -52,11 +52,10 @@ function build_color_selection(index, actions) {
 	content += "</button>";
 	actions.push({ id: `macro_color_line${index}_btn`, type: "click", method: showhide_drop_menu });
 	content += `<div class='dropmenu-content ${menu_pos}' style='min-width:auto; padding-left: 4px;padding-right: 4px;'>`;
-	// biome-ignore lint/complexity/noForEach: <explanation>
-	["default", "primary", "info", "warning", "danger"].forEach((col) => {
+	for (const col of ["default", "primary", "info", "warning", "danger"]) {
 		content += `<button id='macro_select_color_${col}${index}_btn' class='btn btn-${col}'>&nbsp;</button>`;
 		actions.push({ id: `macro_select_color_${col}${index}_btn`, type: "click", method: (event) => macro_select_color(event, col, index) });
-	});
+	};
 	content += "</div>";
 	content += "</div>";
 	return content;
@@ -155,13 +154,12 @@ function build_dlg_macrolist_line(index) {
 	}
 
 	setHTML(`macro_line_${index}`, content);
-	// biome-ignore lint/complexity/noForEach: <explanation>
-	actions.forEach((action) => {
+	for (const action of actions) {
 		const elem = id(action.id);
 		if (elem) {
 			elem.addEventListener(action.type, action.method);
 		}
-	});
+	};
 }
 
 function macro_filename_OnKeyUp(index) {

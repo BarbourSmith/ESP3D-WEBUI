@@ -62,10 +62,9 @@ const getAxisFromValue = (value) => {
 
 /** intialises the AxisFeedRates from the preferences */
 const initAxisFeedRates = () => {
-  // biome-ignore lint/complexity/noForEach: <explanation>
-  Object.keys(axis_feedrate).forEach((key) => {
+  for (const key of Object.keys(axis_feedrate)) {
     AxisFeedRate(key, floatOrZero(getPrefValue(`${key.toLowerCase()}_feedrate`)));
-  })
+  };
 }
 
 /** gets/sets an individual GRBL axis feedrate */
@@ -158,10 +157,11 @@ const probeValues = {
 const init_grbl_panel = () => {
   initAxisFeedRates();
 
-  // biome-ignore lint/complexity/noForEach: <explanation>
-  ["XY", "Z"].forEach((axis) => setValue(`controlpanel_${axis.toLowerCase()}_feedrate`, AxisFeedRate(axis)));
+  for (const axis of ["XY", "Z"]) {
+    setValue(`controlpanel_${axis.toLowerCase()}_feedrate`, AxisFeedRate(axis));
+  };
 
-  Object.values(probeValues).forEach((pv) => {
+  for (const pv of probeValues) {
     if (pv.prefId in prefList() && prefList()[pv.prefId]) {
       const prefValue = prefList()[pv.prefId];
       const val = Number.parseFloat(prefValue);
@@ -169,7 +169,7 @@ const init_grbl_panel = () => {
         setValue(pv.fldId, val);
       }
     }
-  });
+  }
 
   grbl_set_probe_detected(false);
 }
@@ -190,7 +190,7 @@ const trxOOR = () => translate_text_item("Out of range");
 const trxValErr = (valTitle, minVal, maxVal, units) => translate_text_item(`Value of ${valTitle} must be between ${minVal} ${units} and ${maxVal} ${units} !`);
 const alertdlgOOR = (valTitle, minVal, maxVal, units) => alertdlg(trxOOR(), trxValErr(valTitle, minVal, maxVal, units));
 
-var reportType = 'none';
+let reportType = 'none';
 
 function disablePolling() {
   setAutocheck(false);
@@ -578,8 +578,8 @@ const grblGetModal = (msg) => {
   const modes = common.modal.modes.split(" ");
   common.modal.parking = undefined; // Otherwise there is no way to turn it off
   common.modal.program = ""; // Otherwise there is no way to turn it off
-  // biome-ignore lint/complexity/noForEach: <explanation>
-  modes.forEach((mode) => {
+
+  for (const mode of modes) {
     if (mode === "M9") {
       common.modal.flood = mode;
       common.modal.mist = mode;
@@ -589,19 +589,17 @@ const grblGetModal = (msg) => {
         case "F": common.modal.feedrate = mode.substring(1); break;
         case "S": common.modal.spindle = mode.substring(1); break;
         default:
-          // biome-ignore lint/complexity/noForEach: <explanation>
-          modalModes.forEach((modeType) => {
-            // biome-ignore lint/complexity/noForEach: <explanation>
-            modeType.values.forEach((s) => {
+          for (const modeType of modalModes) {
+            for (const s of modeType.values) {
               if (mode === s) {
                 common.modal[modeType.name] = mode;
               }
-            });
-          });
+            };
+          };
           break;
       }
     }
-  })
+  };
   tabletUpdateModal();
 }
 
@@ -782,8 +780,9 @@ const onproberetractChange = () => !Number.isNaN(checkProbeValue(probeValues.ret
 const onprobetouchplatethicknessChange = () => !Number.isNaN(checkProbeValue(probeValues.plateThickness));
 
 const StartProbeProcess = () => {
-
-  Object.values(probeValues).forEach(pv => checkProbeValue(pv));
+  for (const pv of probeValues) {
+    checkProbeValue(pv)
+  };
   if (Object.values(probeValues).some(pv => Number.isNaN(pv.value))) {
     return;
   }

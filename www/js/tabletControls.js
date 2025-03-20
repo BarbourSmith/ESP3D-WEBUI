@@ -38,8 +38,9 @@ const drawCornerBtns = () => {
 		{ name: "blC", id: "blBtn", fill: "#b69fcb", path: [[90, 40], [230, 140], [90, 140], [90, 40]] },
 		{ name: "brC", id: "brBtn", fill: "#b69fcb", path: [[90, 140], [230, 140], [230, 40], [90, 140]] },
 	]
-	// biome-ignore lint/complexity/noForEach: <explanation>
-	btnDefs.forEach((btnDef) => drawCornerBtn(btnDef))
+	for (const btnDef of btnDefs) {
+		drawCornerBtn(btnDef);
+	};
 }
 
 const drawArrowBtns = () => {

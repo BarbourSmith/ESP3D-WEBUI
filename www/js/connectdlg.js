@@ -49,8 +49,7 @@ const getFWdata = (response) => {
 		})
 	const common = new Common();
 
-	// biome-ignore lint/complexity/noForEach: <explanation>
-	tlist.forEach((item) => {
+	for (const item of tlist) {
 		switch(item.name) {
 			case "fw version": common.fwData.fw_version = item.value; break;
 			case "fw target": common.fwData.target_firmware = item.value; break;
@@ -71,7 +70,7 @@ const getFWdata = (response) => {
 			case "hostname": common.fwData.esp_hostname = item.value; break;
 			case "axis": common.fwData.grblaxis = Number.parseInt(item.value); break;
 		}
-	});
+	};
 
 	//FW version:0.9.200 # FW target:smoothieware # FW HW:Direct SD # primary sd:/ext/ # secondary sd:/sd/ # authentication: yes
 	common.fwData.result = "fw_version" in common.fwData && "target_firmware" in common.fwData && "direct_sd" in common.fwData;

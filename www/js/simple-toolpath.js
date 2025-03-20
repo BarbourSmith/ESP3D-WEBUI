@@ -686,13 +686,12 @@ const Toolpath = (() => {
 
         // Modal
         const nextModal = {};
-        // biome-ignore lint/complexity/noForEach: <explanation>
-        Object.keys(_extends({}, modal)).forEach((key) => {
+        for (const key of Object.keys(_extends({}, modal))) {
             if (!Object.prototype.hasOwnProperty.call(_this.modal, key)) {
                 return;
             }
             nextModal[key] = modal[key];
-        });
+        };
         this.setModal(nextModal);
 
         this.fn = { addLine: addLine, addArcCurve: addArcCurve };

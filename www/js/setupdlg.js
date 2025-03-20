@@ -53,11 +53,10 @@ const setupdlg = () => {
 
     const actions = [];
     const content = ["<div class='steplinks spacer'></div>"];
-    // biome-ignore lint/complexity/noForEach: <explanation>
-    wizardSteps.forEach((step) => {
+    for ( const step of wizardSteps ) {
         content.push(buildWizardLink(step));
         actions.push({ id: step.link, type: "click", method: (event) => startStep(event, step.name) });
-    });
+    };
     setHTML("setupStepLinks", content.join("\n"));
     addActions(actions);
 
@@ -66,12 +65,11 @@ const setupdlg = () => {
     id("wizard_button").title = wizardSteps[0].next;
     id("wizard_button").addEventListener("click", setupDlgContinue);
 
-    // biome-ignore lint/complexity/noForEach: <explanation>
-    wizardSteps.forEach((step) => {
+    for ( const step of wizardSteps ) {
         if (step.wizard) {
             disableStepLink(step.wizard, step.link);
         }
-    });
+    };
 
     // displayNone("step3link");
 
@@ -122,13 +120,12 @@ const startStep = (evt, stepName) => {
     //     return;
     // }
 
-    // biome-ignore lint/complexity/noForEach: <explanation>
-    elemsByClass("stepcontent").forEach((stepcont) => {
+    for (const stepcont of elemsByClass("stepcontent")) {
         const stepId = stepcont.id;
         if (stepId !== stepName) {
             displayNone(stepId);
         }
-    });
+    };
 
     displayBlock(stepName);
     evt.currentTarget.classList.add("active");
@@ -199,13 +196,12 @@ const continueSetupWizard = () => {
 }
 
 const addActions = (actions) => {
-    // biome-ignore lint/complexity/noForEach: <explanation>
-    actions.forEach((action) => {
+    for (const action of actions) {
         const elem = id(action.id);
         if (elem) {
             elem.addEventListener(action.type, action.method);
         }
-    });
+    };
 };
 
 const step0ContentAndActions = (stepName = "startstep") => {
