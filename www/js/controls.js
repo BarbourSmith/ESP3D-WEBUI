@@ -67,6 +67,7 @@ function Macro_build_list(response_text) {
 		}
 	} catch (e) {
 		console.error("Parsing error:", e);
+		return;
 	}
 	const common = new Common();
 	for (let i = 0; i < 9; i++) {

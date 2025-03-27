@@ -655,6 +655,7 @@ const grblHandleMessage = (msg) => {
       handleCalibrationData(measurements);
     } catch (error) {
       console.error("Parsing the GRBL `CLBM` message failed, the calibration data has not been 'handled'. This is probably a programmer error.");
+      return;
     }
   }
   if (valueStartsWith(msg, ["<"])) {

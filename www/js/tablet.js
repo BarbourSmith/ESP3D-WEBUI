@@ -695,11 +695,11 @@ const tabletGrblState = (grbl, response) => {
 //   selector.appendChild(opt);
 // }
 
-function tabletGetFileList(path) {
+function tabletGetFileList(tabPath) {
   const common = new Common();
   // Clear/reset the gCodeFilename
   common.gCodeFilename = "";
-  const cmd = buildHttpFileCmd({ path: path });
+  const cmd = buildHttpFileCmd({ path: tabPath });
   SendGetHttp(cmd, files_list_success);
 }
 
