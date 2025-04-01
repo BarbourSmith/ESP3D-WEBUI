@@ -221,7 +221,7 @@ const checkParams = (params = {}) => {
   for (key in params) {
     s.push(`${key}${params[key]}`);
   }
-  return s.join();
+  return s.join("");
 }
 
 /** Perform a jog command */

@@ -501,7 +501,7 @@ const handleCheckboxClick = (checkboxId) => {
 
 const togglePanel = (checkboxId, panelId) => displayBlockOrNone(panelId, handleCheckboxClick(checkboxId));
 
-const prefFile = "/preferences.json";
+const prefFile = "preferences.json";
 const getpreferenceslist = () => {
     const cmd = prefFile;
     SendGetHttp(cmd, processPreferencesGetSuccess, processPreferencesGetFailed);
@@ -554,16 +554,16 @@ function process_preferencesCloseDialog(answer) {
         closeModal("cancel");
     } else {
         // console.log("Answer is yes so let's save");
-        SavePreferences();
+        SavePreferences(false);
     }
 }
 
-const SavePreferences = () => {
+const SavePreferences = (useExternalSetPreference = false) => {
     if (CheckForHttpCommLock()) {
         return;
     }
 
-    console.log("save prefs");
+    console.log("Saving preferences");
 
     const blob = new Blob([BuildPreferencesJson()], { type: "application/json" });
     const file = new File([blob], prefFile);
@@ -572,7 +572,12 @@ const SavePreferences = () => {
     formData.append("path", "/");
     formData.append("myfile[]", file, prefFile);
 
-    SendFileHttp(httpCmd.files, formData, preferencesUploadsuccess, preferencesUploadfailed);
+    if (useExternalSetPreference) {
+        SendFileHttp(httpCmd.files, formData);
+        console.info("Preferences successfully updated");
+    } else {
+        SendFileHttp(httpCmd.files, formData, preferencesUploadsuccess, preferencesUploadfailed);
+    }
 };
 
 function preferencesUploadsuccess(response) {

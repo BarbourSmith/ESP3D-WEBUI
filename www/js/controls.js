@@ -112,8 +112,8 @@ function processMacroGetFailed(error_code, response) {
 }
 
 const on_autocheck_position = (use_value) => {
-	if (typeof use_value !== "undefined") {
-		setChecked("autocheck_position", !!use_value);
+	if (typeof (use_value) !== 'undefined') {
+		setChecked('autocheck_position', string(use_value));
 	}
 
 	clearInterval(interval_position);
@@ -125,7 +125,7 @@ const on_autocheck_position = (use_value) => {
 		if (!Number.isNaN(interval) && interval > 0 && interval < 100) {
 			interval_position = setInterval(() => { get_Position(); }, interval * 1000);
 		} else {
-			setChecked("autocheck_position", false);
+			setChecked("autocheck_position", "false");
 			if (intPosElem) {
 				intPosElem.value = 0;
 			}
@@ -138,7 +138,7 @@ function onPosIntervalChange() {
 	if (!Number.isNaN(interval) && interval > 0 && interval < 100) {
 		on_autocheck_position();
 	} else {
-		setChecked("autocheck_position", false);
+		setChecked("autocheck_position", "false");
 		setValue("controlpanel_interval_positions", 0);
 		if (interval !== 0) {
 			alertdlg(trx_text_item("Out of range"), trx_text_item("Value of auto-check must be between 0s and 99s !!"));

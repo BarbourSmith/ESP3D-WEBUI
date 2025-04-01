@@ -1,27 +1,27 @@
 import { elemsByClass, displayBlock, id } from "./common.js";
 
 const opentab = (evt, tabname, tabcontentid, tablinkid) => {
-	let i;
-	let tablinks;
-	const tabcontent = elemsByClass("tabcontent");
-	const activateEvent = new Event("activate");
 	const deactivateEvent = new Event("deactivate");
+	const tabcontent = elemsByClass("tabcontent");
+    for (const tab of tabcontent) {
+        if (tab.parentNode.id === tabcontentid) {
+            tab.dispatchEvent(deactivateEvent);
+            displayNone(tab.id);
+        }
+    }
 
-	for (i = 0; i < tabcontent.length; i++) {
-		if (tabcontent[i].parentNode.id === tabcontentid) {
-			tabcontent[i].dispatchEvent(deactivateEvent);
-			tabcontent[i].style.display = "none";
-		}
-	}
-	tablinks = elemsByClass("tablinks");
-	for (i = 0; i < tablinks.length; i++) {
-		if (tablinks[i].parentNode.id === tablinkid) {
-			tablinks[i].classList.remove("active");
-		}
-	}
-	id(tabname).dispatchEvent(activateEvent);
-	displayBlock(tabname);
-	evt.currentTarget.classList.add("active");
+	const tablinks = elemsByClass("tablinks");
+    for (const tablink of tablinks) {
+        if (tablink.parentNode.id === tablinkid) {
+            tablink.classList.remove("active");
+        }
+    }
+
+    const activateEvent = new Event("activate");
+    id(tabname).dispatchEvent(activateEvent);
+    displayBlock(tabname);
+
+    evt.currentTarget.classList.add("active");
 };
 
 export { opentab };

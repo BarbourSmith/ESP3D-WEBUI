@@ -81,6 +81,15 @@ function SPIFFSselect_dir(directoryname) {
 	SPIFFSSendCommand("list", "all");
 }
 
+const AddActionHandlers = (actions) => {
+	for (const action of actions) {
+		const elem = id(action.id);
+		if (elem) {
+			elem.addEventListener("click", (event) => action.method(action.path));
+		}
+	}
+}
+
 /** Builds the SPIFFS nav bar, adds it to the parent element, and sets up the event handlers */
 const SPIFFSnavbar = () => {
 	const common = new Common();
@@ -104,12 +113,7 @@ const SPIFFSnavbar = () => {
 	}
 
 	setHTML("SPIFFS_path", buildTable(buildTr(content)));
-	for (const action of actions) {
-		const elem = id(action.id);
-		if (elem) {
-			elem.addEventListener("click", (event) => action.method(action.path));
-		}
-	};
+	AddActionHandlers(actions);
 };
 
 const SPIFFS_Createdir = () => inputdlg(trx_text_item("Please enter directory name"), trx_text_item("Name:"), processSPIFFS_Createdir);
@@ -233,7 +237,7 @@ function SPIFFSdispatchfilestatus(jsonresponse) {
 		const previouspath = common.SPIFFS_currentpath.slice(0, pos + 1);
 		const rowId = "SPIFFS_row_up_dir";
 		content += `<tr id="${rowId}" style="cursor:pointer;"><td>${get_icon_svg("level-up")}</td><td colspan='4'> Up..</td></tr>`;
-		actions.push({ id: rowId, method: upDirAndRelist, filename: previouspath });
+		actions.push({ id: rowId, method: upDirAndRelist, path: previouspath });
 	}
 	jsonresponse.files.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
@@ -255,9 +259,9 @@ function SPIFFSdispatchfilestatus(jsonresponse) {
 		filecontent += SPIFFSbutton(`${bIdF}rename_${i}`, "btn-default", "wrench");
 		content += buildTr(filecontent);
 
-		actions.push({ id: `${bIdF}download_${i}`, method: SPIFFSDownload, filename: pathname + filename });
-		actions.push({ id: `${bIdF}delete_${i}`, method: SPIFFSDelete, filename: filename });
-		actions.push({ id: `${bIdF}rename_${i}`, method: SPIFFSRename, filename: filename });
+		actions.push({ id: `${bIdF}download_${i}`, method: SPIFFSDownload, path: pathname + filename });
+		actions.push({ id: `${bIdF}delete_${i}`, method: SPIFFSDelete, path: filename });
+		actions.push({ id: `${bIdF}rename_${i}`, method: SPIFFSRename, path: filename });
 	}
 
 	//then display directories
@@ -268,7 +272,7 @@ function SPIFFSdispatchfilestatus(jsonresponse) {
 		}
 		const dirname = jsonresponse.files[i].name;
 		const selectDirBtn = `<button id="${bIdD}select_${i}" class="btn btn-link">${dirname}</button>`;
-		actions.push({ id: `${bIdD}select_${i}`, method: SPIFFSselect_dir, filename: `${common.SPIFFS_currentpath}${dirname}` });
+		actions.push({ id: `${bIdD}select_${i}`, method: SPIFFSselect_dir, path: `${common.SPIFFS_currentpath}${dirname}` });
 		let dircontent = `<td style='vertical-align:middle ; color:#5BC0DE'>${get_icon_svg("folder-close")}</td>`;
 		dircontent += `<td width='100%' style='vertical-align:middle'>${selectDirBtn}</td>`;
 		dircontent += "<td nowrap style='vertical-align:middle'></td>"; // No size field
@@ -277,17 +281,12 @@ function SPIFFSdispatchfilestatus(jsonresponse) {
 		dircontent += SPIFFSbutton(`${bIdD}rename_${i}`, "btn-default", "wrench");
 		content += buildTr(dircontent);
 
-		actions.push({ id: `${bIdD}delete_${i}`, method: SPIFFSDeleteDir, filename: dirname });
-		actions.push({ id: `${bIdD}rename_${i}`, method: SPIFFSRename, filename: dirname });
+		actions.push({ id: `${bIdD}delete_${i}`, method: SPIFFSDeleteDir, path: dirname });
+		actions.push({ id: `${bIdD}rename_${i}`, method: SPIFFSRename, path: dirname });
 	}
 
 	setHTML("SPIFFS_file_list", content);
-	for (const action of actions) {
-		const elem = id(action.id);
-		if (elem) {
-			elem.addEventListener("click", (event) => action.method(action.filename));
-		}
-	};
+	AddActionHandlers(actions);
 
 	SPIFFSnavbar();
 }

@@ -25,4 +25,5 @@ const displayInitial = (name) => setDisplay(name, 'initial');
 /** Clear the display attribute */
 const displayUndoNone = (name) => setDisplay(name, '');
 
+
 export { displayBlock, displayFlex, displayTable, displayInitial, displayInline, displayNone, displayUndoNone };

@@ -84,11 +84,22 @@ const setText = (name, val) => {
   }
 }
 
+/** Set a checkbox element's default `value`, its `checked` field (if the element exists) */
+const setCheckedDefault = (name, val, setBoth = true) => {
+  const checkBox = id(name);
+  if (checkBox) {
+    checkBox.checked = String(val).toLowerCase() === "true";
+    if (setBoth) {
+      checkBox.value = String(val);
+    }
+  }
+}
+
 /** Set a checkbox element's `value` (if the element exists) */
 const setChecked = (name, val) => {
   const checkBox = id(name);
   if (checkBox) {
-    checkBox.value = String(val);
+    checkBox.value = String(val).toLowerCase();
   }
 }
 
