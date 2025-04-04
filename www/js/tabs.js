@@ -1,4 +1,4 @@
-import { elemsByClass, displayBlock, id } from "./common.js";
+import { elemsByClass, displayBlock, displayNone, id } from "./common.js";
 
 const opentab = (evt, tabname, tabcontentid, tablinkid) => {
 	const deactivateEvent = new Event("deactivate");

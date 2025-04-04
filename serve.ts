@@ -87,7 +87,7 @@ const server = Bun.serve({
 						{ "name": "CoasterHolesFullBoard.nc", "shortname": "CoasterHolesFullBoard.nc", "size": "52622", "datetime": "" }
 					], "path": "", "total": "119.00 MB", "used": "57.00 KB", "occupation": "0", "status": "Ok"
 				};
-				return new Response(JSON.stringify(dummyFileList), { status: 200, headers: { contentType: "application/json" } });
+				return new Response(JSON.stringify(dummyFileList), { status: 200, headers: { "Content-Type": "application/json" } });
 			}
 			console.log(req);
 			return new Response("", { status: 200 });
@@ -109,7 +109,7 @@ const server = Bun.serve({
 					],
 					"path": "", "total": "192.00 KB", "used": "132.00 KB", "occupation": "68", "status": "Ok"
 				};
-				return new Response(JSON.stringify(dummyFileList), { status: 200, headers: { contentType: "application/json" } });
+				return new Response(JSON.stringify(dummyFileList), { status: 200, headers: { "Content-Type": "application/json" } });
 			}
 		}
 
@@ -169,13 +169,13 @@ const server = Bun.serve({
 
 		if (checkFileBase.includes("/js/")) {
 			let checkFileName = `${checkFileBase}.js`;
-			let checkFile = fileExists(checkFileName);
+			let checkFile = await fileExists(checkFileName);
 			if (!checkFile) {
 				checkFileName = `${checkFileBase}.ts`;
-				checkFile = fileExists(checkFileName);
+				checkFile = await fileExists(checkFileName);
 			}
 			if (checkFile) {
-				return new Response(await checkFile, { headers: { "Content-Type": "text/javascript" } });
+				return new Response(checkFile, { headers: { "Content-Type": "text/javascript" } });
 			}
 		}
 		return new Response(null, { status: 404, statusText: `404 for your '${url.pathname}' request` });

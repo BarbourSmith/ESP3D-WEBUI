@@ -307,7 +307,7 @@ function files_delete_file(index) {
 
 const files_is_clickable = (index) => {
 	const common = new Common();
-	files_file_list[index].isdir ? true : common.fwData.direct_sd;
+	return files_file_list[index].isdir ? true : common.fwData.direct_sd;
 }
 
 const files_enter_dir = (name) => files_refreshFiles(`${files_currentPath()}${name}/`);

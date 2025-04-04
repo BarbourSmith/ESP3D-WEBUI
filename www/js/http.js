@@ -65,7 +65,7 @@ const validateProcessing = (cmd, step = "") => {
     }
 
     if (cmd_list.length > max_cmd) {
-        http_errorfn(cmd, 503, trx_text_item("Server not responding"));
+        http_handleError(cmd, 503, trx_text_item("Server not responding"));
         // Exceeded the cmd_list maximum size, this should probably be retried once other commands have been processed and removed
         return -2;
     }
@@ -349,7 +349,7 @@ const ProcessHttpCommand = (cmd) => {
     const req = { method: cmd.type };
     if (req.method === "POST") {
         // Note: Only used for uploading files
-        req.body = cmd.postdata;
+        req.body = cmd.data;
     }
 
     common.http_communication_locked = true;
@@ -365,7 +365,7 @@ const ProcessHttpCommand = (cmd) => {
             throw new Error(response.status);
         })
         .then(responseText => http_handleSuccess(cmd, responseText))
-        .catch(error => http_handleError(cmd, error.message, error.responseText));
+        .catch(error => http_handleError(cmd, error.message, String(error)));
 }
 
 const CheckForHttpCommLock = () => {

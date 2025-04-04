@@ -515,7 +515,7 @@ function scaleUnits(target) {
 
 /** Set the disabled value for the elements matching the selector */
 const setDisabled = (selector, value) => {
-  for ((element) of document.querySelectorAll(selector)) {
+  for (const element of document.querySelectorAll(selector)) {
     element.disabled = value;
   }
 }
@@ -905,7 +905,7 @@ function scrollToLine(lineNumber) {
 function runGCode() {
   const common = new Common();
   if (common.gCodeFilename) {
-    const cmd = `$sd/run=${gCodeFilename}`;
+    const cmd = `$sd/run=${common.gCodeFilename}`;
     sendCommand(cmd);
   }
   setTimeout(() => { SendRealtimeCmd(0x7e); }, 1500);
