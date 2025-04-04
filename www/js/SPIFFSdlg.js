@@ -20,6 +20,7 @@ import {
 	SendGetHttp,
 	trx_text_item,
 	CheckForHttpCommLock,
+	BuildFileUploadFormData,
 } from "./common.js";
 
 //SPIFFS dialog
@@ -323,21 +324,15 @@ function SPIFFS_UploadFile() {
 		return;
 	}
 
-	const fileList = [];
 	const files = id("SPIFFS_select").files;
-	const formData = new FormData();
-	formData.append("path", common.SPIFFS_currentpath);
-	for (let i = 0; i < files.length; i++) {
-		const file = files[i];
+	const fileList = [];
+	for (const file of files) {
 		fileList.push(file.name);
-		const fullFilename = `${SPIFFS_currentpath}${file.name}`;
-		//append file size first to check upload is complete
-		formData.append(`${fullFilename}S`, file.size);
-		formData.append("myfile[]", file, fullFilename);
-		console.info(`Preparing ${fullFilename} for upload`);
 	}
-	displayNone(["SPIFFS-select_form", "SPIFFS_uploadbtn"]);
+	const formData = BuildFileUploadFormData(common.SPIFFS_currentpath, files);
+
 	SPIFFS_upload_ongoing = true;
+	displayNone(["SPIFFS-select_form", "SPIFFS_uploadbtn"]);
 	displayBlock(["uploadSPIFFSmsg", "SPIFFS_prg"]);
 	setHTML("uploadSPIFFSmsg", `${trx_text_item("Uploading")} ${fileList.join(" ")}`);
 	SendFileHttp(httpCmd.files, formData, SPIFFSUploadsuccess, SPIFFSUploadfailed);

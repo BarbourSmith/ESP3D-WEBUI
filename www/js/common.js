@@ -57,6 +57,7 @@ import { creditsdlg } from "./creditsdlg.js";
 import { clear_drop_menu, hide_drop_menu, showhide_drop_menu } from "./dropmenu.js";
 import {
 	build_file_filter_list,
+	BuildFileUploadFormData,
 	files_currentPath,
 	files_file_list,
 	files_list_success,
@@ -356,6 +357,7 @@ export {
 	showhide_drop_menu,
 	// files.js
 	build_file_filter_list,
+	BuildFileUploadFormData,
 	files_currentPath,
 	files_file_list,
 	files_list_success,
