@@ -605,7 +605,7 @@ function files_build_display_filelist(displaylist = true) {
 			if (elem) {
 				elem.addEventListener("click", (event) => action.method(action.index));
 			}
-		};
+		}
 		displayBlock("files_fileList");
 	}
 

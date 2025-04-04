@@ -123,7 +123,7 @@ const server = Bun.serve({
 			const checkFile = Bun.file(checkFileBase);
 			if (await checkFile.exists()) {
 				const langUtilsFile = [];
-				/** This shgould correspiond exactly with `language_list in `langUtils.js` */
+				/** This should correspiond exactly with `language_list in `langUtils.js` */
 				const language_list = [
 					["de", "germantrans"],
 					["en", "englishtrans"],
@@ -150,7 +150,7 @@ const server = Bun.serve({
 		}
 
 		if (checkFileBase.endsWith(".svg")) {
-			console.log(`Want SVG at '${checkFileBase}`);
+			console.debug(`Want SVG at '${checkFileBase}`);
 			return sendFile(checkFileBase, "text/svg+xml");
 		}
 

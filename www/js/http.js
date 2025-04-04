@@ -365,7 +365,8 @@ const ProcessHttpCommand = (cmd) => {
             throw new Error(response.status);
         })
         .then(responseText => http_handleSuccess(cmd, responseText))
-        .catch(error => http_handleError(cmd, error.message, String(error)));
+        .catch(error => http_handleError(cmd, error.message, String(error)))
+        .finally(() => { common.http_communication_locked = false; });
 }
 
 const CheckForHttpCommLock = () => {

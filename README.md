@@ -13,7 +13,7 @@ But then heavily modified to support the Maslow M4, and upgraded to avoid using 
 
 ## Why do it?
 Originally [smoothieware-webui](http://imrahil.github.io/smoothieware-webui/) was ported to support [ESP3D firmware](https://github.com/luc-github/ESP3D) and it was working pretty well and gave :[smoothieware-webui-for-ESP3D](https://github.com/luc-github/smoothieware-webui-for-ESP3D) 
-But this UI had a 2 big limitations:    
+But this UI had 2 big limitations:    
 1 - it needed internet access to get all libraries available to download, which may not happen when ESP is in AP mode for configuration if you do not have all js/css in your browser cache, or if you want to use in local environment, in that case not only ESP AP mode is not displaying UI properly but also STA mode - so it made the ESP useless
 
 2 - it relied on server availability and certificate check, there were several certificate failures for unknown reasons that made the UI not work
