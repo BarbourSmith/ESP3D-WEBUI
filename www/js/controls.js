@@ -53,7 +53,7 @@ const ControlsPanel = () => {
 
 function loadmacrolist() {
 	const common = new Common();
-	common.control_macrolist = [];
+	common.control_macrolist.length = 0;
 
 	const cmd = buildHttpFileGetCmd("macrocfg.json");
 	SendGetHttp(cmd, processMacroGetSuccess, processMacroGetFailed);
@@ -122,6 +122,7 @@ const on_autocheck_position = (use_value) => {
 	if (getChecked("autocheck_position") !== "false") {
 		const intPosElem = id("controlpanel_interval_positions");
 		const interval = Number.parseInt(intPosElem?.value || undefined);
+
 		if (!Number.isNaN(interval) && interval > 0 && interval < 100) {
 			interval_position = setInterval(() => { get_Position(); }, interval * 1000);
 		} else {
@@ -247,18 +248,19 @@ function control_build_macro_button(index, entry) {
 	const btnStyle = noGlyph ? " style='display:none'" : "";
 	const entryIcon = get_icon_svg(noGlyph ? "star" : entry.glyph);
 
-	let content = `<button id="control_macro_${index}" class='btn fixedbutton ${entry.class}' type='text'${btnStyle}>`;
-	content += `<span style='position:relative; top:3px;'>${entryIcon}</span>${entry.name.length > 0 ? "&nbsp;" : ""}${entry.name}`;
-	content += "</button>";
+	const content = [
+		`<button id="control_macro_${index}" data-target="${entry.target}" data-filename="${entry.filename}" class='btn fixedbutton ${entry.class}' type='text'${btnStyle}>`,
+		`<span style='position:relative; top:3px;'>${entryIcon}</span>${entry.name.length > 0 ? "&nbsp;" : ""}${entry.name}`,
+		"</button>"
+	];
 
-	return content;
+	return content.join("");
 }
 
 const processMacroSave = (answer) => {
 	if (answer !== "ok") {
 		return;
 	}
-	//console.log("now rebuild list");
 	control_build_macro_ui();
 }
 
@@ -270,31 +272,41 @@ function control_build_macro_ui() {
 
 	const iconOptions = { t: "translate(50,1200) scale(1,-1)" };
 
-	let content = "<div class='tooltip'>";
-	content += "<span class='tooltip-text'>Manage macros</span>"
-	content += "<button id='control_btn_show_macro_dlg' class='btn btn-primary'>";
+	const content = [
+		"<div class='tooltip'>",
+		"<span class='tooltip-text'>Manage macros</span>",
+		"<button id='control_btn_show_macro_dlg' class='btn btn-primary'>"
+	];
 	actions.push({ id: "control_btn_show_macro_dlg", method: initMacroDlg });
-	content += "<span class='badge'>";
-	content += get_icon_svg("star", iconOptions);
-	content += get_icon_svg("pencil", iconOptions);;
-	content += "</span>";
-	content += "</button>";
-	content += "</div>";
+
+	content.push(
+		"<span class='badge'>",
+		get_icon_svg("star", iconOptions),
+		get_icon_svg("pencil", iconOptions),
+		"</span>",
+		"</button>",
+		"</div>"
+	);
+
 	for (let i = 0; i < 9; i++) {
 		const entry = common.control_macrolist[i];
-		content += control_build_macro_button(i, entry);
-		actions.push({ id: `control_macro_${i}`, method: (event) => macro_command(entry.target, entry.filename) });
+		content.push(control_build_macro_button(i, entry));
+		actions.push({ id: `control_macro_${i}`, method: macro_command });
 	}
-	setHTML("Macro_list", content);
+	setHTML("Macro_list", content.join(""));
+
 	for (const action of actions) {
 		const elem = id(action.id);
 		if (elem) {
 			elem.addEventListener("click", action.method);
 		}
-	};
+	}
 }
 
-function macro_command(target, filename) {
+function macro_command(event) {
+	event.stopPropagation();
+	const target = event.currentTarget.dataset.target;
+	const filename = event.currentTarget.dataset.filename;
 	switch (target) {
 		case "ESP": SendPrinterCommand(`$LocalFS/Run=${filename}`); break;
 		case "SD": files_print_filename(filename); break;

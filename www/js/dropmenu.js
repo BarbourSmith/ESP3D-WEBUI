@@ -22,22 +22,4 @@ function get_parent_by_class(item, classname) {
 	return get_parent_by_class(item.parentElement, classname);
 }
 
-function hide_drop_menu(event) {
-	const item = get_parent_by_class(event.target, "dropmenu-content");
-	if (item) {
-		item.classList.remove("show");
-	}
-}
-
-const showhide_drop_menu = (event) => {
-	const item = get_parent_by_class(event.target, "dropdownselect");
-	if (item === null) {
-		return;
-	}
-	const menu = item.getElementsByClassName("dropmenu-content")[0];
-	if (menu) {
-		menu.classList.toggle("show");
-	}
-};
-
-export { clear_drop_menu, hide_drop_menu, showhide_drop_menu };
+export { clear_drop_menu };

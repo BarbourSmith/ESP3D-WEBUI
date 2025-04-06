@@ -54,7 +54,7 @@ import {
 	on_autocheck_position,
 } from "./controls.js";
 import { creditsdlg } from "./creditsdlg.js";
-import { clear_drop_menu, hide_drop_menu, showhide_drop_menu } from "./dropmenu.js";
+import { clear_drop_menu } from "./dropmenu.js";
 import {
 	build_file_filter_list,
 	BuildFileUploadFormData,
@@ -353,8 +353,6 @@ export {
 	creditsdlg,
 	// from dropmenu.js
 	clear_drop_menu,
-	hide_drop_menu,
-	showhide_drop_menu,
 	// files.js
 	build_file_filter_list,
 	BuildFileUploadFormData,
