@@ -67,6 +67,7 @@ import {
 import {
 	getAxisFromValue,
 	build_axis_selection,
+	control_changeaxis,
 	grblHandleMessage,
 	grbl_reset,
 	init_grbl_panel,
@@ -364,6 +365,7 @@ export {
 	// from grbl.js
 	getAxisFromValue,
 	build_axis_selection,
+	control_changeaxis,
 	grblHandleMessage,
 	grbl_reset,
 	init_grbl_panel,

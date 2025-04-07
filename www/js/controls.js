@@ -5,6 +5,7 @@ import {
 	getChecked,
 	id,
 	setChecked,
+	getValue,
 	setValue,
 	setHTML,
 	alertdlg,
@@ -15,6 +16,7 @@ import {
 	SendGetHttp,
 	trx_text_item,
 	showmacrodlg,
+	control_changeaxis
 } from "./common.js";
 
 let interval_position = -1;
@@ -113,7 +115,7 @@ function processMacroGetFailed(error_code, response) {
 
 const on_autocheck_position = (use_value) => {
 	if (typeof (use_value) !== 'undefined') {
-		setChecked('autocheck_position', string(use_value));
+		setChecked('autocheck_position', String(use_value));
 	}
 
 	clearInterval(interval_position);
@@ -196,12 +198,13 @@ function SendZerocommand(cmd) {
 
 /** This is extensively used in the jog dial SVGs */
 function SendJogcommand(cmd, feedrate) {
+	const common = new Common();
 	if (getChecked("lock_UI") !== "false") {
 		return;
 	}
 
 	// The SVGs are fixed and don't know that 'Z' could be something else
-	const aCmd = (grblaxis <= 3) ? cmd : cmd.replace("Z", getValue("control_select_axis"));
+	const aCmd = (common.fwData.grblaxis <= 3) ? cmd : cmd.replace("Z", getValue("control_select_axis"));
 
 	const feedrateValue = AxisFeedRate(getAxisFromValue(aCmd));
 
@@ -214,7 +217,7 @@ const getFeedRateValue = (name) => floatOrZero(getValue(name) || 0);
 
 const control_resetaxis = (axis = "") => {
 	const letter = (!axis ? getValue('control_select_axis') : axis).toUpperCase();
-	const ctrlLetter = ["X", "Y", "XY"].includes(letter) ? "xy" : "z";
+	const ctrlLetter = ["X", "Y", "XY"].includes(letter) ? "XY" : letter;
 
 	// Change over to the new axis that's been selected
 	setValue(`controlpanel_${ctrlLetter}_feedrate`, AxisFeedRate(letter));
@@ -240,7 +243,7 @@ function onNonXYFeedRateChange() {
 	}
 
 	// Flush the change through
-	control_changeaxis(getValue('control_select_axis'), feedratevalue);
+	control_changeaxis();
 }
 
 function control_build_macro_button(index, entry) {

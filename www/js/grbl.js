@@ -96,8 +96,9 @@ function setAutocheck(flag) {
 
 /** Build the axis selection dropdown, if there are more than 3 axes */
 const build_axis_selection = () => {
+  const common = new Common();
   const minAxisCount = 3;
-  if (grblaxis < minAxisCount) {
+  if (common.fwData.grblaxis < minAxisCount) {
     return;
   }
 
@@ -109,7 +110,7 @@ const build_axis_selection = () => {
   ];
 
   const html = ["<select id='control_select_axis' class='form-control wauto'>"];
-  for (let i = 3; i <= grblaxis; i++) {
+  for (let i = 3; i <= common.fwData.grblaxis; i++) {
     html.push(axisOpts[i - 3]);
   }
   html.push("</select>");
@@ -822,6 +823,7 @@ const setSpindleSpeed = (speed) => {
 export {
   getAxisFromValue,
   build_axis_selection,
+  control_changeaxis,
   grblHandleMessage,
   grbl_reset,
   init_grbl_panel,
