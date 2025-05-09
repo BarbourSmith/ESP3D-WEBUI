@@ -11,9 +11,10 @@ import {
 } from "./common.js";
 
 /** Maslow Status */
-let maslowStatus = { homed: false, extended: false };
+let maslowStatus = { homed: false, extended: false, state: 0 };
 
 /** This keeps track of when we saw the last heartbeat from the machine */
+//I think this is not used anymore and can be removed now
 let lastHeartBeatTime = new Date().getTime();
 
 const err = "error: ";
@@ -22,6 +23,146 @@ const MaslowErrMsgNoKey = `${err}No key supplied for value.`;
 const MaslowErrMsgNoValue = `${err}No value supplied for key.`;
 const MaslowErrMsgNoMatchingKey = `${err}Could not find key for value in reference table.`;
 const MaslowErrMsgKeyValueSuffix = "This is probably a programming error\nKey-Value pair supplied was:";
+
+/*
+* Updates the dynamic buttons to reflect the current state of the machine
+UNKNOWN 0
+    -Retract All
+    -Apply Tension
+
+RETRACTING 1
+    -No buttons
+
+RETRACTED 2
+    -Retract All
+    -Extend All
+
+EXTENDING 3
+    -No Buttons
+
+EXTENDEDOUT 4 //Extended is a reserved word
+    -Retract All
+    -Apply Tension
+    -Calibrate
+
+TAKING_SLACK 5
+    -No buttons
+
+CALIBRATION_IN_PROGRESS 6
+    -No buttons
+
+READY_TO_CUT 7
+    -Retract All
+    -Apply Tension
+    -Release Tension
+*/
+const updateDynamicButtons = () => {
+
+	const stateLabel = document.getElementById("state-label");
+
+	const retractButton = document.getElementById("tablettab_cal_retract");
+	const extendButton = document.getElementById("tablettab_cal_extend");
+	const tenseButton = document.getElementById("tablettab_cal_tense");
+	const relaxButton = document.getElementById("tablettab_cal_relax");
+	const calibrateButton = document.getElementById("tablettab_cal_calibrate");
+
+	const greenBackground = "#4aa85c"
+	const greyBackground = "#a0a0a0"
+
+	switch (maslowStatus.state) {
+		case 0: 
+			stateLabel.innerHTML = "State: Unknown";
+
+			//Set the retract and extend buttons to have a green background 
+			retractButton.style.backgroundColor = greenBackground;
+			extendButton.style.backgroundColor = greenBackground;
+
+			tenseButton.style.backgroundColor = greyBackground;
+			relaxButton.style.backgroundColor = greyBackground;
+			calibrateButton.style.backgroundColor = greyBackground;
+			break;
+		case 1:
+			stateLabel.innerHTML = "State: Retracting";
+
+			retractButton.style.backgroundColor = greyBackground;
+			extendButton.style.backgroundColor = greyBackground;
+			tenseButton.style.backgroundColor = greyBackground;
+			relaxButton.style.backgroundColor = greyBackground;
+			calibrateButton.style.backgroundColor = greyBackground;
+
+			break;
+		case 2:
+			stateLabel.innerHTML = "State: Retracted";
+
+			retractButton.style.backgroundColor = greenBackground;
+			extendButton.style.backgroundColor = greenBackground;
+
+			tenseButton.style.backgroundColor = greyBackground;
+			relaxButton.style.backgroundColor = greyBackground;
+			calibrateButton.style.backgroundColor = greyBackground;
+
+			break;
+		case 3:
+			stateLabel.innerHTML = "State: Extending";
+			
+			retractButton.style.backgroundColor = greyBackground;
+			extendButton.style.backgroundColor = greyBackground;
+			tenseButton.style.backgroundColor = greyBackground;
+			relaxButton.style.backgroundColor = greyBackground;
+			calibrateButton.style.backgroundColor = greyBackground;
+			break;
+		case 4:
+			stateLabel.innerHTML = "State: Extended";
+
+			retractButton.style.backgroundColor = greenBackground;
+			tenseButton.style.backgroundColor = greenBackground;
+			calibrateButton.style.backgroundColor = greenBackground;
+			extendButton.style.backgroundColor = greenBackground;
+			
+			relaxButton.style.backgroundColor = greyBackground;
+
+			break;
+		case 5:
+			stateLabel.innerHTML = "State: Taking Slack";
+
+			retractButton.style.backgroundColor = greyBackground;
+			extendButton.style.backgroundColor = greyBackground;
+			tenseButton.style.backgroundColor = greyBackground;
+			relaxButton.style.backgroundColor = greyBackground;
+			calibrateButton.style.backgroundColor = greyBackground;
+			break;
+		case 6:
+			stateLabel.innerHTML = "State: Calibrating";
+
+			retractButton.style.backgroundColor = greyBackground;
+			extendButton.style.backgroundColor = greyBackground;
+			tenseButton.style.backgroundColor = greyBackground;
+			relaxButton.style.backgroundColor = greyBackground;
+			calibrateButton.style.backgroundColor = greyBackground;
+			break;
+		case 7:
+			stateLabel.innerHTML = "State: Ready to Cut";
+
+			retractButton.style.backgroundColor = greenBackground;
+			relaxButton.style.backgroundColor = greenBackground;
+
+			extendButton.style.backgroundColor = greyBackground;
+			tenseButton.style.backgroundColor = greyBackground;
+			calibrateButton.style.backgroundColor = greyBackground;
+
+			break;
+		default:
+			stateLabel.innerHTML = "State: Unknown";
+
+			retractButton.style.backgroundColor = greenBackground;
+			extendButton.style.backgroundColor = greyBackground;
+			tenseButton.style.backgroundColor = greyBackground;
+			relaxButton.style.backgroundColor = greyBackground;
+			calibrateButton.style.backgroundColor = greyBackground;
+			break;
+	}
+}
+
 
 /** Perform maslow specific-ish info message handling */
 const maslowInfoMsgHandling = (msg) => {
@@ -39,7 +180,18 @@ const maslowInfoMsgHandling = (msg) => {
 		return true;
 	}
 
-	//Catch the calibration complete message and alert the user
+	//Parse state messages like [MSG:INFO: Current state: 0]
+	if (msg.startsWith("[MSG:INFO: Current state:")) {
+		const m = msg.match(/Current state:\s*(\d+)/);
+		if (m) {
+			const state = Number(m[1]);
+			maslowStatus.state = state;
+			updateDynamicButtons();
+		}
+		return true;
+	}
+
+	//Catch the calibration complete message and alert the user...this locks up the UI which is bad...should be handled better
 	if (msg.startsWith("[MSG:INFO: Calibration complete")) {
 		alert(
 			"Calibration complete. You do not need to do calibration ever again unless your frame changes size. You might want to store a backup of your maslow.yaml file in case you need to restore it later.",

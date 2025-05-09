@@ -674,10 +674,7 @@ const tabletGrblState = (grbl, response) => {
 
   if (WPOS()) {
     WPOS().forEach((pos, index) => {
-      setTextContent(
-        `mpos-${common.axisNames[index]}`,
-        Number(pos * factor).toFixed(index > 2 ? 2 : digits),
-      );
+      setTextContent(`mpos-${common.axisNames[index]}`, Number(pos * factor).toFixed(index > 2 ? 2 : digits));
     });
   }
 
@@ -773,6 +770,8 @@ const tabletInit = () => {
     requestModes();
     loadConfigValues();
     loadCornerValues();
+
+    SendPrinterCommand("$GSTATE");
 
     numpad.attach({ target: "disM", axis: "D" });
     numpad.attach({ target: "disZ", axis: "Z" });
@@ -1005,6 +1004,7 @@ const clickon = (name) => {
   button.classList.add("active");
   button.dispatchEvent(new Event("click"));
 };
+
 let ctrlDown = false;
 let oldIndex = null;
 let newChild = null;

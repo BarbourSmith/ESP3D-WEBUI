@@ -50,7 +50,8 @@
           <div id="tablettab_right" class="maslow-grid-item maslow-grid-item-btn" style="background-color: #9d88c0;">
             <canvas id="rBtn" style="width: 100%; height: 100%">
           </div>
-          <div class="maslow-grid-item maslow-grid-item-btn"></div>
+          <div id="dynamic_button_1" class="maslow-grid-item maslow-grid-item-btn" style="background-color: #f2f0e4;">
+          </div>
           <!-- Buttons row 3 -->
           <div id="tablettab_zDown" class="maslow-grid-item maslow-grid-item-btn"
             style="background-color: #f2f0e4; color: #337ab7; border-right: 2px solid grey;">
@@ -72,7 +73,8 @@
           </div>
           <div id="tablettab_bottomRight" class="maslow-grid-item maslow-grid-item-btn"
             style="background-color: #b69fcb;"><canvas id="brBtn" style="width: 100%; height: 100%"></canvas> </div>
-          <div class="maslow-grid-item maslow-grid-item-btn"></div>
+          <div id="dynamic_button_2" class="maslow-grid-item maslow-grid-item-btn" style="background-color: #f2f0e4;">
+          </div>
           <!-- Buttons row 4 -->
           <div id="tablettab_set_z_home" class="maslow-grid-item maslow-grid-item-btn"
             style="background-color: #f2f0e4; border-right: 2px solid grey;">Define Z Home</div>
@@ -82,7 +84,8 @@
             style="background-color: #f2f0e4;" title="Toggle Units">mm</div>
           <div id="tablettab_set_xy_home" class="maslow-grid-item maslow-grid-item-btn"
             style="background-color: #f2f0e4;" title="Press and hold, or tap twice">Define XY Home</div>
-          <div class="maslow-grid-item maslow-grid-item-btn"></div>
+          <div id="dynamic_button_3" class="maslow-grid-item maslow-grid-item-btn" style="background-color: #f2f0e4;">
+          </div>
         </div>
         <!-- Controls row 5 -->
         <div style="grid-template-columns: 80% 20%;" class="maslow-grid-container tablettab-controls-item"
@@ -140,29 +143,29 @@
   <div id="calibration-popup" class="calibration-modal-container">
     <div id="calibration_popup_content" class="calibration-modal-content">
       <div class="calibration-modal-button-container">
-        <div class="buttons-row">
-          <button id="tablettab_cal_retract" class="calibration-modal-button">Retract All</button>
-          <span class="arrow">&#8594;</span>
-          <button id="tablettab_cal_extend" class="calibration-modal-button">Extend All</button>
-          <div class="buttons-row-col-el">
-            <span class="arrow">&#8599;</span>
-            <span class="arrow">&#8600;</span>
-          </div>
-          <div class="buttons-row-col-el">
-            <button id="tablettab_cal_calibrate" class="calibration-modal-button">Calibrate</button>
-            <button id="tablettab_cal_tense" class="calibration-modal-button">Apply Tension</button>
+        <div class="input-row">
+          <div style="display: flex; justify-content: center;">
+            <label id="state-label" style="text-align: center;">State: Unknown</label>
           </div>
         </div>
+        <hr style="border-top: 1px dashed;">
+        <div class="buttons-row">
+          <button id="tablettab_cal_retract" class="calibration-modal-button">Retract All</button>
+          <button id="tablettab_cal_extend" class="calibration-modal-button">Extend All</button>
+          <button id="tablettab_cal_tense" class="calibration-modal-button">Apply Tension</button>
+        </div>
+        <div class="buttons-row">
+          <button id="tablettab_cal_calibrate" class="calibration-modal-button">Calibrate</button>
+          <button id="tablettab_cal_stop" class="calibration-modal-button stop-button">Stop</button>
+          <button id="tablettab_cal_relax" class="calibration-modal-button">Release Tension</button>
+        </div>
+        <hr style="border-top: 1px dashed;">
         <div class="buttons-row">
           <!-- <button id="tablettab_cal_homez" class="calibration-modal-button">Home Z</button> -->
           <button id="tablettab_cal_config" class="calibration-modal-button">Config</button>
-          <button id="tablettab_cal_stop" class="calibration-modal-button stop-button">Stop</button>
+          <button id="tablettab_cal_test" class="calibration-modal-button">Test</button>
           <button id="tablettab_cal_zstop" class="calibration-modal-button"
             title="Record the 'bottom' limit for Z-axis movement">Set Z-Stop</button>
-        </div>
-        <div class="buttons-row">
-          <button id="tablettab_cal_test" class="calibration-modal-button">Test</button>
-          <button id="tablettab_cal_relax" class="calibration-modal-button">Release Tension</button>
         </div>
       </div>
     </div>

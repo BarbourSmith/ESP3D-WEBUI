@@ -808,15 +808,16 @@ textarea {
 }
 
 .buttons-row {
-	display: flex;
-	align-items: center;
-	margin-bottom: 10px;
-	justify-content: space-evenly;
+  display: grid;
+  grid-template-columns: repeat(3, 30%); /* three columns at 30% each */
+  justify-content: space-between;         /* distribute the remaining 10% */
+  align-items: center;
+  column-gap: 5%;                         /* optional gutter between columns */
+  margin-bottom: 10px;
 }
 .buttons-row:first-child {
-	padding: 10px 0px;
-	margin-bottom: 10px;
-	border-bottom: 1px dashed black;
+  padding: 10px 0px;
+  margin-bottom: 10px;
 }
 .buttons-row-col-el {
 	display: flex;
