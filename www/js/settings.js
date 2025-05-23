@@ -75,42 +75,89 @@ const refreshSettings = (hide_setting_list) => {
 const defval = (i) => scl[i].defaultvalue;
 
 /** Build a 'setting' id, any prefix (pf) if supplied should include an '_' at the end of its value */
-const sId = (sEntry, j, pf = "") => `${pf}${sEntry.id}_${j}`;
+const sId = (sEntry, j, pf = "") => {
+  const entryId = typeof sEntry === "string" ? sEntry : sEntry.id;
+  if (typeof sEntry === "string") {
+    console.warn(`sId() called with a string value ${sEntry}`);
+  }
+  return `${pf}${entryId}_${j}`;
+}
 
 /** Build a select option, includes ugly workaround for OSX Chrome and Safari.
  * Also note that the `translate` attribute is set to yes to instruct the browser to use its own translation
- * Therefore do NOT supply a span with translation details to this function e.g. from a call to `trx_text_item`
- */
-const bOpt = (value, isSelected, label) =>
-  `<option value='${value}' ${isSelected ? "selected " : ""}translate="yes">${label}${browser_is("MacOSX") ? "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" : ""}</option>\n`;
+ * Therefore do NOT supply a span with translation details to this function e.g. from a call to `translate_text_item`
+*/
+const bOpt = (value, isSelected, label) => `<option value='${value}' ${isSelected ? "selected " : ""} translate="yes">${label}${browser_is('MacOSX') ? "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" : ""}</option>\n`;
 
-function build_select_flag_for_setting_list(sEntry, j) {
-  let html = `<select class='form-control' id='${sId(sEntry, j)}'>`;
+const build_select_flag_for_setting_list = (i, j, actions) => {
+  const sEntry = scl[i];
+  const sfId = sId(sEntry, j);
+
   const defVal = sEntry.defaultvalue;
-  let tmp = defVal | getFlag(i, j);
-  html += bOpt("1", tmp === defVal, "Disable");
-  tmp = defVal & ~getFlag(i, j);
-  html += bOpt("0", tmp === defVal, "Enable");
-  html += "</select>";
-  //console.log("default:" + defVal);
-  //console.log(html);
-  return html;
+  const dTmp = defVal | getFlag(i, j);
+  const eTmp = defVal & ~getFlag(i, j);
+
+  const html = [
+    `<select id="${sfId}" data-i="${i}" data-j="${j}" class="form-control">`,
+    bOpt("1", dTmp === defVal, "Disable"),
+    bOpt("0", eTmp === defVal, "Enable"),
+    "</select>"
+  ];
+
+  actions.push({ id: sfId, type: "change", method: setting_checkchange });
+
+  return html.join("");
 }
 
-function build_select_for_setting_list(sEntry, j) {
-  let html = `<select class='form-control input-min wauto' id='${sId(sEntry, j)}'>`;
+const build_select_for_setting_list = (i, j, actions) => {
+  const sEntry = scl[i];
+  const sfId = sId(sEntry, j);
+
   const defVal = sEntry.defaultvalue;
+
+  const html = [`<select id="${sfId}" data-i="${i}" data-j="${j}" class="form-control input-min wauto">`];
   for (let oi = 0; oi < sEntry.Options.length; oi++) {
-    html += bOpt(
-      sEntry.Options[oi].id,
-      sEntry.Options[oi].id === defVal,
-      sEntry.Options[oi].display,
-    );
+    const sEntryOpt = sEntry.Options[oi];
+    html.push(bOpt(sEntryOpt.id, sEntryOpt.id === defVal, sEntryOpt.display));
   }
-  html += "</select>";
-  //console.log("default:" + defVal);
-  //console.log(html);
-  return html;
+  html.push("</select>");
+
+  actions.push({ id: sfId, type: "change", method: setting_checkchange });
+
+  return html.join("");
+}
+
+const build_text_for_setting_list = (i, j, actions) => {
+  const sEntry = scl[i];
+  const sfId = sId(sEntry, j);
+
+  const defVal = sEntry.defaultvalue;
+  const input_type = defVal.startsWith("******") ? "password" : "text";
+
+  const html = [
+    "<form>",
+    `<input id='${sfId}' data-i="${i}" data-j="${j}" type='${input_type}' class='form-control input-min' value='${defVal}'>`,
+    "</form>"
+  ];
+
+  actions.push({ id: sfId, type: "keyup", method: setting_checkchange });
+
+  return html.join("");
+}
+
+const build_scanWiFiBtn_for_setting_list = (i, j, actions) => {
+  const sEntry = scl[i];
+  const btnId = sId(sEntry, j, "scanwifi_");
+
+  const html = [
+    `<button id='${btnId}' data-i="${i}" data-j="${j}" class='btn btn-default btn-svg'>`,
+    get_icon_svg("search"),
+    "</button>"
+  ];
+
+  actions.push({ id: btnId, type: "click", method: scanwifidlg });
+
+  return html.join("");
 }
 
 function update_UI_setting() {
@@ -138,89 +185,72 @@ const trx_span = (item_text) => {
 }
 
 /** to generate setting editor in setting or setup */
-const build_control_from_index = (i, actions, extra_set_function = (i) => { }) => {
-  let content = "<table>";
+const build_control_from_index = (i, actions) => {
+  const content = ["<table>"];
   if (i < scl.length && i > -1) {
     const common = new Common();
-    const nbsub = scl[i].type === "F" ? scl[i].Options.length : 1;
+    const sEntry = scl[i];
+    const nbsub = sEntry.type === "F" ? sEntry.Options.length : 1;
     for (let j = 0; j < nbsub; j++) {
       if (j > 0) {
-        content += "<tr><td style='height:10px;'></td></tr>";
+        content.push("<tr><td style='height:10px;'></td></tr>");
       }
-      content += "<tr><td style='vertical-align: middle;'>";
-      if (scl[i].type === "F") {
-        content += trx_span(scl[i].Options[j].display);
-        content += "</td><td>&nbsp;</td><td>";
+      content.push("<tr><td style='vertical-align: middle;'>");
+      if (sEntry.type === "F") {
+        content.push(trx_span(sEntry.Options[j].display));
+        content.push("</td><td>&nbsp;</td><td>");
       }
 
-      const statId = sId(scl[i], j, "status_");
-      content += `<div id='${statId}' class='form-group has-feedback' style='margin: auto;'>`;
-      content += "<div class='item-flex-row'>";
-      content += "<table><tr><td>";
-      content += "<div class='input-group'>";
-      content += "<div class='input-group-btn'>";
+      const statId = sId(sEntry, j, "status_");
+      content.push(`<div id='${statId}' class='form-group has-feedback' style='margin: auto;'>`);
+      content.push("<div class='item-flex-row'>");
+
+      content.push("<table><tr><td>");
+      content.push("<div class='input-group'>");
+      content.push("<div class='input-group-btn'>");
       // setting_revert_to_default() does not work for FluidNC, which cannot report default values
-      // content += `<button id='btn_revert_setting_${statId}' class='btn btn-default btn-svg'>`;
-      // actions.push({id: `btn_revert_setting_${statId}`, type: "click", method: (event) => setting_revert_to_default(i, j)});
-      // content += get_icon_svg("repeat");
-      // content += "</button>";
-      content += "</div>";
-      content += "<input class='hide_it'></input>";
-      content += "</div>";
-      content += "</td><td>";
-      content += "<div class='input-group'>";
-      content += "<span class='input-group-addon hide_it' ></span>";
-      const sfId = sId(scl[i], j);
-      if (scl[i].type === "F") {
+      // content.push(`<button id='btn_revert_setting_${statId}' data-i="${i}" data-j="${j}" class='btn btn-default btn-svg'>`);
+      // actions.push({id: `btn_revert_setting_${statId}`, type: "click", method: setting_revert_to_default});
+      // content.push(get_icon_svg("repeat"));
+      // content.push("</button>");
+      content.push("</div>");
+      content.push("<input class='hide_it'></input>");
+      content.push("</div>");
+      content.push("</td><td>");
+      content.push("<div class='input-group'>");
+      content.push("<span class='input-group-addon hide_it' ></span>");
+
+      if (sEntry.type === "F") {
         //flag
-        //console.log(scl[i].label + " " + scl[i].type);
-        //console.log(scl[i].Options.length);
-        content += build_select_flag_for_setting_list(scl[i], j);
-        actions.push({ id: sfId, type: "change", method: (event) => setting_checkchange(i, j) });
-      } else if (scl[i].Options.length > 0) {
+        content.push(build_select_flag_for_setting_list(i, j, actions));
+      } else if (sEntry.Options.length > 0) {
         //drop list
-        content += build_select_for_setting_list(scl[i], j);
-        actions.push({ id: sfId, type: "change", method: (event) => setting_checkchange(i, j) });
+        content.push(build_select_for_setting_list(i, j, actions));
       } else {
         //text
-        const defVal = scl[i].defaultvalue;
-        const input_type = defVal.startsWith("******") ? "password" : "text";
-        content += `<form><input id='${sfId}' type='${input_type}' class='form-control input-min' value='${defVal}'></form>`;
-        actions.push({ id: sfId, type: "keyup", method: (event) => setting_checkchange(i, j) });
+        content.push(build_text_for_setting_list(i, j, actions));
       }
-      content += `<span id='${sId(scl[i], j, "icon_")}' class='form-control-feedback ico_feedback'></span>`;
-      content += "<span class='input-group-addon hide_it' ></span>";
-      content += "</div>";
-      content += "</td></tr></table>";
+      content.push(`<span id='${sId(sEntry, j, "icon_")}' class='form-control-feedback ico_feedback'></span>`);
+      content.push("<span class='input-group-addon hide_it' ></span>");
+      content.push("</div>");
+      content.push("</td></tr></table>");
 
-      content += "<div class='input-group'>";
-      content += "<input class='hide_it'></input>";
-      content += "<div class='input-group-btn'>";
-      const btnId = sId(scl[i], j, "btn_");
-      content += `<button id='${btnId}' class='btn btn-default' translate english_content='Set'>${trx_text_item("Set")}</button>`;
-      actions.push({
-        id: btnId,
-        type: "click",
-        method: (event) => {
-          settingsetvalue(i, j);
-          extra_set_function(i);
-        },
-      });
-      if (scl[i].pos === common.EP_STA_SSID) {
-        const btnId = sId(scl[i], j, "scanwifi_");
-        content += `<button id='${btnId}' class='btn btn-default btn-svg'>${get_icon_svg("search")}</button>`;
-        actions.push({ id: btnId, type: "click", method: (event) => scanwifidlg(i, j) });
+      content.push("<div class='input-group'>");
+      content.push("<input class='hide_it'></input>");
+      content.push("<div class='input-group-btn'>");
+      const btnId = sId(sEntry, j, "btn_");
+      content.push(`<button id='${btnId}' data-i="${i}" data-j="${j}" class='btn btn-default' translate english_content='Set'>`, trx_text_item("Set"), "</button>");
+      actions.push({ id: btnId, type: "click", method: settingsetvalue });
+
+      if (sEntry.pos === EP_STA_SSID) {
+        content.push(build_scanWiFiBtn_for_setting_list(i, j, actions));
       }
-      content += "</div>";
-      content += "</div>";
-      content += "</div>";
-      content += "</div>";
-      content += "</td></tr>";
+      content.push("</div>", "</div>", "</div>", "</div>", "</td></tr>");
     }
   }
-  content += "</table>";
-  return content;
-};
+  content.push('</table>');
+  return content.join("");
+}
 
 /** get setting UI for specific component instead of parse all */
 function get_index_from_eeprom_pos(pos) {
@@ -236,8 +266,6 @@ function get_index_from_eeprom_pos(pos) {
 
 const configFileName = "maslow.yaml";
 const configSaveResultId = "maslow_save_result";
-
-const build_control_from_pos = (pos, actions, extra) => build_control_from_index(get_index_from_eeprom_pos(pos), actions, extra);
 
 /** Send a command to call Config/Overwrite.
  *
@@ -277,13 +305,13 @@ const build_HTML_setting_list = (filter) => {
 
   const actions = [];
 
-  let content = buildTR(buildTD('Click "Set" after changing a value to set it', 2));
+  const content = [buildTR(buildTD('Click "Set" after changing a value to set it', 2))];
   if (filter === "tree") {
-    content += buildTR(buildTD(`Click "Save" to save any changes you make to ${configFileName}</br>Then click the "restart" icon above, to Restart FluidNC for the changes to take effect`, 2));
+    content.push(buildTR(buildTD(`Click "Save" to save any changes you make to ${configFileName}</br>Then click the "restart" icon above, to Restart FluidNC for the changes to take effect`, 2)));
     const instr = buildTD(`"Save" to ${configFileName}`);
     const btnId = "maslow_save_btn";
     const btn = buildTD(`<button id="${btnId}" type="button" class="btn btn-success">Save</button><span id="${configSaveResultId}"></span>`);
-    content += buildTR(instr + btn);
+    content.push(buildTR(instr + btn));
     actions.push({ id: btnId, type: "click", method: saveMaslowYaml });
   }
 
@@ -308,12 +336,13 @@ const build_HTML_setting_list = (filter) => {
       tr += "</td>\n";
       tr += `<td style='vertical-align:middle'><table><tr><td>${build_control_from_index(i, actions)}</td></tr></table></td>\n`;
       tr += "</tr>\n";
-      content += tr;
+      content.push(tr);
     }
   }
 
   // From settingstab
-  setHTML("settings_list_data", content);
+  setHTML("settings_list_data", content.join(""));
+
   for (const action of actions) {
     const elem = id(action.id);
     if (elem) {
@@ -489,6 +518,7 @@ const create_setting_entry = (sentry, vi) => {
     max_val: settingEntryMax(sentry),
     type: sentry.T,
     pos: sentry.P,
+    extra:  (i) => { },
   };
 }
 
@@ -500,6 +530,7 @@ const getFlag = (i, j) =>
     ? -1
     : Number.parseInt(scl[i].Options[j].id);
 
+/** Get the element matching the settings index value (i) and its subindex value (j)  */
 const setting = (i, j) => id(sId(scl[i], j));
 
 const getSettingElem = (i, j, pf) => {
@@ -524,7 +555,10 @@ function setIconHTML(i, j, value) {
   setHTML(sId(scl[i], j, "icon_"), value);
 }
 
-// function setting_revert_to_default(i, j = 0) {
+// function setting_revert_to_default(event) {
+  // event.stopPropagation();
+  // const i = event.currentTarget.dataset.i;
+  // const j = event.currentTarget.dataset.j;
 // 	if (scl[i].type === "F") {
 // 		const tst = Number.parseInt(defval(i));
 // 		setting(i, j).value = tst === (tst | getFlag(i, j)) ? "1" : "0";
@@ -552,7 +586,11 @@ const applyFlag = (value, defVal, i, j = 0) => {
   return tmp;
 }
 
-function settingsetvalue(i, j = 0) {
+function settingsetvalue(event) {
+  event.stopPropagation();
+  const i = event.currentTarget.dataset.i;
+  const j = event.currentTarget.dataset.j;
+
   //remove possible spaces
   let value = setting(i, j).value.trim();
   const defVal = defval(i);
@@ -581,10 +619,17 @@ function settingsetvalue(i, j = 0) {
 
     const cmd = buildHttpCommandCmd(httpCmdType.plain, `${scl[i].cmd}${value}`);
     SendGetHttp(cmd, setESPsettingsSuccess, setESPsettingsfailed);
+
+    // Run the extra set function
+    scl[i].extra(i);
   }
 }
 
-function setting_checkchange(i, j) {
+const setting_checkchange = (event) => {
+  event.stopPropagation();
+  const i = event.currentTarget.dataset.i;
+  const j = event.currentTarget.dataset.j;
+
   //console.log("list value changed");
   const settingElem = setting(i, j);
   const sEntry = scl[i];

@@ -83,15 +83,6 @@ function SPIFFSselect_dir(event) {
 	SPIFFSSendCommand("list", "all");
 }
 
-const AddActionHandlers = (actions) => {
-	for (const action of actions) {
-		const elem = id(action.id);
-		if (elem) {
-			elem.addEventListener("click", action.method);
-		}
-	}
-}
-
 /** Builds the SPIFFS nav bar, adds it to the parent element, and sets up the event handlers */
 const SPIFFSnavbar = () => {
 	const common = new Common();

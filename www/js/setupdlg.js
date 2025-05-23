@@ -53,7 +53,7 @@ const setupdlg = () => {
 
     const actions = [];
     const content = ["<div class='steplinks spacer'></div>"];
-    for ( const step of wizardSteps ) {
+    for (const step of wizardSteps) {
         content.push(buildWizardLink(step));
         actions.push({ id: step.link, type: "click", method: (event) => startStep(event, step.name) });
     };
@@ -65,7 +65,7 @@ const setupdlg = () => {
     id("wizard_button").title = wizardSteps[0].next;
     id("wizard_button").addEventListener("click", setupDlgContinue);
 
-    for ( const step of wizardSteps ) {
+    for (const step of wizardSteps) {
         if (step.wizard) {
             disableStepLink(step.wizard, step.link);
         }
@@ -88,6 +88,7 @@ const buildControlItem = (label, pos, actions, extra) => (trx_text_item(label) +
 const hardRule = () => "<hr>\n";
 const div = (name) => `<div id='${name}'>`;
 const endDiv = () => "</div>";
+
 /** Mark the wizard step as 'not done' by removing the 'wizard_done' class */
 const wizardNotDone = (element) => id(element).classList.remove("wizard_done");
 
@@ -98,7 +99,7 @@ const buildWizardLink = (step) => {
     }
 
     content.push(`<button id="${step.link}" class="steplinks">`);
-    content.push(get_icon_svg(step.icon, {t: "translate(50,1200) scale(1,-1)"}));
+    content.push(get_icon_svg(step.icon, { t: "translate(50,1200) scale(1,-1)" }));
     content.push("</button>");
 
     return content.join("\n");
@@ -207,13 +208,14 @@ const addActions = (actions) => {
 const step0ContentAndActions = (stepName = "startstep") => {
     const ls = "language_selection";
     const sll = "setup_language_list";
-    let content = "";
-    content += heading("Setup Wizard");
-    content += `${trx_text_item("This wizard will help you to configure the basic settings.")}<br/>`;
-    content += `${div(sll) + endDiv()}<br/>`;
-    content += `<span>${trx_text_item("Press start to proceed.")}</span>`;
+    const content = [
+        heading("Setup Wizard"),
+        `${trx_text_item("This wizard will help you to configure the basic settings.")}<br/>`,
+        `${div(sll) + endDiv()}<br/>`,
+        `<span>${trx_text_item("Press start to proceed.")}</span>`
+    ];
 
-    setHTML(stepName, content);
+    setHTML(stepName, content.join(""));
 
     id(sll).classList.add("center");
     const selLang = getPrefValue("language_list");
@@ -239,28 +241,29 @@ const step2ContentAndActions = (stepName = "step2") => {
     const common = new Common();
     const actions = [];
 
-    let content = "";
-    content += heading("WiFi Configuration");
+    const content = [
+        heading("WiFi Configuration"),
 
-    content += buildControlItem("Define ESP role:", common.EP_WIFI_MODE, actions, define_esp_role);
-    content += `${trx_text_item("AP define access point / STA allows to join existing network")}<br/>`;
+        buildControlItem("Define ESP role:", common.EP_WIFI_MODE, actions, define_esp_role),
+        `${trx_text_item("AP define access point / STA allows to join existing network")}<br/>`,
 
-    content += hardRule();
+        hardRule(),
 
-    content += div("setup_STA");
-    content += buildControlItem("What access point ESP need to be connected to:", common.EP_STA_SSID, actions);
-    content += `${trx_text_item("You can use scan button, to list available access points.")}<br/>`;
-    content += hardRule();
-    content += buildControlItem("Password to join access point:", common.EP_STA_PASSWORD, actions);
-    content += endDiv();
+        div("setup_STA"),
+        buildControlItem("What access point ESP need to be connected to:", common.EP_STA_SSID, actions),
+        `${trx_text_item("You can use scan button, to list available access points.")}<br/>`,
+        hardRule(),
+        buildControlItem("Password to join access point:", common.EP_STA_PASSWORD, actions),
+        endDiv(),
 
-    content += div("setup_AP");
-    content += buildControlItem("What is ESP access point SSID:", common.EP_AP_SSID, actions);
-    content += hardRule();
-    content += buildControlItem("Password for access point:", common.EP_AP_PASSWORD, actions);
-    content += endDiv();
+        div("setup_AP"),
+        buildControlItem("What is ESP access point SSID:", common.EP_AP_SSID, actions),
+        hardRule(),
+        buildControlItem("Password for access point:", common.EP_AP_PASSWORD, actions),
+        endDiv(),
+    ];
 
-    setHTML(stepName, content);
+    setHTML(stepName, content.join(""));
     addActions(actions);
     define_esp_role_from_pos(common.EP_WIFI_MODE);
 }
@@ -278,23 +281,24 @@ const step2ContentAndActions = (stepName = "step2") => {
 //     const common = new Common();
 //     const actions = [];
 
-//     let content = "";
-//     content += heading("SD Card Configuration");
-//     content += buildControlItem("Is ESP connected to SD card:", common.EP_IS_DIRECT_SD, actions, define_sd_role);
-//     content += hardRule();
+//     const content = [
+//         heading("SD Card Configuration"),
+//         buildControlItem("Is ESP connected to SD card:", common.EP_IS_DIRECT_SD, actions, define_sd_role),
+//         hardRule(),
 
-//     content += div("setup_SD");
-//     content += buildControlItem("Check update using direct SD access:", common.EP_DIRECT_SD_CHECK, actions);
-//     content += hardRule();
+//         div("setup_SD"),
+//         buildControlItem("Check update using direct SD access:", common.EP_DIRECT_SD_CHECK, actions),
+//         hardRule(),
 
-//     content += div("setup_primary_SD");
-//     content += buildControlItem("SD card connected to ESP", common.EP_PRIMARY_SD, actions);
-//     content += hardRule();
-//     content += buildControlItem("SD card connected to printer", common.EP_SECONDARY_SD, actions);
-//     content += hardRule();
-//     content += endDiv();
+//         div("setup_primary_SD"),
+//         buildControlItem("SD card connected to ESP", common.EP_PRIMARY_SD, actions),
+//         hardRule(),
+//         buildControlItem("SD card connected to printer", common.EP_SECONDARY_SD, actions),
+//         hardRule(),
+//         endDiv(),
 
-//     content += endDiv();
+//         endDiv()
+//     ]
 
 //     setHTML(stepName, content);
 //     addActions(actions);
@@ -302,13 +306,14 @@ const step2ContentAndActions = (stepName = "step2") => {
 // }
 
 const step4Content = (stepName = "endstep") => {
-    let content = "";
-    content += heading("Setup Wizard Completed");
-    content += `<span>${trx_text_item("Setup is finished.")}</span><br/>`;
-    content += `<span>${trx_text_item("After closing, you will still be able to change or to fine tune your settings in the main interface anytime.")}</span><br/>`;
-    content += `<span>${trx_text_item("You may need to restart the board to apply the new settings and connect again")}</span>`;
+    const content = [
+        heading("Setup Wizard Completed"),
+        `<span>${trx_text_item("Setup is finished.")}</span><br/>`,
+        `<span>${trx_text_item("After closing, you will still be able to change or to fine tune your settings in the main interface anytime.")}</span><br/>`,
+        `<span>${trx_text_item("You may need to restart the board to apply the new settings and connect again")}</span>`,
+    ];
 
-    setHTML(stepName, content);
+    setHTML(stepName, content.join(""));
     setHTML("wizard_button", trx_text_item("Close"));
 }
 
