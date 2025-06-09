@@ -161,11 +161,16 @@ function initUI_2() {
 function initUI_3() {
 	console.log("Init UI - Step 3 - Initialise the control and GRBL panels, get the preferences");
 	display_boot_progress();
-	//init panels
-	init_controls_panel();
-	init_grbl_panel();
-	getpreferenceslist();
-	initUI_4();
+	GetPreferencesList();
+	// Yet another hack to wait for the preferences to be set
+	setTimeout(() => {
+		//init panels
+		init_controls_panel();
+		// This is in preferencesdlg.js
+		applypreferenceslist();
+		init_grbl_panel();
+		initUI_4();
+	}, 1500);
 }
 
 /** InitUI step4 - Initialise the command and files panels, determine if the setup wizard needs to be run */

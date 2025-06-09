@@ -15,14 +15,14 @@
                     <span>
                         <input id="report_auto" type="radio" name="status_report" value="auto" />
                         <label for="report_auto" translate>Auto</label>
-                        <input id="grblpanel_autoreport_interval" class="w4" type="number" min="50" max="30000"
+                        <input id="grblpanel_autoreport_interval" class="w4" type="number" min="50" max="30000" step="any"
                             value="50" />
                         <label for="grblpanel_autoreport_interval" translate>ms</label>
                     </span>
                     <span>
                         <input id="report_poll" type="radio" name="status_report" value="poll" />
                         <label for="report_poll" translate>Poll</label>
-                        <input id="grblpanel_interval_status" class="w4" type="number" min="0.1" max="99" value="3" />
+                        <input id="grblpanel_interval_status" class="w4" type="number" min="0.1" max="99" step="any" value="3" />
                         <label for="grblpanel_interval_status" translate>sec</label>
                     </span>
                 </div>
@@ -290,7 +290,7 @@
                                                     <td>
                                                         <span class="input-group-addon hide_it"></span>
                                                         <input id="grblspindle_rpm" class="form-control w8"
-                                                            type="number" min="1" value="1">
+                                                            type="number" min="1" step="any" value="1">
                                                         <span class="input-group-addon form_control">rpm</span>
                                                     </td>
                                                 </tr>
@@ -308,8 +308,8 @@
                                 <tr>
                                     <td>
                                         <div class="input-group">
-                                            <span class="input-group-addon form_control"><span translate>Max
-                                                    travel</span>:</span>
+                                            <span class="input-group-addon form_control">
+                                                <span translate>Max travel</span>:</span>
                                             <input class="hide_it" />
                                         </div>
                                     </td>
@@ -317,7 +317,7 @@
                                         <div class="input-group">
                                             <span class="input-group-addon hide_it"></span>
                                             <input id="grblpanel_probemaxtravel" class="form-control w6" type="number"
-                                                min="1" />
+                                                min="1" step="any" title="Probe: Maximum Travel" />
                                             <span class="input-group-addon hide_it"></span>
                                         </div>
                                     </td>
@@ -328,21 +328,21 @@
                                         </div>
                                     </td>
                                 </tr>
-                            </table>
-                            <br>
-                            <table>
+                                <tr>
+                                    <td style="height:5px;" colspan="3"></td>
+                                </tr>
                                 <tr>
                                     <td>
                                         <div class="input-group">
-                                            <span class="input-group-addon form_control"><span translate>Feed
-                                                    rate</span>:</span>
+                                            <span class="input-group-addon form_control">
+                                                <span translate>Feed rate</span>:</span>
                                             <input class="hide_it" />
                                         </div>
                                     </td>
                                     <td>
                                         <div class="input-group">
                                             <span class="input-group-addon hide_it"></span>
-                                            <input id="grblpanel_probefeedrate" class="form-control w6" type="number" min="1" />
+                                            <input id="grblpanel_probefeedrate" class="form-control w6" type="number" min="1" step="any" />
                                             <span class="input-group-addon hide_it"></span>
                                         </div>
                                     </td>
@@ -353,22 +353,22 @@
                                         </div>
                                     </td>
                                 </tr>
-                            </table>
-                            <br>
-                            <table>
+                                <tr>
+                                    <td style="height:5px;" colspan="3"></td>
+                                </tr>
                                 <tr>
                                     <td>
                                         <div class="input-group">
-                                            <span class="input-group-addon form_control"><span translate>Retract
-                                                    distance</span>:</span>
+                                            <span class="input-group-addon form_control">
+                                                <span translate>Retract distance</span>:</span>
                                             <input class="hide_it" />
                                         </div>
                                     </td>
                                     <td>
                                         <div class="input-group">
                                             <span class="input-group-addon hide_it"></span>
-                                            <input id="grblpanel_proberetract" class="form-control w5" type="number"
-                                                min="0" />
+                                            <input id="grblpanel_proberetract" class="form-control w6" type="number"
+                                                min="0" step="any" />
                                             <span class="input-group-addon hide_it"></span>
                                         </div>
                                     </td>
@@ -379,9 +379,9 @@
                                         </div>
                                     </td>
                                 </tr>
-                            </table>
-                            <br>
-                            <table>
+                                <tr>
+                                    <td style="height:5px;" colspan="3"></td>
+                                </tr>
                                 <tr>
                                     <td>
                                         <div class="input-group">
@@ -393,8 +393,8 @@
                                     <td>
                                         <div class="input-group">
                                             <span class="input-group-addon hide_it"></span>
-                                            <input id="grblpanel_probetouchplatethickness" class="form-control w5"
-                                                type="number" min="0" />
+                                            <input id="grblpanel_probetouchplatethickness" class="form-control w6"
+                                                type="number" min="0" step="any" />
                                             <span class="input-group-addon hide_it"></span>
                                         </div>
                                     </td>
@@ -405,16 +405,23 @@
                                         </div>
                                     </td>
                                 </tr>
-                            </table>
-                            <br>
-                            <table>
                                 <tr>
-                                    <td nowrap translate style="vertical-align: middle; "><span translate>Touch
-                                            status</span>:</td>
-                                    <td id="touch_status_icon">
-
+                                    <td style="height:5px;" colspan="3"></td>
+                                </tr>
+                                <tr>
+                                    <td style="height:5px;" colspan="3">
+                                        <small>
+                                            <p translate>* Changes made here are temporary.<br/>Please use Preferences to set defaults for these values.</p>
+                                        </small>
                                     </td>
-                                    <td>&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td style="height:10px;" colspan="3"></td>
+                                </tr>
+                                <tr>
+                                    <td nowrap translate style="vertical-align: middle; ">
+                                        <span translate>Touch status</span>:</td>
+                                    <td id="touch_status_icon">&nbsp;</td>
                                     <td>
                                         <span class="hide_it" id="probingtext">
                                             <table>

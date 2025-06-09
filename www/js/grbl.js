@@ -141,14 +141,18 @@ const floatOrZero = (value) => {
 }
 
 const prefList = () => {
-  return (typeof preferencesList !== "undefined" && Array.isArray(preferenceList) && preferenceList.length > 0)
-    ? preferenceslist[0]
-    : default_preferenceslist[0];
+  // This has a possible race condition
+  // ideally GetPreferencesList() should be awaited on in some way
+  // but that would require a lot of changes to the code
+  if (!isPreferencesListDefined()) {
+    GetPreferencesList();
+  }
+  return isPreferencesListDefined() ? preferenceslist[0] : default_preferenceslist[0];
 }
 
 const probeValues = {
   travel: { fldId: "grblpanel_probemaxtravel", prefId: "probemaxtravel", valType: "float", valTitle: "maximum probe travel", minVal: 1, maxVal: 999, units: "mm" },
-  feedrate: { fldId: "grblpanel_probefeedrate", prefId: "probefeedrate", valType: "int", valTitle: "probe feedrate", minVal: 1, maxVal: 9999, units: "mm/min" },
+  feedrate: { fldId: "grblpanel_probefeedrate", prefId: "probefeedrate", valType: "float", valTitle: "probe feedrate", minVal: 1, maxVal: 9999, units: "mm/min" },
   retract: { fldId: "grblpanel_proberetract", prefId: "proberetract", valType: "float", valTitle: "probe retract", minVal: 0, maxVal: 999, units: "mm" },
   plateThickness: { fldId: "grblpanel_probetouchplatethickness", prefId: "probetouchplatethickness", valType: "float", valTitle: "probe touch plate thickness", minVal: 0, maxVal: 999, units: "mm" },
 };

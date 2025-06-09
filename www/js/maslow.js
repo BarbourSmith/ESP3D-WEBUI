@@ -69,6 +69,17 @@ const updateDynamicButtons = () => {
 	const greenBackground = "#4aa85c"
 	const greyBackground = "#a0a0a0"
 
+	// #define UNKNOWN 0
+	// #define RETRACTING 1
+	// #define RETRACTED 2
+	// #define EXTENDING 3
+	// #define EXTENDEDOUT 4 //Extended is a reserved word
+	// #define TAKING_SLACK 5
+	// #define CALIBRATION_IN_PROGRESS 6
+	// #define READY_TO_CUT 7
+	// #define RELEASE_TENSION 8
+	// #define CALIBRATION_COMPUTING 9
+
 	switch (maslowStatus.state) {
 		case 0: 
 			stateLabel.innerHTML = "State: Unknown";
@@ -151,6 +162,26 @@ const updateDynamicButtons = () => {
 			calibrateButton.style.backgroundColor = greyBackground;
 
 			break;
+		case 8:
+			stateLabel.innerHTML = "State: Releasing Tension";
+
+			retractButton.style.backgroundColor = greyBackground;
+			extendButton.style.backgroundColor = greyBackground;
+			tenseButton.style.backgroundColor = greyBackground;
+			relaxButton.style.backgroundColor = greyBackground;
+			calibrateButton.style.backgroundColor = greyBackground;
+
+			// No buttons are active in this state
+			break;
+		case 9:
+			stateLabel.innerHTML = "State: Calibration Computing";
+			// No buttons are active in this state
+			retractButton.style.backgroundColor = greyBackground;
+			extendButton.style.backgroundColor = greyBackground;
+			tenseButton.style.backgroundColor = greyBackground;
+			relaxButton.style.backgroundColor = greyBackground;
+			calibrateButton.style.backgroundColor = greyBackground;
+			break;
 		default:
 			stateLabel.innerHTML = "State: Unknown";
 
@@ -164,11 +195,23 @@ const updateDynamicButtons = () => {
 }
 
 
+
+
 /** Perform maslow specific-ish info message handling */
 const maslowInfoMsgHandling = (msg) => {
 	if (msg.startsWith('MINFO: ')) {
 		try {
-			maslowStatus = JSON.parse(msg.substring(7));
+			const parsedStatus = JSON.parse(msg.substring(7));
+
+			// Iterate through the keys of the parsed JSON. This is more reliable than assigning it directly which sometimes seems to produce garbage
+			for (const key in parsedStatus) {
+				if (parsedStatus.hasOwnProperty(key)) {
+					// Check if the key exists in maslowStatus
+					if (key in maslowStatus) {
+						maslowStatus[key] = parsedStatus[key];
+					}
+				}
+			}
 		} catch (error) {
 			console.error("Parsing the 'MINFO' message failed, the maslow status has not been changed. This is probably a programmer error.");
 		}
@@ -185,6 +228,11 @@ const maslowInfoMsgHandling = (msg) => {
 		const m = msg.match(/Current state:\s*(\d+)/);
 		if (m) {
 			const state = Number(m[1]);
+			//If the state is in the range of 0-7, update the maslowStatus
+			if (state < 0 || state > 9) {
+				console.error("Invalid state received from machine: " + state);
+				return false;
+			}
 			maslowStatus.state = state;
 			updateDynamicButtons();
 		}
@@ -193,14 +241,50 @@ const maslowInfoMsgHandling = (msg) => {
 
 	//Catch the calibration complete message and alert the user...this locks up the UI which is bad...should be handled better
 	if (msg.startsWith("[MSG:INFO: Calibration complete")) {
-		alert(
-			"Calibration complete. You do not need to do calibration ever again unless your frame changes size. You might want to store a backup of your maslow.yaml file in case you need to restore it later.",
-		);
+		showCalibrationCompleteMessage();
 		return true;
 	}
 
 	return false;
 };
+
+
+/// Show a modal message when calibration is complete
+function showCalibrationCompleteMessage() {
+  const message = "Calibration complete. You do not need to do calibration ever again unless your frame changes size. You might want to store a backup of your maslow.yaml file in case you need to restore it later.";
+  // Create the modal dynamically
+  const modal = document.createElement('div');
+  modal.id = 'calibration-complete-modal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 1px solid black;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+  `;
+
+  const messageElement = document.createElement('p');
+  messageElement.textContent = message;
+
+  const closeButton = document.createElement('button');
+  closeButton.textContent = 'Close';
+    closeButton.style.cssText = `
+    margin-top: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+  `;
+  closeButton.onclick = function() {
+    document.body.removeChild(modal);
+  };
+
+  modal.appendChild(messageElement);
+  modal.appendChild(closeButton);
+  document.body.appendChild(modal);
+}
 
 /** Perform maslow specific-ish error message handling */
 const maslowErrorMsgHandling = (msg) => {
@@ -310,8 +394,9 @@ const maslowMsgHandling = (msg) => {
 };
 
 const checkHomed = () => {
-	if (!maslowStatus.homed) {
-		const err_msg = `${M} does not know belt lengths. Please retract and extend before continuing.`;
+	if (maslowStatus.state != 7) { // If the state is not 'ready to cut'
+		console.log("Maslow is not ready to move, current state: " + maslowStatus.state);
+		const err_msg = `${M} is not ready to move.`;
 		alert(err_msg);
 
 		// Write to the console too, in case the system alerts are not visible
@@ -322,8 +407,8 @@ const checkHomed = () => {
 		}
 	}
 
-	return maslowStatus.homed;
-};
+	return maslowStatus.state == 7; // Return true if the state is 'ready to cut'
+}
 
 /** Short hand convenience call to SendPrinterCommand with some preset values.
  * Uses the global function get_position, which is also a SendPrinterCommand with presets
@@ -335,7 +420,7 @@ const sendCommand = (cmd) => {
 // The following functions are all defined as global functions, and are used by tablettab.html and other places
 // They rely on the global function SendPrinterCommand defined in printercmd.js
 
-/** Get all of the config (not corner) keys in the confiiguration definition */
+/** Get all of the config (not corner) keys in the configuration definition */
 const allConfigKeys = () => Object.keys(cfgDef).filter((key) => cfgDef[key].type === "A");
 
 /** Used to populate the config popup when it loads */
@@ -372,7 +457,7 @@ const saveConfigValues = () => {
 	}
 
 	// Save the individual values
-	for (const key of allConfigKeys) {
+	for (const key of allConfigKeys()) {
 		const cfgVal = cfgDef[key];
 		const value = typeof cfgVal.val === "undefined"
 			? cfgVal.loadedVal
