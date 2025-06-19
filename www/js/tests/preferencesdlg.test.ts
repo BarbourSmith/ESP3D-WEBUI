@@ -54,9 +54,9 @@ describe("preferncesdlg", () => {
 	);
 
 	const orientationActions = [
-		["vertical", "false", "machineOrientation", "horizontal"],
-		["vertical", "true", "machineOrientation", "vertical"],
-		["vertical", "something else", "machineOrientation", "vertical"],
+		["orientation", "false", "machineOrientation", "horizontal"],
+		["orientation", "true", "machineOrientation", "upright"],
+		["orientation", "something else", "machineOrientation", "upright"],
 	];
 
 	test.each(orientationActions)(

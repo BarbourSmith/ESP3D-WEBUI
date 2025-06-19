@@ -303,13 +303,13 @@ const maslowErrorMsgHandling = (msg) => {
 	return `${msg}${msgExtra[msg.split(":")[1]] || ""}`;
 };
 
-/** Is the machine orientation 'vertical' (the default) */
+/** Is the machine orientation 'upright' (the default) */
 const isVert = (value) => value === "horizontal" ? "false" : "true";
 /** What orientation is the machine? */
-const vertIs = (value) => value === "false" ? "horizontal" : "vertical";
+const vertIs = (value) => value === "false" ? "horizontal" : "upright";
 
 const cfgDef = {
-	vertical: { name: "machineOrientation", type: "A", fnVal: isVert, fnDisp: vertIs },
+	orientation: { name: "machineOrientation", type: "A", fnVal: isVert, fnDisp: vertIs },
 	calibration_grid_size: { name: "gridSize", type: "A" },
 	calibration_grid_width_mm_X: { name: "gridWidth", type: "A" },
 	calibration_grid_height_mm_Y: { name: "gridHeight", type: "A" },
