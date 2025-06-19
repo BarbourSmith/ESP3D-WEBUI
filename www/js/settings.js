@@ -13,7 +13,7 @@ let current_setting_filter = "nvs";
 var setup_is_done = false;
 let do_not_build_settings = false;
 const CONFIG_TOOLTIPS = {
-  Maslow_vertical: `If the ${M} is oriented horizontally, set this to false`,
+  Maslow_orientation: `Set to true if the ${M} is oriented upright, or false if it is oriented horizontally`,
   Maslow_calibration_offset_X: "mm offset from the edge of the frame, X",
   Maslow_calibration_offset_Y: "mm offset from the edge of the frame, Y",
   Maslow_calibration_size_X: "Number of X points to use in calibration",
