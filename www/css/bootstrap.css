@@ -137,7 +137,7 @@ code,
 kbd,
 pre,
 samp {
-    font-family: monospace, monospace;
+    font-family: monospace;
     font-size: 1em;
 }
 
@@ -2314,7 +2314,7 @@ input[type="search"] {
     -webkit-appearance: none;
 }
 
-@media screen and (-webkit-min-device-pixel-ratio: 0) {
+@media screen and (min-resolution: 0.1dppx) {
 
     input[type="date"].form-control,
     input[type="time"].form-control,
@@ -2837,7 +2837,7 @@ select[multiple].input-lg {
 fieldset[disabled] .btn {
     cursor: not-allowed;
     opacity: 0.65;
-    filter: alpha(opacity=65);
+    filter: opacity(65%);
     -webkit-box-shadow: none;
     box-shadow: none;
 }
@@ -5905,7 +5905,7 @@ button.list-group-item-danger.active:focus {
 }
 
 .text-hide {
-    font: 0/0 a;
+    font: 0/0 a, sans-serif;
     color: transparent;
     text-shadow: none;
     background-color: transparent;

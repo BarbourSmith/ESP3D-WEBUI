@@ -1,5 +1,25 @@
+import {
+	Common,
+	get_icon_svg,
+	conErr,
+	getChecked,
+	id,
+	setChecked,
+	getValue,
+	setValue,
+	setHTML,
+	alertdlg,
+	getAxisFromValue,
+	AxisFeedRate,
+	SendPrinterCommand,
+	buildHttpFileGetCmd,
+	SendGetHttp,
+	trx_text_item,
+	showmacrodlg,
+	control_changeaxis
+} from "./common.js";
+
 let interval_position = -1;
-const control_macrolist = [];
 
 /** Set up the macro list for the Controls Panel */
 const init_controls_panel = () => {
@@ -34,7 +54,9 @@ const ControlsPanel = () => {
 };
 
 function loadmacrolist() {
-	control_macrolist.length = 0;
+	const common = new Common();
+	common.control_macrolist.length = 0;
+
 	const cmd = buildHttpFileGetCmd("macrocfg.json");
 	SendGetHttp(cmd, processMacroGetSuccess, processMacroGetFailed);
 }
@@ -42,17 +64,18 @@ function loadmacrolist() {
 function Macro_build_list(response_text) {
 	let response = [];
 	try {
-		if (response_text.length !== 0) {
+		if (response_text.length) {
 			response = JSON.parse(response_text);
 		}
 	} catch (e) {
 		console.error("Parsing error:", e);
 		return;
 	}
+	const common = new Common();
 	for (let i = 0; i < 9; i++) {
 		let entry;
 		if (
-			response.length !== 0 &&
+			response.length &&
 			typeof response[i].name !== "undefined" &&
 			typeof response[i].glyph !== "undefined" &&
 			typeof response[i].filename !== "undefined" &&
@@ -78,7 +101,7 @@ function Macro_build_list(response_text) {
 				index: i
 			};
 		}
-		control_macrolist.push(entry);
+		common.control_macrolist.push(entry);
 	}
 	control_build_macro_ui();
 }
@@ -90,42 +113,38 @@ function processMacroGetFailed(error_code, response) {
 	Macro_build_list("");
 }
 
-function on_autocheck_position(use_value) {
+const on_autocheck_position = (use_value) => {
 	if (typeof (use_value) !== 'undefined') {
 		setChecked('autocheck_position', String(use_value));
 	}
-	if (getChecked('autocheck_position') === "true") {
-		const interval = Number.parseInt(getValue('controlpanel_interval_positions'));
+
+	clearInterval(interval_position);
+	interval_position = -1;
+
+	if (getChecked("autocheck_position") !== "false") {
+		const intPosElem = id("controlpanel_interval_positions");
+		const interval = Number.parseInt(intPosElem?.value || undefined);
+
 		if (!Number.isNaN(interval) && interval > 0 && interval < 100) {
-			if (interval_position !== -1) {
-				clearInterval(interval_position);
-			}
-			interval_position = setInterval(() => { get_Position() }, interval * 1000);
+			interval_position = setInterval(() => { get_Position(); }, interval * 1000);
 		} else {
-			setChecked('autocheck_position', "false");
-			setValue('controlpanel_interval_positions', 0);
-			if (interval_position !== -1) {
-				clearInterval(interval_position);
+			setChecked("autocheck_position", "false");
+			if (intPosElem) {
+				intPosElem.value = 0;
 			}
-			interval_position = -1;
 		}
-	} else {
-		if (interval_position !== -1) {
-			clearInterval(interval_position);
-		}
-		interval_position = -1;
 	}
-}
+};
 
 function onPosIntervalChange() {
-	const interval = Number.parseInt(getValue('controlpanel_interval_positions'));
+	const interval = Number.parseInt(getValue("controlpanel_interval_positions"));
 	if (!Number.isNaN(interval) && interval > 0 && interval < 100) {
 		on_autocheck_position();
 	} else {
-		setChecked('autocheck_position', "false");
-		setValue('controlpanel_interval_positions', 0);
+		setChecked("autocheck_position", "false");
+		setValue("controlpanel_interval_positions", 0);
 		if (interval !== 0) {
-			alertdlg(translate_text_item("Out of range"), translate_text_item("Value of auto-check must be between 0s and 99s !!"));
+			alertdlg(trx_text_item("Out of range"), trx_text_item("Value of auto-check must be between 0s and 99s !!"));
 		}
 		on_autocheck_position();
 	}
@@ -133,41 +152,43 @@ function onPosIntervalChange() {
 
 const get_Position = () => SendPrinterCommand("?", false, null, null, 114, 1);
 
-function Control_get_position_value(label, result_data) {
-	let result = "";
-	let pos1 = result_data.indexOf(label, 0);
-	if (pos1 > -1) {
-		pos1 += label.length;
-		const pos2 = result_data.indexOf(" ", pos1);
-		if (pos2 > -1) {
-			result = result_data.substring(pos1, pos2);
-		} else result = result_data.substring(pos1);
-	}
-	return result.trim();
-}
+// function Control_get_position_value(label, result_data) {
+// 	let result = "";
+// 	let pos1 = result_data.indexOf(label, 0);
+// 	if (pos1 > -1) {
+// 		pos1 += label.length;
+// 		const pos2 = result_data.indexOf(" ", pos1);
+// 		if (pos2 > -1) {
+// 			result = result_data.substring(pos1, pos2);
+// 		} else result = result_data.substring(pos1);
+// 	}
+// 	return result.trim();
+// }
 
-function process_Position(response) {
-	grblProcessStatus(response);
-}
+// function process_Position(response) {
+// 	grblProcessStatus(response);
+// }
 
 function control_motorsOff() {
 	SendPrinterCommand("$Motors/Disable", true);
 }
 
+// Referenced by jogdial.svg
 function SendHomecommand(cmd) {
-	if (getChecked('lock_UI') === "true") {
+	if (getChecked("lock_UI") !== "false") {
 		return;
 	}
-	let hCmd = cmd;
+	const common = new Common();
+	let grblCmd = "";
 	switch (cmd) {
-		case 'G28': hCmd = '$H'; break;
-		case 'G28 X0': hCmd = '$HX'; break;
-		case 'G28 Y0': hCmd = '$HY'; break;
-		case 'G28 Z0': hCmd = (grblaxis > 3) ? `$H${getValue("control_select_axis") || ""}` : '$HZ'; break;
-		default: hCmd = '$H'; break;
+		case "G28": grblCmd = "$H"; break;
+		case "G28 X0": grblCmd = "$HX"; break;
+		case "G28 Y0": grblCmd = "$HY"; break;
+		case "G28 Z0": grblCmd = (common.fwData.grblaxis > 3) ? `$H${id("control_select_axis").value}` : "$HZ"; break;
+		default: grblCmd = "$H"; break;
 	}
 
-	SendPrinterCommand(hCmd, true, get_Position);
+	SendPrinterCommand(grblCmd, true, get_Position);
 }
 
 function SendZerocommand(cmd) {
@@ -175,54 +196,31 @@ function SendZerocommand(cmd) {
 	SendPrinterCommand(command, true, get_Position);
 }
 
-/** Get the Relevant Feed Rate for the Axis. It does not have to be the selected Axis */
-const GetAxisFeedRate = (axis = "XY") => {
-	switch (axis.toUpperCase()) {
-		case "XY": return AxisFeedrate()[0];
-		case "Z": return AxisFeedrate()[2];
-		case "A": return AxisFeedrate()[3];
-		case "B": return AxisFeedrate()[4];
-		case "C": return AxisFeedrate()[5];
-		default:
-			// "x", "y", "XY"
-			return AxisFeedrate()[0];
-	}
-}
-
-/** Get the relevant feed rate for jogging */
-function JogFeedrate(axis) {
-	const isZAxis = axis[0].toUpperCase() === "Z";
-	return GetAxisFeedRate(isZAxis ? "Z" : "XY");
-}
-
 /** This is extensively used in the jog dial SVGs */
 function SendJogcommand(cmd, feedrate) {
+	const common = new Common();
 	if (getChecked("lock_UI") !== "false") {
 		return;
 	}
 
-	const jCmd = grblaxis > 3 ? cmd.replace("Z", getValue("control_select_axis")) : cmd;
+	// The SVGs are fixed and don't know that 'Z' could be something else
+	const aCmd = (common.fwData.grblaxis <= 3) ? cmd : cmd.replace("Z", getValue("control_select_axis"));
 
-	const feedrateValue = GetAxisFeedRate(feedrate[0].toUpperCase() === "Z" ? getValue("control_select_axis") : "XY");
+	const feedrateValue = AxisFeedRate(getAxisFromValue(aCmd));
 
-	const command = `$J=G91 G21 F${feedrateValue} ${jCmd}`;
-	console.debug(command);
+	const command = `$J=G91 G21 F${feedrateValue} ${aCmd}`;
+	console.log(command);
 	SendPrinterCommand(command, true, get_Position);
 }
 
 const getFeedRateValue = (name) => floatOrZero(getValue(name) || 0);
 
-function control_resetaxis(axis = "") {
-	const letter = !axis ? getValue('control_select_axis') : axis;
+const control_resetaxis = (axis = "") => {
+	const letter = (!axis ? getValue('control_select_axis') : axis).toUpperCase();
+	const ctrlLetter = ["X", "Y", "XY"].includes(letter) ? "XY" : letter;
 
 	// Change over to the new axis that's been selected
-	switch (letter) {
-		case "XY": setValue('controlpanel_xy_feedrate', AxisFeedrate()[0]); break;
-		case 'Z': setValue('controlpanel_z_feedrate', AxisFeedrate()[2]); break;
-		case 'A': setValue('controlpanel_z_feedrate', AxisFeedrate()[3]); break;
-		case 'B': setValue('controlpanel_z_feedrate', AxisFeedrate()[4]); break;
-		case 'C': setValue('controlpanel_z_feedrate', AxisFeedrate()[5]); break;
-	}
+	setValue(`controlpanel_${ctrlLetter}_feedrate`, AxisFeedRate(letter));
 }
 
 function onXYFeedRateChange() {
@@ -232,9 +230,8 @@ function onXYFeedRateChange() {
 		control_resetaxis("XY");
 	}
 
-	// Set the XY feed rate values
-	AxisFeedrate()[0] = feedratevalue;
-	AxisFeedrate()[1] = feedratevalue;
+	// Set the XY feed rate value
+	AxisFeedRate("XY", feedratevalue);
 }
 
 function onNonXYFeedRateChange() {
@@ -273,7 +270,10 @@ const processMacroSave = (answer) => {
 const initMacroDlg = () => showmacrodlg(processMacroSave);
 
 function control_build_macro_ui() {
+	const common = new Common();
 	const actions = [];
+
+	const iconOptions = { t: "translate(50,1200) scale(1,-1)" };
 
 	const content = [
 		"<div class='tooltip'>",
@@ -281,28 +281,23 @@ function control_build_macro_ui() {
 		"<button id='control_btn_show_macro_dlg' class='btn btn-primary'>"
 	];
 	actions.push({ id: "control_btn_show_macro_dlg", method: initMacroDlg });
+
 	content.push(
 		"<span class='badge'>",
-		"<svg width='1.3em' height='1.2em' viewBox='0 0 1300 1200'>",
-		"<g transform='translate(50,1200) scale(1, -1)'>",
-		"<path fill='currentColor' d='M407 800l131 353q7 19 17.5 19t17.5 -19l129 -353h421q21 0 24 -8.5t-14 -20.5l-342 -249l130 -401q7 -20 -0.5 -25.5t-24.5 6.5l-343 246l-342 -247q-17 -12 -24.5 -6.5t-0.5 25.5l130 400l-347 251q-17 12 -14 20.5t23 8.5h429z'></path>",
-		"</g>",
-		"</svg>",
-		"<svg width='1.3em' height='1.2em' viewBox='0 0 1300 1200'>",
-		"<g transform='translate(50,1200) scale(1, -1)'>",
-		"<path fill='currentColor' d='M1011 1210q19 0 33 -13l153 -153q13 -14 13 -33t-13 -33l-99 -92l-214 214l95 96q13 14 32 14zM1013 800l-615 -614l-214 214l614 614zM317 96l-333 -112l110 335z'></path>",
-		"</g>",
-		"</svg>",
+		get_icon_svg("star", iconOptions),
+		get_icon_svg("pencil", iconOptions),
 		"</span>",
 		"</button>",
 		"</div>"
 	);
+
 	for (let i = 0; i < 9; i++) {
-		const entry = control_macrolist[i];
+		const entry = common.control_macrolist[i];
 		content.push(control_build_macro_button(i, entry));
 		actions.push({ id: `control_macro_${i}`, method: macro_command });
 	}
 	setHTML("Macro_list", content.join(""));
+
 	for (const action of actions) {
 		const elem = id(action.id);
 		if (elem) {
@@ -322,3 +317,12 @@ function macro_command(event) {
 		default: break; // do nothing
 	}
 }
+
+export {
+	ControlsPanel,
+	get_Position,
+	init_controls_panel,
+	on_autocheck_position,
+	SendHomecommand,
+	SendJogcommand,
+};

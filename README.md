@@ -6,43 +6,40 @@ gulp package -en to build with english language
 
 [Latest development version ![Development Version](https://img.shields.io/badge/Devt-v3.0-yellow?style=plastic) ![GitHub last commit (branch)](https://img.shields.io/github/last-commit/luc-github/ESP3D-WEBUI/3.0?style=plastic)](https://github.com/luc-github/ESP3D-WEBUI/tree/3.0) [![Travis (.org) branch](https://img.shields.io/travis/luc-github/ESP3D-WEBUI/3.0?style=plastic)](https://travis-ci.org/github/luc-github/ESP3D-WEBUI)     
 
-## What is that ?
+## What is it?
 A web configuration tool for ESP3D 2.1
-Originaly based on great UI from Jarek Szczepanski (imrahil): [smoothieware-webui](http://imrahil.github.io/smoothieware-webui/) to get a multi firmware support for [Repetier](https://github.com/repetier/Repetier-Firmware), [Repetier for Davinci printer](https://github.com/luc-github/Repetier-Firmware-0.92), (Marlin)[https://github.com/MarlinFirmware], [Marlin Kimbra](https://github.com/MagoKimbra/MarlinKimbra) and of course [Smoothieware](https://github.com/Smoothieware/Smoothieware)
+Originally based on great UI from Jarek Szczepanski (imrahil): [smoothieware-webui](http://imrahil.github.io/smoothieware-webui/) to get a multi firmware support for [Repetier](https://github.com/repetier/Repetier-Firmware), [Repetier for Davinci printer](https://github.com/luc-github/Repetier-Firmware-0.92), [Marlin](https://github.com/MarlinFirmware), [Marlin Kimbra](https://github.com/MagoKimbra/MarlinKimbra) and of course [Smoothieware](https://github.com/Smoothieware/Smoothieware)
+But then heavily modified to support the Maslow M4, and upgraded to avoid using gulp (which is now abandonware).
 
-## Why doing it ?
-Original I ported [smoothieware-webui](http://imrahil.github.io/smoothieware-webui/) to support [ESP3D firmware](https://github.com/luc-github/ESP3D) and it was working pretty well and gave :[smoothieware-webui-for-ESP3D](https://github.com/luc-github/smoothieware-webui-for-ESP3D) 
-But this UI has a 2 big limitations:    
-1 - you need internet access to get all libraries available to download, which may not happen when ESP is in AP mode for configuration if you do not have all js/css in your browser cache, or if you want to use in local environement, in that case not only ESP AP mode is not displaying UI properly but also STA mode - so it make the ESP useless
+## Why do it?
+Originally [smoothieware-webui](http://imrahil.github.io/smoothieware-webui/) was ported to support [ESP3D firmware](https://github.com/luc-github/ESP3D) and it was working pretty well and gave :[smoothieware-webui-for-ESP3D](https://github.com/luc-github/smoothieware-webui-for-ESP3D) 
+But this UI had 2 big limitations:    
+1 - it needed internet access to get all libraries available to download, which may not happen when ESP is in AP mode for configuration if you do not have all js/css in your browser cache, or if you want to use in local environment, in that case not only ESP AP mode is not displaying UI properly but also STA mode - so it made the ESP useless
 
-2 - it rely on server availability and certificat check, I got several certificat failure for unknown reason that made the UI not working
+2 - it relied on server availability and certificate check, there were several certificate failures for unknown reasons that made the UI not work
 
 So the solution was to make all resources available - easy no ?
 
-Yes but!  ESP webserver is a convenient but it is also a very light webserver, allowing no more than 5 active connections at once and with a pretty limited filesystem space, so even concatenated all resources like bootstrap icon, angular and others libraries do not work as expected and do not fit the available space.
+Yes but!  ESP webserver is a convenient but also a very light webserver, allowing no more than 5 active connections at once and with a pretty limited filesystem space, so even concatenating all resources like bootstrap, icons and other libraries does not work as expected and does not fit the available space.
 
-So I came with a full rewrite using pure javascript and resized resources:    
+So a full rewrite using pure javascript and resized resources:    
 1 - a compressed css based on [bootstrap](http://getbootstrap.com/css/)   
 2 - a local limited version of svg based of [Glyphicons Halflings](http://glyphicons.com/) to get a small footprint.    
 3 - a customized version of [smoothiecharts](http://smoothiecharts.org/) is used to display temperatures charts, it is simple and perfectly sized for the current purpose   
 
-The result is a monolitic file with a minimal size allowing almost full control of ESP3D board and your 3D printer
+The result is a monolithic file with a minimal size allowing almost full control of ESP3D board and your 3D printer / CNC machine
 
-## Sponsors 
-[<img width="200px" src="https://raw.githubusercontent.com/luc-github/ESP3D/3.0/images/sponsors-supporters/FYSETC/LOGO.png">](https://www.fysetc.com/)  
-<hr/>
-<a href="https://github.com//bdring" style="border: solid 4px red" ><div class="CircleBadge CircleBadge--medium bg-gray-dark">
-  <img height="60" width="60" alt="@bdring" class="CircleBadge-icon" src="https://user-images.githubusercontent.com/8822552/84999946-1078ac80-b152-11ea-84ce-84803b1ab02e.png"></div></a>
-
-## Supporters
-[<img src="https://raw.githubusercontent.com/luc-github/ESP3D/3.0/images/sponsors-supporters/PanucattDevices/Panucatt.jpg" />](http://www.panucatt.com/)
-
+## Build it yourself
+* Package managing, building, bundling, testing all rely on [bun](https://bun.sh/) so start by getting bun.
+* Get a clone of this repository in whatever way suits you best.
+* Package Management: From the command line in your newly cloned copy of this repo, run `bun install` to get all of the dependencies.
+* Build and Bundle: From the command line run `bun build:en` to build and bundle an English language only version. You'll find it in the `dist` folder.
 
 ## Become a sponsor or a supporter
- * A sponsor is a recurent donator [<img src="https://raw.githubusercontent.com/luc-github/ESP3D/3.0/images/sponsors-supporters/sponsor.PNG" />](https://github.com/sponsors/luc-github)   
+ * A sponsor is a recurent donater [<img src="https://raw.githubusercontent.com/luc-github/ESP3D/3.0/images/sponsors-supporters/sponsor.PNG" />](https://github.com/sponsors/luc-github)
  The github sponsors are automaticaly displayed by github, if your tier is `A big hug` or more, to thank you for your support, your logo / avatar will be also added to the readme page with eventually with a link to your site.    
 
- * A supporter is per time donator [<img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG_global.gif" border="0" alt="PayPal – The safer, easier way to pay online.">](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y8FFE7NA4LJWQ)    
+ * A supporter is one time donater [<img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG_global.gif" border="0" alt="PayPal – The safer, easier way to pay online.">](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y8FFE7NA4LJWQ)    
  If your donation is over a per year sponsor tier `A big hug`, to thank you for your support, your logo / avatar will be added to the readme page with eventually with a link to your site    
 
  Every support is welcome, giving support/ developing new features need time and devices, donations contribute a lot to make things happen, thank you.

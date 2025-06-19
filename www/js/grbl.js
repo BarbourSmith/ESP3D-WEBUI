@@ -1,51 +1,104 @@
-// When we can change to proper ESM - uncomment this
-// import { sendCommand } from "./maslow";
+import {
+  CALIBRATION_EVENT_NAME,
+  findMaxFitness,
+  Common,
+  get_icon_svg,
+  getESPconfigSuccess,
+  getValue,
+  setValue,
+  getPrefValue,
+  id,
+  setChecked,
+  setHTML,
+  alertdlg,
+  SendPrinterCommand,
+  trx_text_item,
+  sendCommand,
+  displayNone,
+  displayTable,
+  tabletGrblState,
+  tabletShowMessage,
+  tabletUpdateModal,
+  valueStartsWith,
+} from "./common.js";
 
-var interval_status = -1
-var probe_progress_status = 0
-var grbl_error_msg = ''
-var WCO = undefined
-var OVR = { feed: undefined, rapid: undefined, spindle: undefined }
-var MPOS = [0, 0, 0]
-var WPOS = [0, 0, 0]
-var grblaxis = 3;
-var grblzerocmd = 'X0 Y0 Z0';
-
-let axis_feedrate = [0, 0, 0, 0, 0, 0];
-/** gets/sets the GRBL axis feedrates [x, y, z, a, b, c]
- * Note this does not include the probe feed rate
-*/
-const AxisFeedrate = (value) => {
-  if (Array.isArray(value) && value.length === 6) {
-    axis_feedrate = value;
+/** interval timer ID */
+let interval_status = -1;
+let probe_progress_status = 0;
+let grbl_error_msg = "";
+let WCO = undefined;
+let OVR = { feed: undefined, rapid: undefined, spindle: undefined };
+let mpos = [0, 0, 0];
+/** gets/sets MPOS array [x, y, z] */
+const MPOS = (value) => {
+  if (Array.isArray(value) && value.length === 3) {
+    mpos = value;
   }
-  return axis_feedrate;
+  return mpos;
+};
+let wpos = [0, 0, 0];
+/** gets/sets WPOS array [x, y, z] */
+const WPOS = (value) => {
+  if (Array.isArray(value) && value.length === 3) {
+    wpos = value;
+  }
+  return wpos;
+};
+
+const axis_feedrate = { "XY": 0, "Z": 0, "A": 0, "B": 0, "C": 0 };
+
+/** Get the axis from the supplied value,
+ * which is assumed to start with an appropriate letter */
+const getAxisFromValue = (value) => {
+  const defaultAxis = "XY";
+  if (typeof value !== "string") {
+    // We don't know what this is, so return the default
+    return defaultAxis;
+  }
+  const axis = value[0].toUpperCase();
+  // Note for "X" or "Y", or anything else we don't know, they will end up as the default
+  return (!Object.keys(axis_feedrate).includes(axis)) ? defaultAxis : axis;
 }
 
-var last_axis_letter = 'Z';
+/** intialises the AxisFeedRates from the preferences */
+const initAxisFeedRates = () => {
+  for (const key of Object.keys(axis_feedrate)) {
+    AxisFeedRate(key, floatOrZero(getPrefValue(`${key.toLowerCase()}_feedrate`)));
+  };
+}
 
-var axisNames = ['x', 'y', 'z', 'a', 'b', 'c']
+/** gets/sets an individual GRBL axis feedrate */
+const AxisFeedRate = (axis, value) => {
+  const useAxis = typeof axis !== "string" ? "XY" : axis.toUpperCase();
+  if (typeof value === "number") {
+    axis_feedrate[useAxis] = value;
+  }
+  return axis_feedrate[useAxis];
+}
 
-var gCodeModal = { modes: '', plane: 'G17', units: 'G21', wcs: 'G54', distance: 'G90' }
-
-let calibrationResults = {}
+let last_axis_letter = "Z";
 
 function setClickability(element, visible) {
-  setDisplay(element, visible ? 'table-row' : 'none')
+  if (visible) {
+    displayTable(element);
+  } else {
+    displayNone(element);
+  }
 }
 
-var autocheck = 'report_auto'
-function getAutocheck() {
-  return getChecked(autocheck)
-}
+const autocheck = "report_auto";
+// function getAutocheck() {
+// 	return getChecked(autocheck) !== "false";
+// }
 function setAutocheck(flag) {
-  setChecked(autocheck, flag)
+  setChecked(autocheck, flag);
 }
 
 /** Build the axis selection dropdown, if there are more than 3 axes */
 const build_axis_selection = () => {
+  const common = new Common();
   const minAxisCount = 3;
-  if (grblaxis < minAxisCount) {
+  if (common.fwData.grblaxis < minAxisCount) {
     return;
   }
 
@@ -56,40 +109,28 @@ const build_axis_selection = () => {
     '<option value="C">C</option>',
   ];
 
-  const html = ["<select class='form-control wauto' id='control_select_axis' onchange='control_changeaxis()' >"];
-  for (let i = 3; i <= grblaxis; i++) {
+  const html = ["<select id='control_select_axis' class='form-control wauto'>"];
+  for (let i = 3; i <= common.fwData.grblaxis; i++) {
     html.push(axisOpts[i - 3]);
   }
   html.push("</select>");
 
   setHTML("axis_selection", html.join("\n"));
-  setHTML("axis_label", `${translate_text_item('Axis')}:`);
+  setHTML("axis_label", `${trx_text_item('Axis')}:`);
+  id("control_select_axis").addEventListener("change", control_changeaxis);
   setClickability("axis_selection", true);
 }
 
-/** Change the selected axis. Relevant for axes "Z", "A", "B", "C". Not relevant for axes "X" or "Y" */
-function control_changeaxis() {
-  const letter = getValue('control_select_axis');
+/** Change the selected axis. Relevant for axes "Z", "A", "B", "C" when there are 4 or more axes. Not relevant for axes "X" or "Y" */
+const control_changeaxis = () => {
+  const letter = getValue('control_select_axis').toUpperCase();
   setHTML('axisup', `+${letter}`);
   setHTML('axisdown', `-${letter}`);
   setHTML('homeZlabel', ` ${letter} `);
 
-  const getLastNonXYFeedRate = getValue('controlpanel_z_feedrate');
-  switch (last_axis_letter) {
-    case 'Z': AxisFeedrate()[2] = getLastNonXYFeedRate; break;
-    case 'A': AxisFeedrate()[3] = getLastNonXYFeedRate; break;
-    case 'B': AxisFeedrate()[4] = getLastNonXYFeedRate; break;
-    case 'C': AxisFeedrate()[5] = getLastNonXYFeedRate; break;
-  }
-
+  AxisFeedRate(last_axis_letter, getValue('controlpanel_z_feedrate'));
   // Change over to the new axis that's been selected
-  switch (letter) {
-    case 'Z': setValue('controlpanel_z_feedrate', AxisFeedrate()[2]); break;
-    case 'A': setValue('controlpanel_z_feedrate', AxisFeedrate()[3]); break;
-    case 'B': setValue('controlpanel_z_feedrate', AxisFeedrate()[4]); break;
-    case 'C': setValue('controlpanel_z_feedrate', AxisFeedrate()[5]); break;
-  }
-
+  setValue('controlpanel_z_feedrate', AxisFeedRate(letter));
   // And keep a record of it
   last_axis_letter = letter;
 }
@@ -116,70 +157,61 @@ const probeValues = {
   plateThickness: { fldId: "grblpanel_probetouchplatethickness", prefId: "probetouchplatethickness", valType: "float", valTitle: "probe touch plate thickness", minVal: 0, maxVal: 999, units: "mm" },
 };
 
-/** This must be done after the preferences have been set */
-function init_grbl_panel() {
-  const preferences = prefList();
-  // Feed rate for X and Y Axes
-  AxisFeedrate()[0] = floatOrZero(preferences.xy_feedrate);
-  AxisFeedrate()[1] = floatOrZero(preferences.xy_feedrate);
+/** Initialise the GRBL control panel.
+ * Note: This must be done after the preferences have been set */
+const init_grbl_panel = () => {
+  initAxisFeedRates();
 
-  AxisFeedrate()[2] = floatOrZero(preferences.z_feedrate);
-  AxisFeedrate()[3] = floatOrZero(preferences.a_feedrate);
-  AxisFeedrate()[4] = floatOrZero(preferences.b_feedrate);
-  AxisFeedrate()[5] = floatOrZero(preferences.c_feedrate);
-
-  setValue('controlpanel_xy_feedrate', AxisFeedrate()[0]);
-  setValue('controlpanel_z_feedrate', AxisFeedrate()[2]);
-
-  for (const pvFld in probeValues) {
-    const pv = probeValues[pvFld];
-    if (!(pv.prefId in preferences)) {
-      continue;
-    }
-
-    const prefValue = preferences[pv.prefId];
-    const val = Number.parseFloat(prefValue);
-    if (!Number.isNaN(val)) {
-      setValue(pv.fldId, val);
-    }
+  for (const axis of ["XY", "Z"]) {
+    setValue(`controlpanel_${axis.toLowerCase()}_feedrate`, AxisFeedRate(axis));
   };
+
+  for (const pv of probeValues) {
+    if (pv.prefId in prefList() && prefList()[pv.prefId]) {
+      const prefValue = prefList()[pv.prefId];
+      const val = Number.parseFloat(prefValue);
+      if (!Number.isNaN(val)) {
+        setValue(pv.fldId, val);
+      }
+    }
+  }
 
   grbl_set_probe_detected(false);
 }
 
 function grbl_clear_status() {
-  grbl_set_probe_detected(false)
-  grbl_error_msg = ''
-  setHTML('grbl_status_text', grbl_error_msg)
-  setHTML('grbl_status', '')
+  grbl_set_probe_detected(false);
+  grbl_error_msg = "";
+  setHTML("grbl_status_text", grbl_error_msg);
+  setHTML("grbl_status", "");
 }
 
 function grbl_set_probe_detected(state) {
-  const color = state ? 'green' : 'grey'
-  const glyph = state ? 'ok-circle' : 'record'
-  setHTML('touch_status_icon', get_icon_svg(glyph, '1.3em', '1.3em', color))
+  const glyph = state ? "ok-circle" : "record";
+  setHTML("touch_status_icon", get_icon_svg(glyph, { w: "1.3em", h: "1.3em", color: state ? "green" : "grey" }));
 }
 
 const trxOOR = () => translate_text_item("Out of range");
 const trxValErr = (valTitle, minVal, maxVal, units) => translate_text_item(`Value of ${valTitle} must be between ${minVal} ${units} and ${maxVal} ${units} !`);
 const alertdlgOOR = (valTitle, minVal, maxVal, units) => alertdlg(trxOOR(), trxValErr(valTitle, minVal, maxVal, units));
 
-var reportType = 'none';
+let reportType = 'none';
 
 function disablePolling() {
-  setAutocheck(false)
+  setAutocheck(false);
   // setValue('grblpanel_interval_status', 0);
   if (interval_status !== -1) {
-    clearInterval(interval_status)
-    interval_status = -1
+    clearInterval(interval_status);
+    interval_status = -1;
   }
 
-  grbl_clear_status()
-  reportType = 'none'
+  grbl_clear_status();
+  reportType = "none";
 }
 
 function enablePolling() {
   const interval = getValueFloat("grblpanel_interval_status");
+
   if (!Number.isNaN(interval)) {
     if (interval === 0) {
       if (interval_status !== -1) {
@@ -207,74 +239,61 @@ function enablePolling() {
 }
 
 function tryAutoReport() {
-  if (reportType === 'polled') {
+  if (reportType === "polled") {
     disablePolling();
   }
-  reportType = "auto";
   const interval = getValue("grblpanel_autoreport_interval") ?? 0;
   if (interval === 0) {
     enablePolling();
     return;
   }
+
   setChecked("report_auto", true);
-  reportType = 'auto'
-  SendPrinterCommand(
-    `$Report/Interval=${interval}`,
-    true,
-    // Do nothing more on success
-    () => { },
-
-    // Fall back to polling if the firmware does not support auto-reports
-    () => { enablePolling(); },
-
-    99.1,
-    1
-  )
+  reportType = "auto";
+  const cmd = `$Report/Interval=${interval}`;
+  SendPrinterCommand(cmd, true, () => { }, enablePolling, 99.1, 1);
 }
-function onAutoReportIntervalChange() {
-  tryAutoReport()
-}
+
+const onAutoReportIntervalChange = () => tryAutoReport();
 
 function disableAutoReport() {
-  SendPrinterCommand('$Report/Interval=0', true, null, null, 99.0, 1)
-  setChecked('report_auto', false)
+  SendPrinterCommand("$Report/Interval=0", true, null, null, 99.0, 1);
+  setChecked("report_auto", false);
 }
 
-function reportNone() {
+const reportNone = () => {
   switch (reportType) {
-    case 'polled':
-      disablePolling()
-      break
-    case 'auto':
-      disableAutoReport()
-      break
+    case "polled":
+      disablePolling();
+      break;
+    case "auto":
+      disableAutoReport();
+      break;
   }
-  setChecked('report_none', true)
-  reportType = 'none'
-}
+  setChecked("report_none", true);
+  reportType = "none";
+};
 
-function reportPolled() {
-  if (reportType === 'auto') {
-    disableAutoReport()
+const reportPolled = () => {
+  if (reportType === "auto") {
+    disableAutoReport();
   }
-  enablePolling()
-}
+  enablePolling();
+};
 
-function onstatusIntervalChange() {
-  enablePolling()
-}
+const onstatusIntervalChange = () => enablePolling();
 
 //TODO handle authentication issues
 //errorfn cannot be NULL
 function get_status() {
   //ID 114 is same as M114 as '?' cannot be an ID
-  SendPrinterCommand('?', false, null, null, 114, 1)
+  SendPrinterCommand("?", false, null, null, 114, 1);
 }
 
 function parseGrblStatus(response) {
-  var grbl = {
-    stateName: '',
-    message: '',
+  const grbl = {
+    stateName: "",
+    message: "",
     wco: undefined,
     mpos: undefined,
     wpos: undefined,
@@ -286,97 +305,87 @@ function parseGrblStatus(response) {
     flood: undefined,
     mist: undefined,
     pins: undefined,
-  }
-  response = response.replace('<', '').replace('>', '')
-  var fields = response.split('|')
-  fields.forEach(function (field) {
-    var tv = field.split(':')
-    var tag = tv[0]
-    var value = tv[1]
-    switch (tag) {
-      case 'Door':
-        grbl.stateName = tag
-        grbl.message = field
-        break
-      case 'Hold':
-        grbl.stateName = tag
-        grbl.message = field
-        break
-      case 'Run':
-      case 'Jog':
-      case 'Idle':
-      case 'Home':
-      case 'Alarm':
-      case 'Check':
-      case 'Sleep':
-        grbl.stateName = tag
-        break
+  };
+  const clnResp = response.replace("<", "").replace(">", "");
 
-      case 'Ln':
-        grbl.lineNumber = parseInt(value)
-        break
-      case 'MPos':
-        grbl.mpos = value.split(',').map(function (v) {
-          return parseFloat(v)
-        })
-        break
-      case 'WPos':
-        grbl.wpos = value.split(',').map(function (v) {
-          return parseFloat(v)
-        })
-        break
-      case 'WCO':
-        grbl.wco = value.split(',').map(function (v) {
-          return parseFloat(v)
-        })
-        break
-      case 'FS':
-        var rates = value.split(',')
-        grbl.feedrate = parseFloat(rates[0])
-        grbl.spindleSpeed = parseInt(rates[1])
-        break
-      case 'Ov':
-        var rates = value.split(',')
+  const fields = clnResp.split("|");
+  for (const field in fields) {
+    const tv = field.split(":");
+    const tag = tv[0];
+    const value = tv[1];
+    switch (tag) {
+      case "Door":
+        grbl.stateName = tag;
+        grbl.message = field;
+        break;
+      case "Hold":
+        grbl.stateName = tag;
+        grbl.message = field;
+        break;
+      case "Run":
+      case "Jog":
+      case "Idle":
+      case "Home":
+      case "Alarm":
+      case "Check":
+      case "Sleep":
+        grbl.stateName = tag;
+        break;
+
+      case "Ln":
+        grbl.lineNumber = Number.parseInt(value);
+        break;
+      case "MPos":
+        grbl.mpos = value.split(",").map((v) => Number.parseFloat(v));
+        break;
+      case "WPos":
+        grbl.wpos = value.split(",").map((v) => Number.parseFloat(v));
+        break;
+      case "WCO":
+        grbl.wco = value.split(",").map((v) => Number.parseFloat(v));
+        break;
+      case "FS": {
+        const rates = value.split(",");
+        grbl.feedrate = Number.parseFloat(rates[0]);
+        grbl.spindleSpeed = Number.parseInt(rates[1]);
+        break;
+      }
+      case "Ov": {
+        const rates = value.split(",");
         grbl.ovr = {
-          feed: parseInt(rates[0]),
-          rapid: parseInt(rates[1]),
-          spindle: parseInt(rates[2]),
-        }
-        break
-      case 'A':
-        grbl.spindleDirection = 'M5'
-        Array.from(value).forEach(function (v) {
+          feed: Number.parseInt(rates[0]),
+          rapid: Number.parseInt(rates[1]),
+          spindle: Number.parseInt(rates[2]),
+        };
+        break;
+      }
+      case "A":
+        grbl.spindleDirection = "M5";
+        for (const v in value) {
           switch (v) {
-            case 'S':
-              grbl.spindleDirection = 'M3'
-              break
-            case 'C':
-              grbl.spindleDirection = 'M4'
-              break
-            case 'F':
-              grbl.flood = true
-              break
-            case 'M':
-              grbl.mist = true
-              break
+            case "S": grbl.spindleDirection = "M3"; break;
+            case "C": grbl.spindleDirection = "M4"; break;
+            case "F": grbl.flood = true; break;
+            case "M": grbl.mist = true; break;
           }
-        })
-        break
-      case 'SD':
-        var sdinfo = value.split(',')
-        grbl.sdPercent = parseFloat(sdinfo[0])
-        grbl.sdName = sdinfo[1]
-        break
-      case 'Pn':
+        };
+        break;
+      case "SD": {
+        const sdinfo = value.split(",");
+        grbl.sdPercent = Number.parseFloat(sdinfo[0]);
+        grbl.sdName = sdinfo[1];
+        break;
+      }
+      case "Pn":
         // pin status
-        grbl.pins = value
-        break
+        grbl.pins = value;
+        break;
       default:
         // ignore other fields that might happen to be present
-        break
+        break;
     }
-  })
-  return grbl
+  };
+  return grbl;
 }
 
 const clickableFromStateName = (state = "", hasSD = false) => {
@@ -413,22 +422,23 @@ const clickableFromStateName = (state = "", hasSD = false) => {
 }
 
 function show_grbl_position(wpos, mpos) {
+  const common = new Common();
   if (wpos) {
-    wpos.forEach(function (pos, axis) {
-      const element = `control_${axisNames[axis]}_position`;
+    wpos.forEach((pos, axis) => {
+      const element = `control_${common.axisNames[axis]}_position`;
       setHTML(element, pos.toFixed(3));
     });
   }
   if (mpos) {
-    mpos.forEach(function (pos, axis) {
-      const element = `control_${axisNames[axis]}m_position`;
+    mpos.forEach((pos, axis) => {
+      const element = `control_${common.axisNames[axis]}m_position`;
       setHTML(element, pos.toFixed(3));
     });
   }
 }
 
 const show_grbl_status = (stateName = "", message = "", hasSD = false) => {
-  setHTML("grbl_status_text", translate_text_item(message))
+  setHTML("grbl_status_text", trx_text_item(message))
   setClickability("clear_status_btn", stateName === "Alarm");
 
   if (!stateName) {
@@ -449,7 +459,7 @@ const show_grbl_status = (stateName = "", message = "", hasSD = false) => {
   setClickability("sd_pause_btn", clickable.pause);
   setClickability("sd_reset_btn", clickable.reset);
 
-  if (stateName == "Hold" && probe_progress_status != 0) {
+  if (stateName === "Hold" && probe_progress_status !== 0) {
     probe_failed_notification();
   }
 }
@@ -457,44 +467,44 @@ const show_grbl_status = (stateName = "", message = "", hasSD = false) => {
 function finalize_probing() {
   // No need for this when using the FluidNC-specific G38.6 probe command.
   // SendPrinterCommand("G90", true, null, null, 90, 1);
-  probe_progress_status = 0
-  setClickability('probingbtn', true)
-  setClickability('probingtext', false)
-  setClickability('sd_pause_btn', false)
-  setClickability('sd_resume_btn', false)
-  setClickability('sd_reset_btn', false)
+  probe_progress_status = 0;
+  setClickability("probingbtn", true);
+  setClickability("probingtext", false);
+  setClickability("sd_pause_btn", false);
+  setClickability("sd_resume_btn", false);
+  setClickability("sd_reset_btn", false);
 }
 
 function show_grbl_SD(sdName, sdPercent) {
   const status = sdName
     ? `${sdName}&nbsp;<progress id="print_prg" value=${sdPercent} max="100"></progress>${sdPercent}%`
-    : ''
-  setHTML('grbl_SD_status', status)
+    : "";
+  setHTML("grbl_SD_status", status);
 }
 
 function show_grbl_probe_status(probed) {
-  grbl_set_probe_detected(probed)
+  grbl_set_probe_detected(probed);
 }
 
-function SendRealtimeCmd(code) {
-  var cmd = String.fromCharCode(code)
-  SendPrinterCommand(cmd, false, null, null, code, 1)
-}
+const SendRealtimeCmd = (code) => {
+  const cmd = String.fromCharCode(code);
+  SendPrinterCommand(cmd, false, null, null, code, 1);
+};
 
 function pauseGCode() {
-  SendRealtimeCmd(0x21) // '!'
+  SendRealtimeCmd(0x21); // '!'
 }
 
 function resumeGCode() {
-  SendRealtimeCmd(0x7e) // '~'
+  SendRealtimeCmd(0x7e); // '~'
 }
 
 function stopGCode() {
-  grbl_reset() // 0x18, ctrl-x
+  grbl_reset(); // 0x18, ctrl-x
 }
 
 function grblProcessStatus(response) {
-  var grbl = parseGrblStatus(response)
+  const grbl = parseGrblStatus(response);
   // Record persistent values of data
   if (grbl.wco) {
     WCO = grbl.wco;
@@ -503,95 +513,99 @@ function grblProcessStatus(response) {
     OVR = grbl.ovr;
   }
   if (grbl.mpos) {
-    MPOS = grbl.mpos;
+    MPOS(grbl.mpos);
     if (WCO) {
-      WPOS = grbl.mpos.map((v, index) => v - WCO[index]);
+      WPOS(grbl.mpos.map((v, index) => v - WCO[index]));
     }
   } else if (grbl.wpos) {
-    WPOS = grbl.wpos;
+    WPOS(grbl.wpos);
     if (WCO) {
-      MPOS = grbl.wpos.map((v, index) => v + WCO[index]);
+      MPOS(grbl.wpos.map((v, index) => v + WCO[index]));
     }
   }
-  show_grbl_position(WPOS, MPOS);
+  show_grbl_position(WPOS(), MPOS());
   show_grbl_status(grbl.stateName, grbl.message, grbl.sdName);
   show_grbl_SD(grbl.sdName, grbl.sdPercent);
-  show_grbl_probe_status(grbl.pins && grbl.pins.indexOf('P') !== -1);
+  show_grbl_probe_status(grbl.pins && grbl.pins.indexOf("P") !== -1);
   tabletGrblState(grbl, response);
 }
 
-function grbl_reset() {
+const grbl_reset = () => {
   if (probe_progress_status !== 0) {
     probe_failed_notification();
   }
   SendRealtimeCmd(0x18);
-}
+};
 
 function grblGetProbeResult(response) {
-  const tab1 = response.split(':')
+  const tab1 = response.split(":");
   if (tab1.length > 2) {
-    const status = tab1[2].replace(']', '')
+    const status = tab1[2].replace("]", "");
     if (Number.parseInt(status.trim()) === 1) {
       if (probe_progress_status !== 0) {
-        const cmd =
-          `$J=G90 G21 F1000 Z${getValueFloat("probetouchplatethickness") + getValueFloat("grblpanel_proberetract")}`
-        SendPrinterCommand(cmd, true, null, null, 0, 1)
-        finalize_probing()
+        const cmd = `$J=G90 G21 F1000 Z${getValueFloat("probetouchplatethickness") + getValueFloat("grblpanel_proberetract")}`;
+        SendPrinterCommand(cmd, true, null, null, 0, 1);
+        finalize_probing();
       }
     } else {
-      probe_failed_notification()
+      probe_failed_notification();
     }
   }
 }
 
 function probe_failed_notification(errMsg = "Probe failed !") {
   finalize_probing();
-  alertdlg(translate_text_item('Error'), translate_text_item(errMsg));
+  alertdlg(trx_text_item('Error'), trx_text_item(errMsg));
   beep(3, 140, 261);
 }
-const modalModes = [
-  { name: 'motion', values: ['G80', 'G0', 'G1', 'G2', 'G3', 'G38.1', 'G38.2', 'G38.3', 'G38.4'] },
-  { name: 'wcs', values: ['G54', 'G55', 'G56', 'G57', 'G58', 'G59'] },
-  { name: 'plane', values: ['G17', 'G18', 'G19'] },
-  { name: 'units', values: ['G20', 'G21'] },
-  { name: 'distance', values: ['G90', 'G91'] },
-  { name: 'arc_distance', values: ['G90.1', 'G91.1'] },
-  { name: 'feed', values: ['G93', 'G94'] },
-  { name: 'program', values: ['M0', 'M1', 'M2', 'M30'] },
-  { name: 'spindle', values: ['M3', 'M4', 'M5'] },
-  { name: 'mist', values: ['M7'] }, // Also M9, handled separately
-  { name: 'flood', values: ['M8'] }, // Also M9, handled separately
-  { name: 'parking', values: ['M56'] },
-]
 
-function grblGetModal(msg) {
-  gCodeModal.modes = msg.replace('[GC:', '').replace(']', '')
-  var modes = gCodeModal.modes.split(' ')
-  gCodeModal.parking = undefined // Otherwise there is no way to turn it off
-  gCodeModal.program = '' // Otherwise there is no way to turn it off
-  modes.forEach(function (mode) {
-    if (mode == 'M9') {
-      gCodeModal.flood = mode
-      gCodeModal.mist = mode
+const modalModes = [
+  {
+    name: "motion",
+    values: ["G80", "G0", "G1", "G2", "G3", "G38.1", "G38.2", "G38.3", "G38.4"],
+  },
+  { name: "wcs", values: ["G54", "G55", "G56", "G57", "G58", "G59"] },
+  { name: "plane", values: ["G17", "G18", "G19"] },
+  { name: "units", values: ["G20", "G21"] },
+  { name: "distance", values: ["G90", "G91"] },
+  { name: "arc_distance", values: ["G90.1", "G91.1"] },
+  { name: "feed", values: ["G93", "G94"] },
+  { name: "program", values: ["M0", "M1", "M2", "M30"] },
+  { name: "spindle", values: ["M3", "M4", "M5"] },
+  { name: "mist", values: ["M7"] }, // Also M9, handled separately
+  { name: "flood", values: ["M8"] }, // Also M9, handled separately
+  { name: "parking", values: ["M56"] },
+];
+
+const grblGetModal = (msg) => {
+  const common = new Common();
+  common.modal.modes = msg.replace("[GC:", "").replace("]", "");
+  const modes = common.modal.modes.split(" ");
+  common.modal.parking = undefined; // Otherwise there is no way to turn it off
+  common.modal.program = ""; // Otherwise there is no way to turn it off
+
+  for (const mode of modes) {
+    if (mode === "M9") {
+      common.modal.flood = mode;
+      common.modal.mist = mode;
     } else {
-      if (mode.charAt(0) === 'T') {
-        gCodeModal.tool = mode.substring(1)
-      } else if (mode.charAt(0) === 'F') {
-        gCodeModal.feedrate = mode.substring(1)
-      } else if (mode.charAt(0) === 'S') {
-        gCodeModal.spindle = mode.substring(1)
-      } else {
-        modalModes.forEach(function (modeType) {
-          modeType.values.forEach(function (s) {
-            if (mode == s) {
-              gCodeModal[modeType.name] = mode
-            }
-          })
-        })
+      switch (mode.charAt(0)) {
+        case "T": common.modal.tool = mode.substring(1); break;
+        case "F": common.modal.feedrate = mode.substring(1); break;
+        case "S": common.modal.spindle = mode.substring(1); break;
+        default:
+          for (const modeType of modalModes) {
+            for (const s of modeType.values) {
+              if (mode === s) {
+                common.modal[modeType.name] = mode;
+              }
+            };
+          };
+          break;
       }
     }
-  })
-  tabletUpdateModal()
+  };
+  tabletUpdateModal();
 }
 
 // Whenever [MSG: BeginData] is seen, subsequent lines are collected
@@ -599,26 +613,38 @@ function grblGetModal(msg) {
 // is called, if it is defined.
 // To run a command that generates such data, first set collectHandler
 // to a callback function to receive the data, then issue the command.
-var collecting = false
-var collectedData = ''
-var collectHandler = undefined
+let collecting = false;
+let collectedData = "";
+let collectHandler = undefined;
 
 // Settings are collected separately because they bracket the data with
 // the legacy protocol messages  $0= ... ok
-var collectedSettings = null
+let collectedSettings = null;
+
+const docGrblCalEvent = (event) => {
+  const calData = event.detail.dataToSend;
+  const common = new Common();
+  console.info(
+    `Received calibration results that were ${calData.good ? "good" : "not good"} and ${calData.final ? "final" : "not final"}`,
+  );
+  if (calData.good && calData.final) {
+    common.calibrationResults = calData.bestGuess;
+  }
+};
 
 async function handleCalibrationData(measurements) {
-  document.querySelector('#messages').textContent += '\nComputing... This may take several minutes'
+  document.body.addEventListener(CALIBRATION_EVENT_NAME, docGrblCalEvent);
+
+  document.querySelector("#messages").textContent +=
+    "\nComputing... This may take several minutes";
   sendCommand("$ACKCAL");
-  await sleep(500)
-  try {
-    calibrationResults = await findMaxFitness(measurements)
-  } catch (error) {
-    console.error('An error occurred:', error)
-  }
+
+  // Wait half a second and then kick off the party
+  setTimeout(() => findMaxFitness(measurements), 500);
 }
 
 const grblHandleMessage = (msg) => {
+  const common = new Common();
   tabletShowMessage(msg, collecting);
 
   // We handle these two before collecting data because they can be
@@ -682,10 +708,10 @@ const grblHandleMessage = (msg) => {
       // Finish collecting settings
       getESPconfigSuccess(collectedSettings);
       collectedSettings = null;
-      if (grbl_errorfn) {
-        grbl_errorfn();
-        grbl_errorfn = null;
-        grbl_processfn = null;
+      if (common.grbl_errorfn) {
+        common.grbl_errorfn();
+        common.grbl_errorfn = null;
+        common.grbl_processfn = null;
       }
     } else {
       // Continue collecting settings
@@ -702,10 +728,10 @@ const grblHandleMessage = (msg) => {
   // Handlers for standard Grbl protocol messages
 
   if (valueStartsWith(msg, ["ok"])) {
-    if (grbl_processfn) {
-      grbl_processfn();
-      grbl_processfn = null;
-      grbl_errorfn = null;
+    if (common.grbl_processfn) {
+      common.grbl_processfn();
+      common.grbl_processfn = null;
+      common.grbl_errorfn = null;
     }
     return;
   }
@@ -717,10 +743,10 @@ const grblHandleMessage = (msg) => {
     return;
   }
   if (valueStartsWith(msg, ["error:"])) {
-    if (grbl_errorfn) {
-      grbl_errorfn(msg.replace("error:", "").trim());
-      grbl_errorfn = null;
-      grbl_processfn = null;
+    if (common.grbl_errorfn) {
+      common.grbl_errorfn(msg.replace("error:", "").trim());
+      common.grbl_errorfn = null;
+      common.grbl_processfn = null;
     }
   }
   if (valueStartsWith(msg, ["error:", "ALARM:", "Hold:", "Door:"])) {
@@ -728,7 +754,7 @@ const grblHandleMessage = (msg) => {
       probe_failed_notification();
     }
     if (grbl_error_msg.length === 0) {
-      grbl_error_msg = translate_text_item(msg.trim());
+      grbl_error_msg = trx_text_item(msg.trim());
     }
     return;
   }
@@ -752,17 +778,17 @@ const checkProbeValue = (pv) => {
     alertdlgOOR(pv.valTitle, pv.minVal, pv.maxVal, pv.units);
     pv.value = Number.NaN;
   }
-}
+};
 
 const onprobemaxtravelChange = () => !Number.isNaN(checkProbeValue(probeValues.travel));
 const onprobefeedrateChange = () => !Number.isNaN(checkProbeValue(probeValues.feedrate));
 const onproberetractChange = () => !Number.isNaN(checkProbeValue(probeValues.retract));
 const onprobetouchplatethicknessChange = () => !Number.isNaN(checkProbeValue(probeValues.plateThickness));
 
-function StartProbeProcess() {
-  for (const key in probeValues) {
-    checkProbeValue(probeValues[key]);
-  }
+const StartProbeProcess = () => {
+  for (const pv of probeValues) {
+    checkProbeValue(pv)
+  };
   if (Object.values(probeValues).some(pv => Number.isNaN(pv.value))) {
     return;
   }
@@ -783,18 +809,41 @@ function StartProbeProcess() {
   if (restoreReport) {
     reportNone();
   }
-}
+};
 
-var spindleSpeedSetTimeout
-var spindleTabSpindleSpeed = 1
+let spindleSpeedSetTimeout;
 
-function setSpindleSpeed(speed) {
-  if (spindleSpeedSetTimeout) clearTimeout(spindleSpeedSetTimeout)
+const setSpindleSpeed = (speed) => {
+  const common = new Common();
+  if (spindleSpeedSetTimeout) {
+    clearTimeout(spindleSpeedSetTimeout);
+  }
   if (speed >= 1) {
-    spindleTabSpindleSpeed = speed
-    spindleSpeedSetTimeout = setTimeout(
-      () => SendPrinterCommand('S' + spindleTabSpindleSpeed, false, null, null, 1, 1),
-      500
-    )
+    common.spindleTabSpindleSpeed = speed;
+    spindleSpeedSetTimeout = setTimeout(() => SendPrinterCommand(`S${common.spindleTabSpindleSpeed}`, false, null, null, 1, 1), 500);
   }
 }
+
+export {
+  getAxisFromValue,
+  build_axis_selection,
+  control_changeaxis,
+  grblHandleMessage,
+  grbl_reset,
+  init_grbl_panel,
+  onAutoReportIntervalChange,
+  onstatusIntervalChange,
+  onprobemaxtravelChange,
+  onprobefeedrateChange,
+  onproberetractChange,
+  onprobetouchplatethicknessChange,
+  reportNone,
+  tryAutoReport,
+  reportPolled,
+  SendRealtimeCmd,
+  StartProbeProcess,
+  MPOS,
+  WPOS,
+  AxisFeedRate,
+  setSpindleSpeed,
+};

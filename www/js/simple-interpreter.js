@@ -1,4 +1,5 @@
-/* eslint no-continue: 0 */
+import { parseLine } from "./common.js";
+
 // This file was derived from
 // https://github.com/cncjs/gcode-interpreter/blob/master/src/Interpreter.js
 // as follows:
@@ -15,31 +16,35 @@
 // d) Replaced arrow functions with real functions
 // e) Replaced let with var
 
+// and all of the above is a profoundly bad way of supporting old browsers, so it will be progressively reverted
+// More importantly anyone still using IE should NOT be supported, it is NOT in their interest to do so.
+// Yes that means they MUST update to a more modern browser. This is NOT optional.
+
 /**
  * Returns an object composed from arrays of property names and values.
  * @example
  *   fromPairs([['a', 1], ['b', 2]]);
  *   // => { 'a': 1, 'b': 2 }
  */
-var fromPairs = function(pairs) {
-    var index = -1;
-    var length = (!pairs) ? 0 : pairs.length;
-    var result = {};
+const fromPairs = (pairs) => {
+    let index = -1;
+    const length = (!pairs) ? 0 : pairs.length;
+    const result = {};
 
     while (++index < length) {
-        var pair = pairs[index];
+        const pair = pairs[index];
         result[pair[0]] = pair[1];
     }
 
     return result;
 };
 
-var partitionWordsByGroup = function(words) {
-    var groups = [];
+const partitionWordsByGroup = (words) => {
+    const groups = [];
 
-    for (var i = 0; i < words.length; ++i) {
-        var word = words[i];
-        var letter = word[0];
+    for (let i = 0; i < words.length; ++i) {
+        const word = words[i];
+        const letter = word[0];
 
         if ((letter === 'G') || (letter === 'M') || (letter === 'T')) {
             groups.push([word]);
@@ -56,16 +61,16 @@ var partitionWordsByGroup = function(words) {
     return groups;
 };
 
-var interpret = function(self, data) {
-    var groups = partitionWordsByGroup(data.words);
+const interpret = (self, data) => {
+    const groups = partitionWordsByGroup(data.words);
 
-    for (var i = 0; i < groups.length; ++i) {
-        var words = groups[i];
-        var word = words[0] || [];
-        var letter = word[0];
-        var code = word[1];
-        var cmd = '';
-        var args = {};
+    for (let i = 0; i < groups.length; ++i) {
+        const words = groups[i];
+        const word = words[0] || [];
+        const letter = word[0];
+        const code = word[1];
+        let cmd = '';
+        let args = {};
 
         if (letter === 'G') {
             cmd = (letter + code);
@@ -112,32 +117,36 @@ var interpret = function(self, data) {
         }
 
         if (typeof self.handlers[cmd] === 'function') {
-            var func = self.handlers[cmd];
+            const func = self.handlers[cmd];
             func(args);
         }
 
         if (typeof self[cmd] === 'function') {
-            var func = self[cmd].bind(self);
+            const func = self[cmd].bind(self);
             func(args);
         }
     }
 };
 
-function Interpreter(options) {
-    this.motionMode = 'G0';
-    this.handlers = {};
+class Interpreter {
+    constructor(options = {}) {
+        this.motionMode = 'G0';
+        this.handlers = {};
 
-    options = options || {};
-    options.handlers = options.handlers || {};
+        options.handlers = options.handlers || {};
 
-    this.handlers = options.handlers;
-}
+        this.handlers = options.handlers;
+    }
 
-Interpreter.prototype.loadFromLinesSync = function(lines) {
-    for (var i = 0; i < lines.length; ++i) {
-        var line = lines[i].trim();
-        if (line.length !== 0) {
-	    interpret(this, parseLine(line, {}));
+    loadFromLinesSync(lines) {
+        for (let i = 0; i < lines.length; ++i) {
+            const line = lines[i].trim();
+            if (line.length !== 0) {
+                interpret(this, parseLine(line, {}));
+            }
         }
     }
 }
+
+
+export { Interpreter };

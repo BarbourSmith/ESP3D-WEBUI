@@ -1,4 +1,18 @@
-// import - conErr, stdErrMsg, getChecked, id, HTMLDecode, SendGetHttp, translate_text_item, process_socket_response
+import {
+	conErr,
+	stdErrMsg,
+	getChecked,
+	id,
+	HTMLDecode,
+	httpCmdType,
+	buildHttpCommandCmd,
+	SendGetHttp,
+	trx_text_item,
+	process_socket_response,
+	getValue,
+	setValue,
+	valueStartsWith,
+} from "./common.js";
 
 const CustomCommand_history = [];
 let CustomCommand_history_index = -1;
@@ -55,38 +69,26 @@ const Monitor_output_Update = (message) => {
 			continue;
 		}
 		if (!isverbosefilter) {
-			if (
-				outlc === "wait" ||
-				outlc.startsWith("ok") ||
-				outlc.startsWith("[#]") ||
-				outlc.startsWith("x:") ||
-				outlc.startsWith("fr:") ||
-				outlc.startsWith("echo:") ||
-				outlc.startsWith("Config:") ||
-				outlc.startsWith('echo:Unknown command: "echo"') ||
-				outlc.startsWith("[MSG:INFO: Heartbeat]") ||
-				outlc.startsWith('echo:enqueueing "*"')
-			) {
+			if (outlc === "wait"
+				|| valueStartsWith(outlc, ["ok", "[#]", "x:", "fr:", "echo:", "Config:", 'echo:Unknown command: "echo"', "[MSG:INFO: Heartbeat]", 'echo:enqueueing "*"'])) {
 				continue;
 			}
 			//no status
-			if (outlc.startsWith("<") || outlc.startsWith("[echo:")) continue;
+			if (valueStartsWith(outlc, ["<", "[echo:"])) {
+				continue;
+			}
 		}
-		if (out.startsWith("[#]")) {
+		if (valueStartsWith(out, ["[#]"])) {
 			out = out.replace("[#]", "");
 		}
 		out = out.replace("&", "&amp;");
 		out = out.replace("<", "&lt;");
 		out = out.replace(">", "&gt;");
-		if (
-			out.startsWith("ALARM:") ||
-			out.startsWith("Hold:") ||
-			out.startsWith("Door:")
-		) {
-			out = `<font color='orange'><b>${out}${translate_text_item(out.trim())}</b></font>\n`;
+		if (valueStartsWith(out, ["ALARM:", "Hold:", "Door:"]) ) {
+			out = `<font color='orange'><b>${out}${trx_text_item(out.trim())}</b></font>\n`;
 		}
-		if (out.startsWith("error:")) {
-			out = `<font color='red'><b>${out.toUpperCase()}${translate_text_item(out.trim())}</b></font>\n`;
+		if (valueStartsWith(out, ["error:"])) {
+			out = `<font color='red'><b>${out.toUpperCase()}${trx_text_item(out.trim())}</b></font>\n`;
 		}
 		output += out;
 	}
@@ -103,15 +105,13 @@ const Monitor_output_Update = (message) => {
 };
 
 function SendCustomCommand() {
-	const custCmd = getValueTrimmed("custom_cmd_txt");
+	const custCmd = getValueTrimmed("custom_cmd_txt") || "";
 	if (!custCmd) {
 		return;
 	}
-
 	CustomCommand_history.push(custCmd);
 	CustomCommand_history.slice(-40);
 	CustomCommand_history_index = CustomCommand_history.length;
-
 	setValue("custom_cmd_txt", "");
 	Monitor_output_Update(`${custCmd}\n`);
 
@@ -162,15 +162,20 @@ function SendCustomCommandSuccess(response) {
 function SendCustomCommandFailed(error_code, response) {
 	const errMsg =
 		error_code === 0
-			? translate_text_item("Connection error")
+			? trx_text_item("Connection error")
 			: stdErrMsg(
 				error_code,
 				HTMLDecode(response),
-				translate_text_item("Error"),
+				trx_text_item("Error"),
 			);
 	Monitor_output_Update(`${errMsg}\n`);
 
 	conErr(error_code, HTMLDecode(response), "cmd Error");
 }
 
-// export - init_command_panel, Monitor_check_autoscroll, Monitor_check_verbose_mode, Monitor_output_Update
+export {
+	init_command_panel,
+	Monitor_check_autoscroll,
+	Monitor_check_verbose_mode,
+	Monitor_output_Update,
+};

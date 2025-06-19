@@ -1,188 +1,220 @@
-let preferenceslist = [];
+import { prefDefs, HTMLDecode, trx_text_item } from "./common.js";
 
-const checkFields = {
-    show_camera_panel: "enable_camera",
-    autoload_camera_panel: "auto_load_camera",
-    enable_DHT: "enable_DHT",
-    enable_lock_UI: "enable_lock_UI",
-    enable_ping: "enable_ping",
-    show_control_panel: "enable_control_panel",
-    show_grbl_panel: "enable_grbl_panel",
-    show_grbl_probe_tab: "enable_grbl_probe_panel",
-    show_files_panel: "enable_files_panel",
-    has_tft_sd: "has_TFT_SD",
-    has_tft_usb: "has_TFT_USB",
-    show_commands_panel: "enable_commands_panel",
-    preferences_autoscroll: "enable_autoscroll",
-    preferences_verbose_mode: "enable_verbose_mode",
+// Add in the validation function definitions to the prefDefs
+prefDefs.enable_grbl_panel.prefDefs.autoreport_interval.valFunc = (value) => {
+	const vInt = Number.parseInt(value);
+	return !Number.isNaN(vInt) && (vInt === 0 || (vInt >= 50 && vInt <= 30000))
+		? ""
+		: trx_text_item("Value of auto-report must be 0 or between 50ms and 30000ms !!");
 };
 
-const intFields = {
-    preferences_autoReport_Interval: "preferenceslist[0].autoReport_interval",
-    preferences_pos_Interval_check: "preferenceslist[0].interval_positions",
-    preferences_status_Interval_check: "preferenceslist[0].interval_status",
+prefDefs.enable_files_panel.prefDefs.f_filters.valFunc = (value) => {
+	const extPat = /^[a-z0-9;]*$/i;
+	return value.match(extPat) ? "" : trx_text_item("Only alphanumeric chars separated by ; for extensions filters !!");
 };
 
-/** This does not include axis velocity fields */
-const floatFields = {
-    preferences_probemaxtravel: "preferenceslist[0].probemaxtravel",
-    preferences_probefeedrate: "preferenceslist[0].probefeedrate",
-    preferences_proberetract: "preferenceslist[0].proberetract",
-    preferences_probetouchplatethickness: "preferenceslist[0].probetouchplatethickness",
+/** Return the `fieldId`, if defined, otherwise return the `key` */
+const buildFieldId = (key, value) => value.fieldId || key;
+
+/** Build a complete set of preferences from the prefDefs.
+ * Useful for initialisation of preferences.json
+ * * `defValue` - is the original value as defined in the prefDefs above
+ * * `fileValue` - is the value as currently stored in the value (or that soon will be if the preferences are being saved)
+ * * `value` - is the value as currently set and in use in the UI
+ */
+const buildPrefsFromDefs = (prefLevel = prefDefs) => {
+	const prefs = {};
+	for (const [key, value] of Object.entries(prefLevel)) {
+		prefs[key] = {
+			valueType: value.valueType,
+			defValue: value.defValue,
+			fileValue: value.defValue,
+			value: value.defValue,
+			fieldId: buildFieldId(key, value),
+		};
+
+		if (value.valueType === "enctext") {
+			// all values are stored as HTML encoded text
+			prefs[key].defValue = HTMLDecode(prefs[key].defValue);
+			prefs[key].fileValue = HTMLDecode(prefs[key].fileValue);
+			prefs[key].value = HTMLDecode(prefs[key].value);
+		}
+
+		if ("prefDefs" in value) {
+			// Transfer the child level values back to this parent level
+			for (const [cKey, cValue] of Object.entries(buildPrefsFromDefs(value.prefDefs))) {
+				prefs[cKey] = cValue;
+			}
+		}
+	}
+
+	return prefs;
 };
 
-const checkBlocks = {
-    show_files_panel: "files_preferences",
-    show_grbl_panel: "grbl_preferences",
-    show_camera_panel: "camera_preferences",
-    show_control_panel: "control_preferences",
-    show_commands_panel: "cmd_preferences",
-    show_grbl_probe_tab: "grbl_probe_preferences",
+/** Get the named preference object */
+const getPref = (prefName) => {
+	let pref = preferences[prefName];
+	if (!pref) {
+		// try to find it by looking for the fieldId
+		for (const [key, value] of Object.entries(preferences)) {
+			if (value.fieldId === prefName) {
+				pref = value;
+				break;
+			}
+		}
+	}
+	if (!pref) {
+		console.error(stdErrMsg("Unknown Preference", `'${prefName}' not found as a preference key or as the fieldId within a preference value`));
+		return undefined;
+	}
+	return pref;
 };
 
-const isPreferencesListDefined = () => (typeof preferenceslist !== "undefined" && Array.isArray(preferenceslist) && preferenceslist.length > 0 && preferenceslist?.is_default !== "true");
+/** Get the part of the prefDefs structure identified by the name supplied.
+ * If the name is not found then undefined is returned
+ */
+const getPrefDefPath = (prefName) => {
+	const prefPath = prefName
+		.trim()
+		.replace(".", ".prefDefs.")
+		.replace(".prefDefs.prefDefs.", ".prefDefs.");
+	let pref = prefDefs;
+	for (let ix = 0; ix < prefPath.length; ix++) {
+		if (typeof pref[prefPath[ix]] === "undefined") {
+			return undefined;
+		}
+		pref = pref[prefPath[ix]];
+	}
+	return pref;
+};
 
-const GetPreferencesList = () => {
-    console.info("Getting the preferences list")
-    preferenceslist = [];
-    //removeIf(production)
-    const response = JSON.stringify(default_preferenceslist);
-    processPreferencesGetSuccess(response);
-    return;
-    //endRemoveIf(production)
-    const cmd = buildHttpFileGetCmd(preferences_file_name);
-    SendGetHttp(cmd, processPreferencesGetSuccess, processPreferencesGetFailed);
-}
+/** Get the named preference value, or undefined */
+const getPrefValue = (prefName) => getPref(prefName)?.value;
 
-const processPreferencesGetSuccess = (response) => {
-    Preferences_build_list(response);
-}
+/** Set the preference item to the supplied value.
+ * Returns true for success, false for failure - usually because the preference item does not exist
+ */
+const setPrefValue = (prefName, value) => {
+	const pref = getPrefDefPath(prefName);
+	if (!pref) {
+		return false;
+	}
+	// TODO: test the typeof the value is compatible with the valueType
+	pref.value = value;
+	return true;
+};
 
-const processPreferencesGetFailed = (error_code, response) => {
-    conErr(error_code, response);
-    Preferences_build_list("");
-}
+/** The actual preferences as used throught the app */
+const preferences = buildPrefsFromDefs(prefDefs);
 
-const Preferences_build_list = (response_text) => {
-    preferenceslist = [];
-    try {
-        const prefTest = response_text ? response_text : JSON.stringify(default_preferenceslist)
-        preferenceslist = JSON.parse(prefTest);
-    } catch (e) {
-        console.error("Preferences parsing error:", e);
-        preferenceslist = default_preferenceslist;
-    }
-}
+/** Helper method to get the `enable_ping` preference value */
+const enable_ping = () => getPrefValue("enable_ping");
 
 /** Determine if the preferences have been modified */
 const PreferencesModified = () => {
-    if (!preferenceslist[0].length) {
-        // Nothing got loaded, so nothing could have been modified
-        return false;
-    }
+	let isModified = false;
 
-    const defKeys = Object.keys(default_preferenceslist[0]);
+	for (const [prefName, value] of Object.entries(preferences)) {
+		const key = prefName === "language_list" ? "language" : prefName;
+		if (value.fileValue !== value.value) {
+			isModified = true;
+			break;
+		}
+	}
 
-    //check dialog compare to global state
-    for (let ix = 0; ix < defKeys.length; ix++) {
-        if (!(defKeys[ix] in preferenceslist[0])) {
-            // If anything has been 'undefined' then we assume modification
-            return true;
-        }
-    }
-
-    for (const chkMap in checkFields) {
-        if (getChecked(chkMap) !== (preferenceslist[0][checkFields[chkMap]])) {
-            return true;
-        }
-    }
-
-    for (const intMap in intFields) {
-        if (getValueInt(intMap) !== Number.parseInt(preferenceslist[0][intFields[intMap]])) {
-            return true;
-        }
-    }
-
-    for (const floatMap in floatFields) {
-        if (getValueFloat(floatMap) !== Number.parseFloat(preferenceslist[0][floatFields[floatMap]])) {
-            return true;
-        }
-    }
-
-    //camera address
-    if (getValue('preferences_camera_webaddress') !== HTMLDecode(preferenceslist[0].camera_address)) {
-        return true;
-    }
-
-    //xy feedrate
-    if (getValueFloat('preferences_control_xy_velocity') !== Number.parseFloat(preferenceslist[0].xy_feedrate)) {
-        return true;
-    }
-    //z feedrate
-    if (grblaxis > 2 && getValueFloat('preferences_control_z_velocity') !== Number.parseFloat(preferenceslist[0].z_feedrate)) {
-        return true;
-    }
-    //a feedrate
-    if (grblaxis > 3 && getValueFloat('preferences_control_a_velocity') !== Number.parseFloat(preferenceslist[0].a_feedrate)) {
-        return true;
-    }
-    //b feedrate
-    if (grblaxis > 4 && getValueFloat('preferences_control_b_velocity') !== Number.parseFloat(preferenceslist[0].b_feedrate)) {
-        return true;
-    }
-    //c feedrate
-    if (grblaxis > 5 && getValueFloat('preferences_control_c_velocity') !== Number.parseFloat(preferenceslist[0].c_feedrate)) {
-        return true;
-    }
-    //file filters
-    return (getValue('preferences_filters') !== preferenceslist[0].f_filters);
+	return isModified;
 }
 
-/** Display the element as a block or none */
-const displayBlockOrNone = (elemName, enable) => {
-    if (enable) {
-        displayBlock(elemName);
-    } else {
-        displayNone(elemName);
-    }
+/** Build the flat preferences json structure from the preferences */
+const BuildPreferencesJson = () => {
+	const preferenceslist = [];
+
+	for (const [prefName, value] of Object.entries(preferences)) {
+		const key = prefName === "language_list" ? "language" : prefName;
+		if (value.fileValue !== value.value) {
+			value.fileValue = value.value;
+		}
+
+		preferenceslist.push(`"${key}":"${value.fileValue}"`);
+	}
+
+	return `[{\n${preferenceslist.join(",\n")}\n}]`;
+}
+
+/** Load the flat preferences json structure into the preferences */
+const LoadPreferencesJson = (preferenceslist = "") => {
+	if (!preferenceslist) {
+		return;
+	}
+
+	let prefs;
+
+	try {
+		prefs = JSON.parse(preferenceslist)[0];
+	} catch (e) {
+		console.error("Parsing error:", e);
+		return;
+	}
+
+	for (const [key, value] of Object.entries(preferences)) {
+		if (!(key in prefs)) {
+			continue;
+		}
+		const prefName = (key === "language") ? "language_list" : key;
+		switch (value.valueType) {
+			case "panel":
+			case "bool":
+				if (typeof prefs[key] === "boolean") {
+					setPrefValue(prefName, `${prefs[key]}`);
+				}
+				if (typeof prefs[key] === "string") {
+					setPrefValue(prefName, prefs[key].toLowerCase() === "false" || !prefs[key] ? "false" : "true");
+				}
+				break;
+			case "int":
+				if (typeof prefs[key] === "number") {
+					setPrefValue(prefName, prefs[key]);
+				}
+				if (typeof prefs[key] === "string") {
+					const vInt = Number.parseInt(prefs[key]);
+					if (!Number.isNaN(vInt)) {
+						setPrefValue(prefName, vInt);
+					}
+				}
+				break;
+			case "float":
+				if (typeof prefs[key] === "number") {
+					setPrefValue(prefName, prefs[key]);
+				}
+				if (typeof prefs[key] === "string") {
+					const vFloat = Number.parseFloat(prefs[key]);
+					if (!Number.isNaN(vFloat)) {
+						setPrefValue(prefName, vFloat);
+					}
+				}
+				break;
+			case "text":
+			case "select":
+				setPrefValue(prefName, prefs[key]);
+				break;
+			case "enctext":
+				setPrefValue(prefName, HTMLDecode(prefs[key]));
+				break;
+			default:
+				console.log(`${key}: ${JSON.stringify(value)}`);
+				break;
+		}
+	}
+}
+
+export {
+	buildFieldId,
+	enable_ping,
+	getPref,
+	getPrefValue,
+	setPrefValue,
+	preferences,
+	PreferencesModified,
+	BuildPreferencesJson,
+	LoadPreferencesJson,
 };
-
-const toggleCheckBlock = (event) => {
-    const checkBox = event.currentTarget;
-    const chkId = checkBox.id;
-    prefs_toggledisplay(chkId);
-}
-
-const toggleCheckBox = (event) => {
-    const checkBox = event.currentTarget;
-    const chkId = checkBox.id;
-    prefs_togglebox(chkId);
-}
-
-const prefs_togglebox = (id_source) => {
-    const currentValue = getChecked(id_source);
-    const newValue = ["on", "true"].includes(currentValue) ? 'false' : 'true';
-    setChecked(id_source, newValue);
-}
-
-/** Toggles the checkbox value, and also its associated block of preferences */
-function prefs_toggledisplay(id_source) {
-    prefs_togglebox(id_source);
-    displayBlockOrNone(checkBlocks[id_source], getChecked(id_source) === 'true');
-}
-
-const setCheckboxes = () => {
-    for (const chkMap in checkFields) {
-        setCheckedDefault(chkMap, preferenceslist[0]?.[checkFields[chkMap]]);
-
-        // Now click / toggle it twice
-        if (chkMap in checkBlocks) {
-            prefs_toggledisplay(chkMap);
-            prefs_toggledisplay(chkMap);
-        } else {
-            const checkbox = id(chkMap);
-            checkbox.click();
-            checkbox.click();
-        }
-    }
-}

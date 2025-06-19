@@ -1,6 +1,4 @@
-//removeIf(de_lang_disabled)
-//german
-var germantrans = {
+{
 "de":"Deutsch",
 "ESP3D for":"ESP3D f&uuml;r",
 "Value of auto-check must be between 0s and 99s !!":"Der Wert des Auto-Checks muss zwischen 0s und 99s liegen!!",
@@ -46,7 +44,7 @@ var germantrans = {
 "Controls":"Steuerung",
 "Credits":"Credits",
 "Dashboard":"Dashboard",
-"Data mofified":"Daten ge&auml;ndert",
+"Data modified":"Daten ge&auml;ndert",
 "Do you want to save?":"M&ouml;chten Sie speichern?",
 "Enable second extruder controls":"Zweiten Extruder aktivieren",
 "Error":"Fehler",
@@ -181,7 +179,7 @@ var germantrans = {
 "E feedrate":"E Vorschubgeschw.",
 "Camera address":"Kamera IP-Adresse",
 "Setup":"Setup",
-"Start setup":"Setup starten",
+"Start":"Starten",
 "This wizard will help you to configure the basic settings.":"Dieser Assistent hilft Ihnen bei der Konfiguration der Grundeinstellungen.",
 "Press start to proceed.":"Klicken Sie Start, um zu beginnen",
 "Save your printer's firmware base:":"Speichern Sie die Grundeinstellungen:",
@@ -286,7 +284,6 @@ var germantrans = {
 "Web Update":"Webupate",
 "Pin Recovery":"Reset-Taste",
 "Disabled":"Deaktiviert",
-"Authentication":"Authentifizierung",
 "Target Firmware":"Firmware",
 "SD Card Support":"SD-Karten-Unterstützung",
 "Time Support":"Zeitserver",
@@ -371,6 +368,5 @@ var germantrans = {
 "error:62":"SD card failed to open directory",
 "error:63":"SD Card directory not found",
 "error:64":"SD Card file empty",
-"error:70":"Bluetooth failed to start",
-};
-//endRemoveIf(de_lang_disabled)
+"error:70":"Bluetooth failed to start"
+}

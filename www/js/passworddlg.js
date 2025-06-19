@@ -1,4 +1,16 @@
-// import conErr, displayBlock, displayNone, id, setHTML, closeModal, setactiveModal, showModal, SendGetHttp, translate_text_item 
+import {
+	conErr,
+	displayBlock,
+	displayNone,
+	id,
+	setHTML,
+	closeModal,
+	setactiveModal,
+	showModal,
+	buildHttpLoginCmd,
+	SendGetHttp,
+	trx_text_item,
+} from "./common.js";
 
 const passwordDlgCancel = () => closeModal("cancel");
 
@@ -15,13 +27,15 @@ const changepassworddlg = () => {
 	id("passwordDlgCancel").addEventListener("click", passwordDlgCancel);
 	id("change_password_btn").addEventListener("click", SubmitChangePassword);
 
-	displayNone("password_loader");
+	displayNone(["password_loader", "change_password_btn"]);
 	displayBlock("change_password_content");
-	displayNone("change_password_btn");
 	setHTML("password_content", "");
 	setHTML("password_password_text", "");
 	setHTML("password_password_text1", "");
 	setHTML("password_password_text2", "");
+
+	setHTML("passwordChange", `${get_icon_svg("user")}<span>${trx_text_item("Change Password")}</span>`);
+
 	showModal();
 };
 
@@ -31,15 +45,9 @@ function checkpassword() {
 	setHTML("password_content", "");
 	displayNone("change_password_btn");
 	if (pwd1 !== pwd2) {
-		setHTML(
-			"password_content",
-			translate_text_item("Passwords do not matches!"),
-		);
+		setHTML("password_content", trx_text_item("Passwords do not matches!"));
 	} else if (pwd1.length < 1 || pwd1.length > 16 || pwd1.indexOf(" ") > -1) {
-		setHTML(
-			"password_content",
-			translate_text_item("Password must be >1 and <16 without space!"),
-		);
+		setHTML("password_content", trx_text_item("Password must be >1 and <16 without space!"));
 	} else {
 		displayBlock("change_password_btn");
 	}
@@ -54,7 +62,7 @@ function ChangePasswordfailed(error_code, response_text) {
 	}
 
 	if ("status" in response && typeof response.status !== "undefined") {
-		setHTML("password_content", translate_text_item(response.status));
+		setHTML("password_content", trx_text_item(response.status));
 	}
 	conErr(error_code, response_text || "");
 	displayNone("password_loader");
@@ -77,3 +85,5 @@ function SubmitChangePassword() {
 	const cmd = buildHttpLoginCmd({ USER: user, PASSWORD: password, NEWPASSWORD: newpassword });
 	SendGetHttp(cmd, ChangePasswordsuccess, ChangePasswordfailed);
 }
+
+export { changepassworddlg };

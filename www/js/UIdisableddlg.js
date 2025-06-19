@@ -1,4 +1,11 @@
-// import translate_text_item, id, setHTML, setactiveModal, showModal, saveSerialMessages
+import {
+	trx_text_item,
+	id,
+	setHTML,
+	setactiveModal,
+	showModal,
+	saveSerialMessages,
+} from "./common.js";
 
 const UIdisabledDlgReconnect = () => window.location.reload();
 
@@ -13,7 +20,9 @@ const UIdisableddlg = (lostcon) => {
 	id("UIdisabled_save_serial_msg").addEventListener("click", saveSerialMessages);
 
 	if (lostcon) {
-		setHTML("disconnection_msg", translate_text_item("Connection lost for more than 20s"));
+		setHTML("disconnection_msg", trx_text_item("Connection lost for more than 20s"));
 	}
 	showModal();
 };
+
+export { UIdisableddlg };

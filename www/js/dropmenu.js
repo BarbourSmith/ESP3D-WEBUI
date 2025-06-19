@@ -1,22 +1,25 @@
-function clear_drop_menu(event) {
-    const item = get_parent_by_class(event.target, "dropdownselect");
-    let ignore_id = "-1";
-    if (item !== null && typeof item.id !== 'undefined') {
-        ignore_id = item.id;
-    }
-    const list = elemsByClass("dropmenu-content");
-    for (let index = 0; index < list.length; index++) {
-        const item2 = get_parent_by_class(list[index], "dropdownselect");
-        if (item2 !== null && typeof item2.id !== 'undefined' && item2.id !== ignore_id && list[index].classList.contains('show')) {
-            list[index].classList.remove('show');
-        }
-    }
+import { elemsByClass } from "./common.js";
+
+const clear_drop_menu = (event) => {
+	const item = get_parent_by_class(event.target, "dropdownselect");
+	const ignore_id = item?.id || "-1";
+	for (const item of elemsByClass("dropmenu-content")) {
+		const item2 = get_parent_by_class(item, "dropdownselect");
+		if (item2?.id !== ignore_id) {
+			item.classList.remove("show");
+		}
+	};
 }
 
+/** Traverse back through the current item's parent until you get to the item with the desired classname */
 function get_parent_by_class(item, classname) {
-    if (item === null || typeof item === 'undefined') return null;
-    if (item.classList.contains(classname)) {
-        return item;
-    }
-    return get_parent_by_class(item.parentElement, classname);
+	if (!item) {
+		return null;
+	}
+	if (item.classList.contains(classname)) {
+		return item;
+	}
+	return get_parent_by_class(item.parentElement, classname);
 }
+
+export { clear_drop_menu };

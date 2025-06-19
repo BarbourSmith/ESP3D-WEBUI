@@ -1,4 +1,4 @@
-// import - closeModal, setactiveModal, showModal, id
+import { closeModal, setactiveModal, showModal, id } from "./common.js";
 
 const creditsDlgCancel = () => closeModal("cancel");
 const creditsDlgClose = () => closeModal("Ok");
@@ -15,3 +15,5 @@ const creditsdlg = () => {
 
 	showModal();
 };
+
+export { creditsdlg };

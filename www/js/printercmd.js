@@ -1,38 +1,41 @@
-var grbl_processfn = null;
-var grbl_errorfn = null;
+import {
+    conErr,
+    HTMLDecode,
+    stdErrMsg,
+    Monitor_output_Update,
+    httpCmdType,
+	buildHttpCommandCmd,
+    SendGetHttp,
+    trx_text_item,
+    Common,
+} from "./common.js";
+
+const cleanFunc = (fn, cleanFn) => fn instanceof Function ? fn : cleanFn;
 
 function noop() {}
 function SendPrinterCommand(prnCmd, echo_on, processfn, errorfn, cmd_code, max_cmd_code, extra_arg) {
-    if (prnCmd.trim().length === 0) {
+    const pCmd = (prnCmd || "").trim();
+    if (!pCmd) {
         return;
     }
 
-    var push_cmd = typeof echo_on !== 'undefined' ? echo_on : true;
+    const push_cmd = typeof echo_on !== 'undefined' ? echo_on : true;
     if (push_cmd) {
-        Monitor_output_Update(`[#]${prnCmd.trim()}\n`);
+        Monitor_output_Update(`[#]${pCmd}\n`);
     }
-
-    //removeIf(production)
-    console.log(prnCmd);
-    if (typeof processfn !== 'undefined') {
-        processfn("Test response");
-    } else {
-        SendPrinterCommandSuccess("Test response");
-    }
-    return;
-    //endRemoveIf(production)
 
     // Ensure that we have valid functions defined for process and error returns
-    let procFn = typeof processfn === "function" ? processfn : SendPrinterCommandSuccess;
-    let errFn = typeof errorfn === "function" ? errorfn : SendPrinterCommandFailed;
-    if (!prnCmd.startsWith("[ESP")) {
-        grbl_processfn = procFn;
-        grbl_errorfn = errFn;
+    let procFn = cleanFunc(processfn, SendPrinterCommandSuccess);
+    let errFn = cleanFunc(errorfn, SendPrinterCommandFailed);
+
+    if (!pCmd.startsWith("[ESP")) {
+        const common = new Common();
+        common.grbl_processfn = procFn;
+        common.grbl_errorfn = errFn;
         procFn = noop;
         errFn = noop;
     }
-
-	let cmd = buildHttpCommandCmd(httpCmdType.commandText, prnCmd);
+	let cmd = buildHttpCommandCmd(httpCmdType.commandText, pCmd);
     if (extra_arg) {
         cmd += `&${extra_arg}`;
     }
@@ -41,16 +44,17 @@ function SendPrinterCommand(prnCmd, echo_on, processfn, errorfn, cmd_code, max_c
     //console.log(cmd);
 }
 
-function SendPrinterCommandSuccess(response) {
-}
+function SendPrinterCommandSuccess(response) { }
 
 function SendPrinterCommandFailed(error_code, response) {
     const resp = HTMLDecode((response || "").trim());
     const errMsg = (error_code === 0)
-        ? translate_text_item("Connection error")
-        : stdErrMsg(error_code, resp, translate_text_item("Error"));
+        ? trx_text_item("Connection error")
+        : stdErrMsg(error_code, resp, trx_text_item("Error"));
 
     Monitor_output_Update(`${errMsg}\n`);
 
     conErr(error_code, resp, "printer cmd Error");
 }
+
+export { SendPrinterCommand };

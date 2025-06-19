@@ -1,6 +1,4 @@
-//removeIf(it_lang_disabled)
-//italian
-var italiantrans = {
+{
 "it":"Italiano",
 "ESP3D for":"ESP3D per",
 "Value of auto-check must be between 0s and 99s !!":"Il valore di controllo deve essere tra 0 e 99 secondi!!",
@@ -46,7 +44,7 @@ var italiantrans = {
 "Controls":"Controlli",
 "Credits":"Crediti",
 "Dashboard":"Dashboard",
-"Data mofified":"Dati modificati",
+"Data modified":"Dati modificati",
 "Do you want to save?":"Vuoi salvare?",
 "Enable second extruder controls":"Attiva controlli per il secondo estrusore",
 "Error":"Errore",
@@ -181,7 +179,7 @@ var italiantrans = {
 "E feedrate":"Avanzamento E",
 "Camera address":"Indirizzo Camera",
 "Setup":"Configurazione",
-"Start setup":"Inizia la configurazione",
+"Start":"Inizia",
 "This wizard will help you to configure the basic settings.":"Questo procedura guidata ti aiuter&agrave; nella la configurazione delle impostazioni di base.",
 "Press start to proceed.":"Premi Inizia per proseguire.",
 "Save your printer's firmware base:":"Salva il FW della Stampante: ",
@@ -286,7 +284,6 @@ var italiantrans = {
 "Web Update":"Aggiorna via Web",
 "Pin Recovery":"Pin Ripristino",
 "Disabled":"Disattivato",
-"Authentication":"Autenticazione",
 "Target Firmware":"Target Firmware",
 "SD Card Support":"Supporto scheda SD",
 "Time Support":"Server di tempo",
@@ -371,6 +368,5 @@ var italiantrans = {
 "error:62":"SD card failed to open directory",
 "error:63":"SD Card directory not found",
 "error:64":"SD Card file empty",
-"error:70":"Bluetooth failed to start",
-};
-//endRemoveIf(it_lang_disabled)
+"error:70":"Bluetooth failed to start"
+}

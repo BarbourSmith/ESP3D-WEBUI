@@ -1,0 +1,881 @@
+{
+	"EEPROM": [
+		{
+			"F": "nvs",
+			"P": "Start/Message",
+			"H": "Start/Message",
+			"T": "S",
+			"V": "Grbl \\V [FluidNC \\B (\\R) \\H]",
+			"S": "40",
+			"M": "0"
+		},
+		{ "F": "nvs", "P": "Firmware/Build", "H": "Firmware/Build", "T": "S", "V": "", "S": "20", "M": "0" },
+		{ "F": "nvs", "P": "SD/FallbackCS", "H": "SD/FallbackCS", "T": "I", "V": "-1", "S": "40", "M": "-1" },
+		{ "F": "nvs", "P": "Report/Status", "H": "Report/Status", "T": "I", "V": "1", "S": "3", "M": "0" },
+		{ "F": "nvs", "P": "Config/Filename", "H": "Config/Filename", "T": "S", "V": "maslow.yaml", "S": "50", "M": "1" },
+		{
+			"F": "nvs",
+			"P": "Message/Level",
+			"H": "Message/Level",
+			"T": "B",
+			"V": "3",
+			"O": [
+				{ "Debug": "4" },
+				{ "Error": "1" },
+				{ "Info": "3" },
+				{ "None": "0" },
+				{ "Verbose": "5" },
+				{ "Warning": "2" }
+			]
+		},
+		{
+			"F": "nvs",
+			"P": "Notification/Type",
+			"H": "Notification/Type",
+			"T": "B",
+			"V": "0",
+			"O": [{ "EMAIL": "2" }, { "LINE": "3" }, { "NONE": "0" }, { "PUSHOVER": "1" }]
+		},
+		{ "F": "nvs", "P": "Notification/T1", "H": "Notification/T1", "T": "S", "V": "", "S": "63", "M": "0" },
+		{ "F": "nvs", "P": "Notification/T2", "H": "Notification/T2", "T": "S", "V": "", "S": "63", "M": "0" },
+		{ "F": "nvs", "P": "Notification/TS", "H": "Notification/TS", "T": "S", "V": "", "S": "127", "M": "0" },
+		{
+			"F": "nvs",
+			"P": "Telnet/Enable",
+			"H": "Telnet/Enable",
+			"T": "B",
+			"V": "1",
+			"O": [{ "OFF": "0" }, { "ON": "1" }]
+		},
+		{ "F": "nvs", "P": "Telnet/Port", "H": "Telnet/Port", "T": "I", "V": "23", "S": "65001", "M": "1" },
+		{
+			"F": "nvs",
+			"P": "HTTP/BlockDuringMotion",
+			"H": "HTTP/BlockDuringMotion",
+			"T": "B",
+			"V": "1",
+			"O": [{ "OFF": "0" }, { "ON": "1" }]
+		},
+		{ "F": "nvs", "P": "HTTP/Enable", "H": "HTTP/Enable", "T": "B", "V": "1", "O": [{ "OFF": "0" }, { "ON": "1" }] },
+		{ "F": "nvs", "P": "HTTP/Port", "H": "HTTP/Port", "T": "I", "V": "80", "S": "65001", "M": "1" },
+		{
+			"F": "nvs",
+			"P": "WiFi/Mode",
+			"H": "WiFi/Mode",
+			"T": "B",
+			"V": "3",
+			"O": [{ "AP": "2" }, { "Off": "0" }, { "STA": "1" }, { "STA>AP": "3" }]
+		},
+		{ "F": "nvs", "P": "Sta/SSID", "H": "Sta/SSID", "T": "S", "V": "TP-Link_5CB2", "S": "32", "M": "0" },
+		{ "F": "nvs", "P": "Sta/Password", "H": "Sta/Password", "T": "S", "V": "******", "S": "64", "M": "8" },
+		{
+			"F": "nvs",
+			"P": "Sta/MinSecurity",
+			"H": "Sta/MinSecurity",
+			"T": "B",
+			"V": "3",
+			"O": [
+				{ "OPEN": "0" },
+				{ "WEP": "1" },
+				{ "WPA-PSK": "2" },
+				{ "WPA-WPA2-PSK": "4" },
+				{ "WPA2-ENTERPRISE": "5" },
+				{ "WPA2-PSK": "3" }
+			]
+		},
+		{
+			"F": "nvs",
+			"P": "WiFi/FastScan",
+			"H": "WiFi/FastScan",
+			"T": "B",
+			"V": "0",
+			"O": [{ "OFF": "0" }, { "ON": "1" }]
+		},
+		{ "F": "nvs", "P": "Sta/IPMode", "H": "Sta/IPMode", "T": "B", "V": "0", "O": [{ "DHCP": "0" }, { "Static": "1" }] },
+		{ "F": "nvs", "P": "Sta/IP", "H": "Sta/IP", "T": "A", "V": "0.0.0.0" },
+		{ "F": "nvs", "P": "Sta/Gateway", "H": "Sta/Gateway", "T": "A", "V": "0.0.0.0" },
+		{ "F": "nvs", "P": "Sta/Netmask", "H": "Sta/Netmask", "T": "A", "V": "0.0.0.0" },
+		{
+			"F": "nvs",
+			"P": "AP/Country",
+			"H": "AP/Country",
+			"T": "B",
+			"V": "0",
+			"O": [
+				{ "01": "0" },
+				{ "AT": "1" },
+				{ "AU": "2" },
+				{ "BE": "3" },
+				{ "BG": "4" },
+				{ "BR": "5" },
+				{ "CA": "6" },
+				{ "CH": "7" },
+				{ "CN": "8" },
+				{ "CY": "9" },
+				{ "CZ": "10" },
+				{ "DE": "11" },
+				{ "DK": "12" },
+				{ "EE": "13" },
+				{ "ES": "14" },
+				{ "FI": "15" },
+				{ "FR": "16" },
+				{ "GB": "17" },
+				{ "GR": "18" },
+				{ "HK": "19" },
+				{ "HR": "20" },
+				{ "HU": "21" },
+				{ "IE": "22" },
+				{ "IN": "23" },
+				{ "IS": "24" },
+				{ "IT": "25" },
+				{ "JP": "26" },
+				{ "KR": "27" },
+				{ "LI": "28" },
+				{ "LT": "29" },
+				{ "LU": "30" },
+				{ "LV": "31" },
+				{ "MT": "32" },
+				{ "MX": "33" },
+				{ "NL": "34" },
+				{ "NO": "35" },
+				{ "NZ": "36" },
+				{ "PL": "37" },
+				{ "PT": "38" },
+				{ "RO": "39" },
+				{ "SE": "40" },
+				{ "SI": "41" },
+				{ "SK": "42" },
+				{ "TW": "43" },
+				{ "US": "44" }
+			]
+		},
+		{ "F": "nvs", "P": "AP/SSID", "H": "AP/SSID", "T": "S", "V": "maslow", "S": "32", "M": "0" },
+		{ "F": "nvs", "P": "AP/Password", "H": "AP/Password", "T": "S", "V": "******", "S": "64", "M": "8" },
+		{ "F": "nvs", "P": "AP/IP", "H": "AP/IP", "T": "A", "V": "192.168.0.1" },
+		{ "F": "nvs", "P": "AP/Channel", "H": "AP/Channel", "T": "I", "V": "1", "S": "14", "M": "1" },
+		{ "F": "nvs", "P": "Hostname", "H": "Hostname", "T": "S", "V": "maslow", "S": "32", "M": "1" },
+		{ "F": "tree", "P": "/board", "H": "/board", "T": "S", "V": "Maslow", "S": "255", "M": "0" },
+		{ "F": "tree", "P": "/name", "H": "/name", "T": "S", "V": "Maslow S3 Board", "S": "255", "M": "0" },
+		{ "F": "tree", "P": "/meta", "H": "/meta", "T": "S", "V": "", "S": "255", "M": "0" },
+		{
+			"F": "tree",
+			"P": "/Maslow_vertical",
+			"H": "/Maslow_vertical",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/Maslow_calibration_grid_width_mm_X",
+			"H": "/Maslow_calibration_grid_width_mm_X",
+			"T": "R",
+			"V": "1500.000"
+		},
+		{
+			"F": "tree",
+			"P": "/Maslow_calibration_grid_height_mm_Y",
+			"H": "/Maslow_calibration_grid_height_mm_Y",
+			"T": "R",
+			"V": "800.000"
+		},
+		{
+			"F": "tree",
+			"P": "/Maslow_calibration_grid_size",
+			"H": "/Maslow_calibration_grid_size",
+			"T": "I",
+			"V": "7",
+			"S": "9",
+			"M": "3"
+		},
+		{ "F": "tree", "P": "/Maslow_tlX", "H": "/Maslow_tlX", "T": "R", "V": "-27.600" },
+		{ "F": "tree", "P": "/Maslow_tlY", "H": "/Maslow_tlY", "T": "R", "V": "2064.900" },
+		{ "F": "tree", "P": "/Maslow_trX", "H": "/Maslow_trX", "T": "R", "V": "2924.300" },
+		{ "F": "tree", "P": "/Maslow_trY", "H": "/Maslow_trY", "T": "R", "V": "2066.500" },
+		{ "F": "tree", "P": "/Maslow_blX", "H": "/Maslow_blX", "T": "R", "V": "0.000" },
+		{ "F": "tree", "P": "/Maslow_blY", "H": "/Maslow_blY", "T": "R", "V": "0.000" },
+		{ "F": "tree", "P": "/Maslow_brX", "H": "/Maslow_brX", "T": "R", "V": "2953.200" },
+		{ "F": "tree", "P": "/Maslow_brY", "H": "/Maslow_brY", "T": "R", "V": "0.000" },
+		{ "F": "tree", "P": "/Maslow_tlZ", "H": "/Maslow_tlZ", "T": "R", "V": "100.000" },
+		{ "F": "tree", "P": "/Maslow_trZ", "H": "/Maslow_trZ", "T": "R", "V": "56.000" },
+		{ "F": "tree", "P": "/Maslow_blZ", "H": "/Maslow_blZ", "T": "R", "V": "34.000" },
+		{ "F": "tree", "P": "/Maslow_brZ", "H": "/Maslow_brZ", "T": "R", "V": "78.000" },
+		{
+			"F": "tree",
+			"P": "/Maslow_Retract_Current_Threshold",
+			"H": "/Maslow_Retract_Current_Threshold",
+			"T": "I",
+			"V": "1300",
+			"S": "3500",
+			"M": "0"
+		},
+		{
+			"F": "tree",
+			"P": "/Maslow_Calibration_Current_Threshold",
+			"H": "/Maslow_Calibration_Current_Threshold",
+			"T": "I",
+			"V": "1200",
+			"S": "3500",
+			"M": "0"
+		},
+		{
+			"F": "tree",
+			"P": "/Maslow_Acceptable_Calibration_Threshold",
+			"H": "/Maslow_Acceptable_Calibration_Threshold",
+			"T": "R",
+			"V": "0.450"
+		},
+		{ "F": "tree", "P": "/Maslow_beltEndExtension", "H": "/Maslow_beltEndExtension", "T": "R", "V": "30.000" },
+		{ "F": "tree", "P": "/Maslow_armLength", "H": "/Maslow_armLength", "T": "R", "V": "123.400" },
+		{
+			"F": "tree",
+			"P": "/stepping/engine",
+			"H": "/stepping/engine",
+			"T": "B",
+			"V": "0",
+			"O": [{ "Timed": "0" }, { "I2S_static": "2" }, { "I2S_stream": "3" }]
+		},
+		{
+			"F": "tree",
+			"P": "/stepping/idle_ms",
+			"H": "/stepping/idle_ms",
+			"T": "I",
+			"V": "240",
+			"S": "10000000",
+			"M": "0"
+		},
+		{ "F": "tree", "P": "/stepping/pulse_us", "H": "/stepping/pulse_us", "T": "I", "V": "4", "S": "30", "M": "0" },
+		{
+			"F": "tree",
+			"P": "/stepping/dir_delay_us",
+			"H": "/stepping/dir_delay_us",
+			"T": "I",
+			"V": "0",
+			"S": "10",
+			"M": "0"
+		},
+		{
+			"F": "tree",
+			"P": "/stepping/disable_delay_us",
+			"H": "/stepping/disable_delay_us",
+			"T": "I",
+			"V": "0",
+			"S": "10",
+			"M": "0"
+		},
+		{ "F": "tree", "P": "/stepping/segments", "H": "/stepping/segments", "T": "I", "V": "12", "S": "20", "M": "6" },
+		{ "F": "tree", "P": "/uart1/baud", "H": "/uart1/baud", "T": "I", "V": "115200", "S": "4000000", "M": "2400" },
+		{
+			"F": "tree",
+			"P": "/sdcard/frequency_hz",
+			"H": "/sdcard/frequency_hz",
+			"T": "I",
+			"V": "8000000",
+			"S": "20000000",
+			"M": "400000"
+		},
+		{ "F": "tree", "P": "/axes/x/steps_per_mm", "H": "/axes/x/steps_per_mm", "T": "R", "V": "80.000" },
+		{ "F": "tree", "P": "/axes/x/max_rate_mm_per_min", "H": "/axes/x/max_rate_mm_per_min", "T": "R", "V": "2000.000" },
+		{
+			"F": "tree",
+			"P": "/axes/x/acceleration_mm_per_sec2",
+			"H": "/axes/x/acceleration_mm_per_sec2",
+			"T": "R",
+			"V": "25.000"
+		},
+		{ "F": "tree", "P": "/axes/x/max_travel_mm", "H": "/axes/x/max_travel_mm", "T": "R", "V": "2438.400" },
+		{
+			"F": "tree",
+			"P": "/axes/x/soft_limits",
+			"H": "/axes/x/soft_limits",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{ "F": "tree", "P": "/axes/x/homing/cycle", "H": "/axes/x/homing/cycle", "T": "I", "V": "-1", "S": "6", "M": "-1" },
+		{
+			"F": "tree",
+			"P": "/axes/x/homing/allow_single_axis",
+			"H": "/axes/x/homing/allow_single_axis",
+			"T": "B",
+			"V": "1",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/axes/x/homing/positive_direction",
+			"H": "/axes/x/homing/positive_direction",
+			"T": "B",
+			"V": "1",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{ "F": "tree", "P": "/axes/x/homing/mpos_mm", "H": "/axes/x/homing/mpos_mm", "T": "R", "V": "0.000" },
+		{
+			"F": "tree",
+			"P": "/axes/x/homing/feed_mm_per_min",
+			"H": "/axes/x/homing/feed_mm_per_min",
+			"T": "R",
+			"V": "50.000"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/x/homing/seek_mm_per_min",
+			"H": "/axes/x/homing/seek_mm_per_min",
+			"T": "R",
+			"V": "200.000"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/x/homing/settle_ms",
+			"H": "/axes/x/homing/settle_ms",
+			"T": "I",
+			"V": "250",
+			"S": "1000",
+			"M": "0"
+		},
+		{ "F": "tree", "P": "/axes/x/homing/seek_scaler", "H": "/axes/x/homing/seek_scaler", "T": "R", "V": "1.100" },
+		{ "F": "tree", "P": "/axes/x/homing/feed_scaler", "H": "/axes/x/homing/feed_scaler", "T": "R", "V": "1.100" },
+		{
+			"F": "tree",
+			"P": "/axes/x/motor0/hard_limits",
+			"H": "/axes/x/motor0/hard_limits",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{ "F": "tree", "P": "/axes/x/motor0/pulloff_mm", "H": "/axes/x/motor0/pulloff_mm", "T": "R", "V": "1.000" },
+		{ "F": "tree", "P": "/axes/y/steps_per_mm", "H": "/axes/y/steps_per_mm", "T": "R", "V": "80.000" },
+		{ "F": "tree", "P": "/axes/y/max_rate_mm_per_min", "H": "/axes/y/max_rate_mm_per_min", "T": "R", "V": "2000.000" },
+		{
+			"F": "tree",
+			"P": "/axes/y/acceleration_mm_per_sec2",
+			"H": "/axes/y/acceleration_mm_per_sec2",
+			"T": "R",
+			"V": "25.000"
+		},
+		{ "F": "tree", "P": "/axes/y/max_travel_mm", "H": "/axes/y/max_travel_mm", "T": "R", "V": "1219.200" },
+		{
+			"F": "tree",
+			"P": "/axes/y/soft_limits",
+			"H": "/axes/y/soft_limits",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{ "F": "tree", "P": "/axes/y/homing/cycle", "H": "/axes/y/homing/cycle", "T": "I", "V": "-1", "S": "6", "M": "-1" },
+		{
+			"F": "tree",
+			"P": "/axes/y/homing/allow_single_axis",
+			"H": "/axes/y/homing/allow_single_axis",
+			"T": "B",
+			"V": "1",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/axes/y/homing/positive_direction",
+			"H": "/axes/y/homing/positive_direction",
+			"T": "B",
+			"V": "1",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{ "F": "tree", "P": "/axes/y/homing/mpos_mm", "H": "/axes/y/homing/mpos_mm", "T": "R", "V": "0.000" },
+		{
+			"F": "tree",
+			"P": "/axes/y/homing/feed_mm_per_min",
+			"H": "/axes/y/homing/feed_mm_per_min",
+			"T": "R",
+			"V": "50.000"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/y/homing/seek_mm_per_min",
+			"H": "/axes/y/homing/seek_mm_per_min",
+			"T": "R",
+			"V": "200.000"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/y/homing/settle_ms",
+			"H": "/axes/y/homing/settle_ms",
+			"T": "I",
+			"V": "250",
+			"S": "1000",
+			"M": "0"
+		},
+		{ "F": "tree", "P": "/axes/y/homing/seek_scaler", "H": "/axes/y/homing/seek_scaler", "T": "R", "V": "1.100" },
+		{ "F": "tree", "P": "/axes/y/homing/feed_scaler", "H": "/axes/y/homing/feed_scaler", "T": "R", "V": "1.100" },
+		{
+			"F": "tree",
+			"P": "/axes/y/motor0/hard_limits",
+			"H": "/axes/y/motor0/hard_limits",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{ "F": "tree", "P": "/axes/y/motor0/pulloff_mm", "H": "/axes/y/motor0/pulloff_mm", "T": "R", "V": "1.000" },
+		{ "F": "tree", "P": "/axes/z/steps_per_mm", "H": "/axes/z/steps_per_mm", "T": "R", "V": "100.000" },
+		{ "F": "tree", "P": "/axes/z/max_rate_mm_per_min", "H": "/axes/z/max_rate_mm_per_min", "T": "R", "V": "400.000" },
+		{
+			"F": "tree",
+			"P": "/axes/z/acceleration_mm_per_sec2",
+			"H": "/axes/z/acceleration_mm_per_sec2",
+			"T": "R",
+			"V": "10.000"
+		},
+		{ "F": "tree", "P": "/axes/z/max_travel_mm", "H": "/axes/z/max_travel_mm", "T": "R", "V": "100.000" },
+		{
+			"F": "tree",
+			"P": "/axes/z/soft_limits",
+			"H": "/axes/z/soft_limits",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{ "F": "tree", "P": "/axes/z/homing/cycle", "H": "/axes/z/homing/cycle", "T": "I", "V": "-1", "S": "6", "M": "-1" },
+		{
+			"F": "tree",
+			"P": "/axes/z/homing/allow_single_axis",
+			"H": "/axes/z/homing/allow_single_axis",
+			"T": "B",
+			"V": "1",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/homing/positive_direction",
+			"H": "/axes/z/homing/positive_direction",
+			"T": "B",
+			"V": "1",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{ "F": "tree", "P": "/axes/z/homing/mpos_mm", "H": "/axes/z/homing/mpos_mm", "T": "R", "V": "0.000" },
+		{
+			"F": "tree",
+			"P": "/axes/z/homing/feed_mm_per_min",
+			"H": "/axes/z/homing/feed_mm_per_min",
+			"T": "R",
+			"V": "50.000"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/homing/seek_mm_per_min",
+			"H": "/axes/z/homing/seek_mm_per_min",
+			"T": "R",
+			"V": "200.000"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/homing/settle_ms",
+			"H": "/axes/z/homing/settle_ms",
+			"T": "I",
+			"V": "250",
+			"S": "1000",
+			"M": "0"
+		},
+		{ "F": "tree", "P": "/axes/z/homing/seek_scaler", "H": "/axes/z/homing/seek_scaler", "T": "R", "V": "1.100" },
+		{ "F": "tree", "P": "/axes/z/homing/feed_scaler", "H": "/axes/z/homing/feed_scaler", "T": "R", "V": "1.100" },
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/hard_limits",
+			"H": "/axes/z/motor0/hard_limits",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{ "F": "tree", "P": "/axes/z/motor0/pulloff_mm", "H": "/axes/z/motor0/pulloff_mm", "T": "R", "V": "1.000" },
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/tmc_2209/uart_num",
+			"H": "/axes/z/motor0/tmc_2209/uart_num",
+			"T": "I",
+			"V": "1",
+			"S": "2147483647",
+			"M": "0"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/tmc_2209/r_sense_ohms",
+			"H": "/axes/z/motor0/tmc_2209/r_sense_ohms",
+			"T": "R",
+			"V": "0.110"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/tmc_2209/run_amps",
+			"H": "/axes/z/motor0/tmc_2209/run_amps",
+			"T": "R",
+			"V": "1.000"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/tmc_2209/hold_amps",
+			"H": "/axes/z/motor0/tmc_2209/hold_amps",
+			"T": "R",
+			"V": "0.500"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/tmc_2209/microsteps",
+			"H": "/axes/z/motor0/tmc_2209/microsteps",
+			"T": "I",
+			"V": "1",
+			"S": "256",
+			"M": "1"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/tmc_2209/toff_disable",
+			"H": "/axes/z/motor0/tmc_2209/toff_disable",
+			"T": "I",
+			"V": "0",
+			"S": "15",
+			"M": "0"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/tmc_2209/toff_stealthchop",
+			"H": "/axes/z/motor0/tmc_2209/toff_stealthchop",
+			"T": "I",
+			"V": "5",
+			"S": "15",
+			"M": "2"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/tmc_2209/use_enable",
+			"H": "/axes/z/motor0/tmc_2209/use_enable",
+			"T": "B",
+			"V": "1",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/tmc_2209/addr",
+			"H": "/axes/z/motor0/tmc_2209/addr",
+			"T": "I",
+			"V": "0",
+			"S": "255",
+			"M": "0"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/tmc_2209/run_mode",
+			"H": "/axes/z/motor0/tmc_2209/run_mode",
+			"T": "B",
+			"V": "0",
+			"O": [{ "StealthChop": "0" }, { "CoolStep": "1" }, { "StallGuard": "2" }]
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/tmc_2209/homing_mode",
+			"H": "/axes/z/motor0/tmc_2209/homing_mode",
+			"T": "B",
+			"V": "0",
+			"O": [{ "StealthChop": "0" }, { "CoolStep": "1" }, { "StallGuard": "2" }]
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/tmc_2209/stallguard",
+			"H": "/axes/z/motor0/tmc_2209/stallguard",
+			"T": "I",
+			"V": "0",
+			"S": "255",
+			"M": "0"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/tmc_2209/stallguard_debug",
+			"H": "/axes/z/motor0/tmc_2209/stallguard_debug",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor0/tmc_2209/toff_coolstep",
+			"H": "/axes/z/motor0/tmc_2209/toff_coolstep",
+			"T": "I",
+			"V": "3",
+			"S": "15",
+			"M": "2"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/hard_limits",
+			"H": "/axes/z/motor1/hard_limits",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{ "F": "tree", "P": "/axes/z/motor1/pulloff_mm", "H": "/axes/z/motor1/pulloff_mm", "T": "R", "V": "1.000" },
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/tmc_2209/uart_num",
+			"H": "/axes/z/motor1/tmc_2209/uart_num",
+			"T": "I",
+			"V": "1",
+			"S": "2147483647",
+			"M": "0"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/tmc_2209/r_sense_ohms",
+			"H": "/axes/z/motor1/tmc_2209/r_sense_ohms",
+			"T": "R",
+			"V": "0.110"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/tmc_2209/run_amps",
+			"H": "/axes/z/motor1/tmc_2209/run_amps",
+			"T": "R",
+			"V": "1.000"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/tmc_2209/hold_amps",
+			"H": "/axes/z/motor1/tmc_2209/hold_amps",
+			"T": "R",
+			"V": "0.500"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/tmc_2209/microsteps",
+			"H": "/axes/z/motor1/tmc_2209/microsteps",
+			"T": "I",
+			"V": "1",
+			"S": "256",
+			"M": "1"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/tmc_2209/toff_disable",
+			"H": "/axes/z/motor1/tmc_2209/toff_disable",
+			"T": "I",
+			"V": "0",
+			"S": "15",
+			"M": "0"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/tmc_2209/toff_stealthchop",
+			"H": "/axes/z/motor1/tmc_2209/toff_stealthchop",
+			"T": "I",
+			"V": "5",
+			"S": "15",
+			"M": "2"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/tmc_2209/use_enable",
+			"H": "/axes/z/motor1/tmc_2209/use_enable",
+			"T": "B",
+			"V": "1",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/tmc_2209/addr",
+			"H": "/axes/z/motor1/tmc_2209/addr",
+			"T": "I",
+			"V": "1",
+			"S": "255",
+			"M": "0"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/tmc_2209/run_mode",
+			"H": "/axes/z/motor1/tmc_2209/run_mode",
+			"T": "B",
+			"V": "0",
+			"O": [{ "StealthChop": "0" }, { "CoolStep": "1" }, { "StallGuard": "2" }]
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/tmc_2209/homing_mode",
+			"H": "/axes/z/motor1/tmc_2209/homing_mode",
+			"T": "B",
+			"V": "0",
+			"O": [{ "StealthChop": "0" }, { "CoolStep": "1" }, { "StallGuard": "2" }]
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/tmc_2209/stallguard",
+			"H": "/axes/z/motor1/tmc_2209/stallguard",
+			"T": "I",
+			"V": "0",
+			"S": "255",
+			"M": "0"
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/tmc_2209/stallguard_debug",
+			"H": "/axes/z/motor1/tmc_2209/stallguard_debug",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/axes/z/motor1/tmc_2209/toff_coolstep",
+			"H": "/axes/z/motor1/tmc_2209/toff_coolstep",
+			"T": "I",
+			"V": "3",
+			"S": "15",
+			"M": "2"
+		},
+		{ "F": "tree", "P": "/coolant/delay_ms", "H": "/coolant/delay_ms", "T": "I", "V": "0", "S": "10000", "M": "0" },
+		{
+			"F": "tree",
+			"P": "/probe/check_mode_start",
+			"H": "/probe/check_mode_start",
+			"T": "B",
+			"V": "1",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/macros/startup_line0",
+			"H": "/macros/startup_line0",
+			"T": "S",
+			"V": "",
+			"S": "255",
+			"M": "0"
+		},
+		{
+			"F": "tree",
+			"P": "/macros/startup_line1",
+			"H": "/macros/startup_line1",
+			"T": "S",
+			"V": "",
+			"S": "255",
+			"M": "0"
+		},
+		{ "F": "tree", "P": "/macros/macro0", "H": "/macros/macro0", "T": "S", "V": "", "S": "255", "M": "0" },
+		{ "F": "tree", "P": "/macros/macro1", "H": "/macros/macro1", "T": "S", "V": "", "S": "255", "M": "0" },
+		{ "F": "tree", "P": "/macros/macro2", "H": "/macros/macro2", "T": "S", "V": "", "S": "255", "M": "0" },
+		{ "F": "tree", "P": "/macros/macro3", "H": "/macros/macro3", "T": "S", "V": "", "S": "255", "M": "0" },
+		{
+			"F": "tree",
+			"P": "/start/must_home",
+			"H": "/start/must_home",
+			"T": "B",
+			"V": "1",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/start/deactivate_parking",
+			"H": "/start/deactivate_parking",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/start/check_limits",
+			"H": "/start/check_limits",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/parking/enable",
+			"H": "/parking/enable",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/parking/axis",
+			"H": "/parking/axis",
+			"T": "B",
+			"V": "2",
+			"O": [{ "X": "0" }, { "Y": "1" }, { "Z": "2" }, { "A": "3" }, { "B": "4" }, { "C": "5" }]
+		},
+		{ "F": "tree", "P": "/parking/target_mpos_mm", "H": "/parking/target_mpos_mm", "T": "R", "V": "-5.000" },
+		{ "F": "tree", "P": "/parking/rate_mm_per_min", "H": "/parking/rate_mm_per_min", "T": "R", "V": "800.000" },
+		{ "F": "tree", "P": "/parking/pullout_distance_mm", "H": "/parking/pullout_distance_mm", "T": "R", "V": "5.000" },
+		{
+			"F": "tree",
+			"P": "/parking/pullout_rate_mm_per_min",
+			"H": "/parking/pullout_rate_mm_per_min",
+			"T": "R",
+			"V": "250.000"
+		},
+		{
+			"F": "tree",
+			"P": "/user_outputs/analog0_hz",
+			"H": "/user_outputs/analog0_hz",
+			"T": "I",
+			"V": "5000",
+			"S": "20000000",
+			"M": "1"
+		},
+		{
+			"F": "tree",
+			"P": "/user_outputs/analog1_hz",
+			"H": "/user_outputs/analog1_hz",
+			"T": "I",
+			"V": "5000",
+			"S": "20000000",
+			"M": "1"
+		},
+		{
+			"F": "tree",
+			"P": "/user_outputs/analog2_hz",
+			"H": "/user_outputs/analog2_hz",
+			"T": "I",
+			"V": "5000",
+			"S": "20000000",
+			"M": "1"
+		},
+		{
+			"F": "tree",
+			"P": "/user_outputs/analog3_hz",
+			"H": "/user_outputs/analog3_hz",
+			"T": "I",
+			"V": "5000",
+			"S": "20000000",
+			"M": "1"
+		},
+		{ "F": "tree", "P": "/arc_tolerance_mm", "H": "/arc_tolerance_mm", "T": "R", "V": "0.002" },
+		{ "F": "tree", "P": "/junction_deviation_mm", "H": "/junction_deviation_mm", "T": "R", "V": "0.010" },
+		{
+			"F": "tree",
+			"P": "/verbose_errors",
+			"H": "/verbose_errors",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/report_inches",
+			"H": "/report_inches",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/enable_parking_override_control",
+			"H": "/enable_parking_override_control",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{
+			"F": "tree",
+			"P": "/use_line_numbers",
+			"H": "/use_line_numbers",
+			"T": "B",
+			"V": "0",
+			"O": [{ "False": "0", "True": "1" }]
+		},
+		{ "F": "tree", "P": "/planner_blocks", "H": "/planner_blocks", "T": "I", "V": "16", "S": "120", "M": "10" }
+	]
+}

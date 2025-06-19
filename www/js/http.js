@@ -1,9 +1,10 @@
-let http_communication_locked = false;
+import { Common, alertdlg, httpCmd, setHTML, trx_text_item, logindlg } from "./common.js";
+
 /** A list of various command objects that can be used as a queue */
 const cmd_list = [];
 let processing_cmd = false;
-let xmlhttpupload;
-const max_cmd = 40;
+const max_cmd = 100;
+
 let cmdInterval = 0;
 
 const processNextCmd = () => {
@@ -51,6 +52,7 @@ const removeCmd = (cmdId) => {
     }
 }
 
+/** Validate that the processing 'state' is OK */
 const validateProcessing = (cmd, step = "") => {
     if (cmd_lock) {
         // Currently doing a cmd_list process, so this should probably be retried
@@ -61,9 +63,9 @@ const validateProcessing = (cmd, step = "") => {
         // The step is invalid, so the associated command should be discarded
         return -3;
     }
-    
+
     if (cmd_list.length > max_cmd) {
-        http_errorfn(cmd, 503, translate_text_item("Server not responding"));
+        http_handleError(cmd, 503, trx_text_item("Server not responding"));
         // Exceeded the cmd_list maximum size, this should probably be retried once other commands have been processed and removed
         return -2;
     }
@@ -71,6 +73,7 @@ const validateProcessing = (cmd, step = "") => {
     return 0;
 }
 
+/** Validate that the cmd object meets basic requirements */
 const validateCommand = (cmd, step = "") => {
     const isCmdObject = typeof cmd === "object";
     if (!isCmdObject) {
@@ -171,22 +174,64 @@ const clear_cmd_list = () => {
     process_cmd_list({ "id": "0" }, "purge");
 }
 
-function http_resultfn(cmd, response_text) {
-    if (typeof cmd.resultfn === "function") {
-        cmd.resultfn(response_text);
+const cleanFunc = (cmd, funcName, defFn) => {
+    const hasCmd = typeof cmd === "object";
+    const hasFuncName = typeof funcName === "string" && funcName;
+    const hasCmdFunc = hasCmd && hasFuncName && funcName in cmd && typeof cmd[funcName] === "function";
+
+    if (hasCmdFunc) {
+        return cmd[funcName];
     }
+
+    // Safety checks for stuff that should never happen - tell the programmer how they messed up
+    if (!hasCmd) {
+        console.warn("cleanFunc was called without being supplied a cmd object. This is a programmer error");
+    }
+    if (!hasCmdFunc) {
+        console.warn(`cleanFunc was called with a cmd object that did not have a function called '${funcName}'. This is a programmer error`);
+    }
+
+    const hasDefFn = typeof defFn === "function";
+    if (!hasDefFn) {
+        const errMsg = `cleanFunc was called without being supplied a cmd.${funcName} function or a default function. This is a programmer error`;
+        console.error(errMsg);
+        throw new Error(errMsg);
+    }
+
+    return defFn;
+}
+
+/** A default function for a successful result */
+function http_resultfn(response_text) {
+    console.info(`Success: ${response_text}`);
+}
+
+const http_handleSuccess = (cmd, response_text) => {
+    const resultfn = cleanFunc(cmd, "resultfn", http_resultfn);
+    resultfn(response_text);
     process_cmd_list(cmd, "remove");
 }
 
-function http_errorfn(cmd, error_code, response_text) {
-    if (typeof cmd.errorfn === "function") {
-        if (error_code === 401) {
-            logindlg();
-            console.log("Authentication issue pls log");
-        }
-        cmd.errorfn(error_code, response_text);
+const authErrorFound = (error_code, response_text) => {
+    if (error_code === 401) {
+        logindlg();
+        console.warn(`Authentication issue, please login. ${response_text}`);
+        return true;
+    }
+    return false;
+}
+
+/** A default function for an error result */
+function http_errorfn(error_code, response_text) {
+    console.error(`${error_code}:${response_text}`);
+}
+
+const http_handleError = (cmd, error_code, response_text) => {
+    if (authErrorFound(error_code, response_text)) {
+        // For now with an auth_error, we continue with regular error handling
     } else {
-        console.error(`Error '${error_code}' with response '${response_text}'`);
+        const errorfn = cleanFunc(cmd, "errorfn", http_errorfn);
+        errorfn(error_code, response_text);
     }
     process_cmd_list(cmd, "remove");
 }
@@ -198,130 +243,139 @@ const process_cmd = (cmd) => {
 
     const cmdType = cmd.type;
     processing_cmd = true;
+
     switch (cmdType) {
         case "GET":
-            ProcessGetHttp(cmd);
+            ProcessHttpCommand(cmd);
             break;
         case "POST":
             // POST is only ever used for file uploading
             //console.log("Uploading");
-            ProcessFileHttp(cmd);
+            ProcessHttpCommand(cmd);
             break;
         default:
             // Unknown command type
             // This should never be true, but just in case we will handle it
-            http_errorfn(cmd, 400, translate_text_item(`Unknown command type '${cmdType}'`));
+            http_handleError(cmd, 400, trx_text_item(`Unknown command type '${cmdType}'`));
             break;
     }
 }
 
-function SendGetHttp(url, result_fn, error_fn, cmd_code, max_cmd_code) {
-    let cmd_code_id = 0;
-    /** The maximum number of times that this cmd_code can be added to the list */
-    let max_of_cmd_code = 1;
+const setCmdFn = (defFn, fn) => (typeof fn === "function") ? fn : defFn;
 
-    if (typeof cmd_code !== 'undefined') {
-        cmd_code_id = cmd_code;
-        if (typeof max_cmd_code !== 'undefined') {
-            max_of_cmd_code = max_cmd_code;
-        }
-        //else console.log("No Max ID defined");
-        for (p = 0; p < cmd_list.length; p++) {
-            //console.log("compare " + (max_cmd_code - max_of_cmd_code));
-            if (cmd_list[p].cmd_code === cmd_code_id) {
-                max_of_cmd_code--;
-                //console.log("found " + cmd_list[p].cmd_code + " and " + cmd_code_id);
-            }
-            if (max_of_cmd_code <= 0) {
-                console.log(`Limit reached for ${cmd_code}`);
-                return;
-            }
-        }
-    } //else console.log("No ID defined");
-
-    const cmd = {
-        cmd: url,
-        type: "GET",
-        isupload: false,
-        resultfn: result_fn,
-        errorfn: error_fn,
-        cmd_code: cmd_code_id
+const buildBasicCmd = (cmd, cmd_type, result_fn, error_fn, isupload = false) => {
+    return {
+        cmd: cmd,
+        url: new URL(`${document.location.origin}${cmd}`),
+        type: cmd_type,
+        isupload: isupload,
+        resultfn: setCmdFn(http_resultfn, result_fn),
+        errorfn: setCmdFn(http_errorfn, error_fn),
     };
-    process_cmd_list(cmd, "add");
 }
 
-function ProcessGetHttp(cmd) {
-    if (http_communication_locked) {
-        http_errorfn(cmd, 503, translate_text_item("Communication locked!"));
-        console.log("locked");
+const buildGetCmd = (cmd, cmd_code, result_fn, error_fn) => {
+    const fullCmd = buildBasicCmd(cmd, "GET", result_fn, error_fn, false);
+
+    fullCmd.cmd_code = typeof cmd_code !== "undefined" ? cmd_code : 0;
+
+    return fullCmd;
+}
+
+const SendGetHttp = (cmd, result_fn, error_fn, cmd_code, max_cmd_code) => {
+    const fullCmd = buildGetCmd(cmd, cmd_code, result_fn, error_fn)
+
+    if (typeof cmd_code === "undefined") {
+        process_cmd_list(fullCmd, "add");
         return;
     }
 
-    const xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange = () => {
-        if (xmlhttp.readyState === 4) {
-            if (xmlhttp.status === 200) {
-                //console.log("*** " + url + " done");
-                http_resultfn(cmd, xmlhttp.responseText);
-            } else {
-                if (xmlhttp.status === 401) {
-                    GetIdentificationStatus();
-                }
-                http_errorfn(cmd, xmlhttp.status, xmlhttp.responseText);
-            }
-        }
+    /** The maximum number of times that this cmd_code can be added to the list */
+    const max_of_cmd_code = (typeof max_cmd_code !== "number") ? max_cmd_code : 1;
+    const count_cmd_code = cmd_list.filter((c) => c.cmd_code === cmd_code).length;
+
+    // Some commands have a limit to how many times they are allowed in the queue
+    if (count_cmd_code > max_of_cmd_code) {
+        console.warn(`Limit reached for command with code:${cmd_code}`);
+        return;
     }
 
-    xmlhttp.open("GET", cmd.cmd, true);
-    xmlhttp.send();
+    process_cmd_list(fullCmd, "add");
+};
+
+const buildPostFileCmd = (cmd, postdata, result_fn, error_fn) => {
+    const fullCmd = buildBasicCmd(cmd, "POST", result_fn, error_fn, true);
+
+    fullCmd.data = postdata;
+
+    return fullCmd;
 }
 
 /** POST the file FormData */
-function SendFileHttp(url, postdata, progress_fn, result_fn, error_fn) {
-    const cmd = {
-        cmd: url,
-        type: "POST",
-        isupload: true,
-        data: postdata,
-        progressfn: progress_fn,
-        resultfn: result_fn,
-        errorfn: error_fn,
-        cmd_code: 0
-    };
-    process_cmd_list(cmd, "add");
+const SendFileHttp = (cmd, postdata, result_fn, error_fn) => {
+    process_cmd_list(buildPostFileCmd(cmd, postdata, result_fn, error_fn), "add");
 }
 
-function ProcessFileHttp(cmd) {
-    if (http_communication_locked) {
-        http_errorfn(cmd, 503, translate_text_item("Communication locked!"));
+/** This expects the logindlg to be visible */
+const GetIdentificationStatusSuccess = (response_text) => {
+    if (!response_text) {
+        // treat as guest
+        setHTML("current_ID", trx_text_item("guest"));
+        setHTML("current_auth_level", "");
+        return;
+    }
+    const response = JSON.parse(response_text);
+    if (typeof response.authentication_lvl !== "undefined") {
+        if (response.authentication_lvl === "guest") {
+            setHTML("current_ID", trx_text_item("guest"));
+            setHTML("current_auth_level", "");
+        }
+    }
+}
+
+const GetIdentificationStatus = () => {
+    const cmd = httpCmd.login;
+    SendGetHttp(cmd, GetIdentificationStatusSuccess);
+}
+
+const ProcessHttpCommand = (cmd) => {
+    const common = new Common();
+    if (common.http_communication_locked) {
+        http_errorfn(503, trx_text_item("Communication locked!"));
+        console.warn("locked");
         return;
     }
 
-    http_communication_locked = true;
+    const req = { method: cmd.type };
+    if (req.method === "POST") {
+        // Note: Only used for uploading files
+        req.body = cmd.data;
+    }
 
-    xmlhttpupload = new XMLHttpRequest();
-    xmlhttpupload.onreadystatechange = () => {
-        if (xmlhttpupload.readyState === 4) {
-            http_communication_locked = false;
-            if (xmlhttpupload.status === 200) {
-                http_resultfn(cmd, xmlhttpupload.responseText);
-            } else {
-                if (xmlhttpupload.status === 401) GetIdentificationStatus();
-                http_errorfn(cmd, xmlhttpupload.status, xmlhttpupload.responseText);
+    common.http_communication_locked = true;
+    fetch(cmd.url, req)
+        .then(response => {
+            common.http_communication_locked = false;
+            if (response.status === 200) {
+                return response.text();
             }
-        }
-    }
-    xmlhttpupload.open("POST", cmd.cmd, true);
-    if (typeof cmd.progressfn === "function") {
-        xmlhttpupload.upload.addEventListener("progress", cmd.progressfn, false);
-    }
-    xmlhttpupload.send(cmd.data);
+            if (response.status === 401) {
+                GetIdentificationStatus();
+            }
+            throw new Error(response.status);
+        })
+        .then(responseText => http_handleSuccess(cmd, responseText))
+        .catch(error => http_handleError(cmd, error.message, String(error)))
+        .finally(() => { common.http_communication_locked = false; });
 }
 
 const CheckForHttpCommLock = () => {
-    if (http_communication_locked) {
-        alertdlg(translate_text_item("Busy..."), translate_text_item("Communications are currently locked, please wait and retry."));
+    const common = new Common();
+    if (common.http_communication_locked) {
+        alertdlg(trx_text_item("Busy..."), trx_text_item("Communications are currently locked, please wait and retry."));
         console.warn("communication locked");
     }
-    return http_communication_locked;
+    return common.http_communication_locked;
 }
+
+export { clear_cmd_list, SendFileHttp, SendGetHttp, CheckForHttpCommLock };

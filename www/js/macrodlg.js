@@ -1,4 +1,23 @@
-// import get_icon_svg, displayBlock, displayNone, id, setHTML, clear_drop_menu, closeModal, setactiveModal, showModal, alertdlg, confirmdlg, SendFileHttp, translate_text_item 
+import {
+	Common,
+	get_icon_svg,
+	list_icon,
+	displayBlock,
+	displayNone,
+	id,
+	BuildFormDataFiles,
+	setHTML,
+	clear_drop_menu,
+	closeModal,
+	setactiveModal,
+	showModal,
+	alertdlg,
+	confirmdlg,
+	httpCmd,
+	SendFileHttp,
+	trx_text_item,
+	CheckForHttpCommLock,
+} from "./common.js";
 
 //Macro dialog
 let macrodlg_macrolist = [];
@@ -19,16 +38,14 @@ function showmacrodlg(closefn) {
 	showModal();
 }
 
+const iconDownTri = () => get_icon_svg("triangle-bottom", { h: '0.8em', w: '0.8em', s: 'pointer-events:none', t: 'translate(50,1200) scale(1, -1)' });
+
 const BuildColorSelectionBtn = (divId, actions, colClass) => {
 	const btnId = `${divId}_btn`;
 
 	const content = [
 		`<button id='${btnId}' class='btn ${colClass}'>&nbsp;`,
-		"<svg width='0.8em' height='0.8em' viewBox='0 0 1300 1200' style='pointer-events:none'>",
-		"<g transform='translate(50,1200) scale(1, -1)'>",
-		"<path  fill='currentColor' d='M100 900h1000q41 0 49.5 -21t-20.5 -50l-494 -494q-14 -14 -35 -14t-35 14l-494 494q-29 29 -20.5 50t49.5 21z'></path>",
-		"</g>",
-		"</svg>",
+		iconDownTri(),
 		"</button>"
 	];
 	actions.push({ id: btnId, type: "click", method: showhide_drop_menu });
@@ -39,18 +56,21 @@ const BuildColorSelectionBtn = (divId, actions, colClass) => {
 function build_color_selection(index, actions) {
 	const entry = macrodlg_macrolist[index];
 	const menu_pos = index > 3 ? "dropmenu-content-up" : "dropmenu-content-down";
+
 	const mColId = `macro_color_line_${index}`;
 
-	const content = [`<div id='${mColId}' class='dropdownselect'>`];
-	content.push(BuildColorSelectionBtn(mColId, actions, entry.class));
-
-	content.push(`<div class='dropmenu-content ${menu_pos}' style='min-width:auto; padding-left: 4px;padding-right: 4px;'>`);
+	const content = [
+		`<div id='${mColId}' class='dropdownselect'>`,
+		BuildColorSelectionBtn(mColId, actions, entry.class),
+		`<div class='dropmenu-content ${menu_pos}' style='min-width:auto; padding-left: 4px;padding-right: 4px;'>`,
+	];
 	for (const col of ["default", "primary", "info", "warning", "danger"]) {
 		const btnColId = `macro_select_color_${index}_${col}_btn`;
 		content.push(`<button id='${btnColId}' data-index="${index}" data-color="${col}" class='btn btn-${col}'>&nbsp;</button>`);
 		actions.push({ id: btnColId, type: "click", method: macro_select_color });
 	}
 	content.push("</div>", "</div>");
+
 	return content.join("");
 }
 
@@ -60,34 +80,32 @@ const BuildTargetSelectionBtn = (divId, actions, target) => {
 	const content = [
 		`<button id='${btnId}' class='btn btn-default' style='min-width:5em;'>`,
 		`<span>${target}</span>`,
-		"<svg width='0.8em' height='0.8em' viewBox='0 0 1300 1200' style='pointer-events:none'>",
-		"<g transform='translate(50,1200) scale(1, -1)'>",
-		"<path fill='currentColor' d='M100 900h1000q41 0 49.5 -21t-20.5 -50l-494 -494q-14 -14 -35 -14t-35 14l-494 494q-29 29 -20.5 50t49.5 21z'></path>",
-		"</g>",
-		"</svg>",
+		iconDownTri(),
 		"</button>"
 	];
 	actions.push({ id: btnId, type: "click", method: showhide_drop_menu });
-	
+
 	return content.join("");
 }
 
 function build_target_selection(index, actions) {
 	const entry = macrodlg_macrolist[index];
 	const menu_pos = index > 3 ? "dropmenu-content-up" : "dropmenu-content-down";
+
 	const mTrgId = `macro_target_line_${index}`;
 
-	const content = [`<div id='${mTrgId}' class='dropdownselect'>`];
-	content.push(BuildTargetSelectionBtn(mTrgId, actions, entry.target));
-
-	content.push(`<div class='dropmenu-content ${menu_pos}' style='min-width:auto'>`);
+	const content = [
+		`<div id='${mTrgId}' class='dropdownselect'>`,
+		BuildTargetSelectionBtn(mTrgId, actions, entry.target),
+		`<div class='dropmenu-content ${menu_pos}' style='min-width:auto'>`
+	];
 	for (const trg of ["ESP", "SD", "URI"]) {
 		const aTrgId = `macro_select_target_${index}_${trg}_link`;
 		content.push(`<a id='${aTrgId}' data-index="${index}" data-target="${trg}" href=#>${trg}</a>`);
 		actions.push({ id: aTrgId, type: "click", method: macro_select_target });
 	}
-
 	content.push("</div>", "</div>");
+
 	return content.join("");
 }
 
@@ -97,11 +115,7 @@ const BuildGlyphSelectionBtn = (divId, actions, colClass, glyph) => {
 	const content = [
 		`<button id='${btnId}' class='btn ${colClass}'>`,
 		`<span>${get_icon_svg(glyph)}</span>&nbsp;`,
-		"<svg width='0.8em' height='0.8em' viewBox='0 0 1300 1200' style='pointer-events:none'>",
-		"<g transform='translate(50,1200) scale(1, -1)'>",
-		"<path fill='currentColor' d='M100 900h1000q41 0 49.5 -21t-20.5 -50l-494 -494q-14 -14 -35 -14t-35 14l-494 494q-29 29 -20.5 50t49.5 21z'></path>",
-		"</g>",
-		"</svg>",
+		iconDownTri(),
 		"</button>"
 	];
 	actions.push({ id: btnId, type: "click", method: showhide_drop_menu });
@@ -112,12 +126,15 @@ const BuildGlyphSelectionBtn = (divId, actions, colClass, glyph) => {
 function build_glyph_selection(index, actions) {
 	const entry = macrodlg_macrolist[index];
 	const menu_pos = index > 3 ? "dropmenu-content-up" : "dropmenu-content-down";
+
 	const mGlpId = `macro_glyph_line_${index}`;
 
-	const content = [`<div id='${mGlpId}' class='dropdownselect'>`];
-	content.push(BuildGlyphSelectionBtn(mGlpId, actions, entry.class, entry.glyph));
+	const content = [
+		`<div id='${mGlpId}' class='dropdownselect'>`,
+		BuildGlyphSelectionBtn(mGlpId, actions, entry.class, entry.glyph),
+		`<div class='dropmenu-content ${menu_pos}' style='min-width:30em'>`
+	];
 
-	content.push(`<div class='dropmenu-content ${menu_pos}' style='min-width:30em'>`);
 	let ix = 0;
 	for (const glyph in list_icon) {
 		if (glyph === "plus") {
@@ -211,10 +228,9 @@ function on_macro_filename(event) {
 	const entry = macrodlg_macrolist[index];
 	const filename = event.currentTarget.value.trim();
 	if (filename.length === 0) {
-		alertdlg(translate_text_item("Out of range"), translate_text_item("File name cannot be empty!"));
-		return;
+		alertdlg(trx_text_item("Out of range"), trx_text_item("File name cannot be empty!"));
 	}
-	
+
 	entry.filename = filename;
 
 	build_dlg_macrolist_line(index);
@@ -229,11 +245,12 @@ function on_macro_name(event) {
 	entry.name = macroname.length > 0 ? event.currentTarget.value : "&nbsp;";
 }
 
-function build_dlg_macrolist_ui() {
+const build_dlg_macrolist_ui = () => {
+	const common = new Common();
 	let content = "";
 	macrodlg_macrolist = [];
 	for (let i = 0; i < 9; i++) {
-		macrodlg_macrolist.push(control_macrolist[i]);
+		macrodlg_macrolist.push(common.control_macrolist[i]);
 		content += `<tr style='vertical-align:middle' id='macro_line_${i}'>`;
 		content += "</tr>";
 	}
@@ -248,11 +265,13 @@ function macro_reset_button(event) {
 	event.stopPropagation();
 	const index = event.currentTarget.dataset.index;
 
+	const incIndex = 1 + index;
+
 	const entry = macrodlg_macrolist[index];
 	if (entry.class === "") {
-		entry.name = `M${1 + entry.index}`;
+		entry.name = `M${incIndex}`;
 		entry.glyph = "star";
-		entry.filename = `/macro${1 + entry.index}.g`;
+		entry.filename = `/macro${incIndex}.g`;
 		entry.target = "ESP";
 		entry.class = "btn-default";
 	} else {
@@ -266,19 +285,19 @@ function macro_reset_button(event) {
 }
 
 const hide_drop_menu = (target) => {
-    const item = get_parent_by_class(target, "dropmenu-content");
-    if (typeof item !== 'undefined' && item.classList.contains('show')) {
-        item.classList.remove('show');
-    }
+	const item = get_parent_by_class(target, "dropmenu-content");
+	if (typeof item !== 'undefined' && item.classList.contains('show')) {
+		item.classList.remove('show');
+	}
 }
 
 const showhide_drop_menu = (event) => {
-    const item = get_parent_by_class(event.target, "dropdownselect");
-    if (item === null) {
+	const item = get_parent_by_class(event.target, "dropdownselect");
+	if (item === null) {
 		return;
 	}
-    const menu = item.getElementsByClassName("dropmenu-content")[0];
-    if (typeof menu !== 'undefined') {
+	const menu = item.getElementsByClassName("dropmenu-content")[0];
+	if (typeof menu !== 'undefined') {
 		menu.classList.toggle("show");
 	}
 }
@@ -316,11 +335,12 @@ const macro_select_glyph = (event) => {
 }
 
 const closeMacroDialog = () => {
+	const common = new Common();
 	let modified = false;
 	const fieldsTest = ["filename", "name", "glyph", "class", "target"];
 	for (let i = 0; i < 9; i++) {
 		const macEntry = macrodlg_macrolist[i];
-		const conEntry = control_macrolist[i];
+		const conEntry = common.control_macrolist[i];
 		if (
 			fieldsTest.some(
 				(fieldName) => macEntry[fieldName] !== conEntry[fieldName],
@@ -331,11 +351,7 @@ const closeMacroDialog = () => {
 		}
 	}
 	if (modified) {
-		confirmdlg(
-			translate_text_item("Data modified"),
-			translate_text_item("Do you want to save?"),
-			process_macroCloseDialog,
-		);
+		confirmdlg(trx_text_item("Data modified"), trx_text_item("Do you want to save?"), process_macroCloseDialog);
 	} else {
 		closeModal("cancel");
 	}
@@ -357,7 +373,7 @@ function SaveNewMacroList() {
 	for (let i = 0; i < 9; i++) {
 		const mItem = macrodlg_macrolist[i];
 		if (mItem.filename.length === 0 && mItem.class !== "") {
-			alertdlg(translate_text_item("Out of range"), translate_text_item("File name cannot be empty!"));
+			alertdlg(trx_text_item("Out of range"), trx_text_item("File name cannot be empty!"));
 			return;
 		}
 	}
@@ -368,22 +384,24 @@ function SaveNewMacroList() {
 	const formData = new FormData();
 	formData.append("path", "/");
 	formData.append("myfile[]", file, macroFilename);
-	SendFileHttp(httpCmd.files, formData, macrodlgUploadProgressDisplay, macroUploadsuccess, macroUploadfailed);
+
+	SendFileHttp(httpCmd.files, formData, macroUploadsuccess, macroUploadfailed);
 }
 
-function macrodlgUploadProgressDisplay(oEvent) {
-	if (oEvent.lengthComputable) {
-		const percentComplete = (oEvent.loaded / oEvent.total) * 100;
-		setValue("macrodlg_prg", percentComplete);
-		setHTML("macrodlg_upload_percent", percentComplete.toFixed(0));
-		displayBlock("macrodlg_upload_msg");
-	} else {
-		// Impossible because size is unknown
-	}
-}
+// function macrodlgUploadProgressDisplay(oEvent) {
+// 	if (oEvent.lengthComputable) {
+// 		const percentComplete = (oEvent.loaded / oEvent.total) * 100;
+// 		id("macrodlg_prg").value = percentComplete;
+// 		setHTML("macrodlg_upload_percent", percentComplete.toFixed(0));
+// 		displayBlock("macrodlg_upload_msg");
+// 	} else {
+// 		// Impossible because size is unknown
+// 	}
+// }
 
-function macroUploadsuccess(response) {
-	control_macrolist.length = 0;
+const macroUploadsuccess = (response) => {
+	const common = new Common();
+	common.control_macrolist.length = 0;
 	for (let i = 0; i < 9; i++) {
 		let entry;
 		if (macrodlg_macrolist.length !== 0) {
@@ -405,16 +423,15 @@ function macroUploadsuccess(response) {
 				index: i,
 			};
 		}
-		control_macrolist.push(entry);
+		common.control_macrolist.push(entry);
 	}
 	displayNone("macrodlg_upload_msg");
 	closeModal("ok");
 }
 
 function macroUploadfailed(error_code, response) {
-	alertdlg(
-		translate_text_item("Error"),
-		translate_text_item("Save macro list failed!"),
-	);
+	alertdlg(trx_text_item("Error"), trx_text_item("Save macro list failed!"));
 	displayNone("macrodlg_upload_msg");
 }
+
+export { showmacrodlg };

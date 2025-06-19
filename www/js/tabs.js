@@ -1,6 +1,8 @@
-function opentab(evt, tabname, tabcontentid, tablinkid) {
-    const deactivateEvent = new Event("deactivate");
-    const tabcontent = elemsByClass("tabcontent");
+import { elemsByClass, displayBlock, displayNone, id } from "./common.js";
+
+const opentab = (evt, tabname, tabcontentid, tablinkid) => {
+	const deactivateEvent = new Event("deactivate");
+	const tabcontent = elemsByClass("tabcontent");
     for (const tab of tabcontent) {
         if (tab.parentNode.id === tabcontentid) {
             tab.dispatchEvent(deactivateEvent);
@@ -8,7 +10,7 @@ function opentab(evt, tabname, tabcontentid, tablinkid) {
         }
     }
 
-    const tablinks = elemsByClass("tablinks");
+	const tablinks = elemsByClass("tablinks");
     for (const tablink of tablinks) {
         if (tablink.parentNode.id === tablinkid) {
             tablink.classList.remove("active");
@@ -20,4 +22,6 @@ function opentab(evt, tabname, tabcontentid, tablinkid) {
     displayBlock(tabname);
 
     evt.currentTarget.classList.add("active");
-}
+};
+
+export { opentab };

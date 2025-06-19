@@ -137,13 +137,13 @@ button.center {
 
 @-webkit-keyframes pulse {
     50% {
-        background: red;
+        background-color: red;
     }
 }
 
 @keyframes pulse {
     50% {
-        background: red;
+        background-color: red;
     }
 }
 
@@ -468,7 +468,6 @@ w25 {
 }
 
 .td_center {
-    align: center;
-    valign: middle;
     text-align: center;
+    vertical-align: middle;
 }

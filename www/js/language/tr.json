@@ -1,6 +1,4 @@
-//removeIf(tr_lang_disabled)
-//Turkish
-var turkishtrans = {
+{
 "tr":"T&uuml;rk&ccedil;e",
 "ESP3D for":"ESP3D i&ccedil;in",
 "Value of auto-check must be between 0s and 99s !!":"Otomatik kontrol de&gbreve;eri 0s ile 99s aras&inodot;nda olmal&inodot;d&inodot;r !!",
@@ -49,7 +47,7 @@ var turkishtrans = {
 "Controls":"Kontroller",
 "Credits":"Credits",
 "Dashboard":"G&ouml;sterge paneli",
-"Data mofified":"Data de&gbreve;i&scedil;tirildi",
+"Data modified":"Data de&gbreve;i&scedil;tirildi",
 "Do you want to save?":"Kaydetmek istiyor musunuz?",
 "Enable second extruder controls":"&Idot;kinci ekstruder kontrol&uuml;n&uuml; etkinle&scedil;tir",
 "Error":"Hata",
@@ -185,7 +183,7 @@ var turkishtrans = {
 "E feedrate":"E feedrate",
 "Camera address":"Kamera adresi",
 "Setup":"Kurulum",
-"Start setup":"Kurulumu ba&scedil;lat",
+"Start":"Ba&scedil;lat",
 "This wizard will help you to configure the basic settings.":"Kurulum sihirbaz&inodot; basit ayarlar&inodot; bi&ccedil;imlendirmenizde yard&inodot;mc&inodot; olur.",
 "Press start to proceed.":"&Idot;lerlemek i&ccedil;in ba&scedil;lat&apos;a bas&inodot;n.",
 "Save your printer's firmware base:":"Yaz&inodot;c&inodot;n&inodot;z&inodot;n donan&inodot;m taban&inodot;n&inodot; kaydedin:",
@@ -375,10 +373,8 @@ var turkishtrans = {
 "error:63":"SD Card directory not found",
 "error:64":"SD Card file empty",
 "error:70":"Bluetooth failed to start",
-"Max travel":"Max travel",
 "Plate thickness":"Touch plate thickness",
 "Show probe panel":"Show probe panel",
-"Probe":"Probe",
 "Start Probe":"Start Probe",
 "Touch status":"Touch status",
 "Value of maximum probe travel must be between 1 mm and 9999 mm !":"Value of maximum probe travel must be between 1 mm and 9999 mm !",
@@ -424,5 +420,4 @@ var turkishtrans = {
 "Z Max travel, mm":"Z Max haraket, mm",
 "File extensions (use ; to separate)":"Dosya uzant&inodot;lar&inodot; (kullan ; ay&inodot;rma)",
 "Web Socket":"Web Socket"
-};
-//endRemoveIf(tr_lang_disabled)
+}

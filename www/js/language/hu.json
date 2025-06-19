@@ -1,7 +1,4 @@
-//removeIf(hu_lang_disabled)
-//hungarian
-//Hungary by kondorzs
-var hungariantrans = {
+{
 "hu":"Magyar",
 "ESP3D for":"ESP3D hez",
 "Value of auto-check must be between 0s and 99s !!":"Az automatikus ellenőrzés értékének 0 és 99 s között kell lennie!",
@@ -28,7 +25,6 @@ var hungariantrans = {
 "Feed rate":"Előtolás",
 "Touch plate thickness":"Érintőlemez vastagsága",
 "Redundant":"Redundant",
-"Probe":"Probe",
 "Bed":"Fűtött ágy",
 "Chamber":"Chamber",
 "Board":"Board",
@@ -50,7 +46,7 @@ var hungariantrans = {
 "Controls":"Irányítás",
 "Credits":"Köszönet",
 "Dashboard":"Alaplap",
-"Data mofified":"Az adatok frissítve",
+"Data modified":"Az adatok frissítve",
 "Do you want to save?":"Meg kell menteni?",
 "Enable second extruder controls":"Aktiválja a második extrudert",
 "Error":"Hiba",
@@ -185,7 +181,7 @@ var hungariantrans = {
 "E feedrate":"E előtolási sebesség",
 "Camera address":"Kamera IP",
 "Setup":"Beállítás",
-"Start setup":"Start",
+"Start":"Start",
 "This wizard will help you to configure the basic settings.":"Ez a varázsló segít az alapbeállítások konfigurálásában.",
 "Press start to proceed.":"A folytatáshoz nyomja meg a Start gombot.",
 "Save your printer's firmware base:":"Mentse el az alapvető firmware-beállításokat:",
@@ -375,7 +371,6 @@ var hungariantrans = {
 "error:63":"Az SD kártya könyvtára nem található",
 "error:64":"SD Kártya fájl üres",
 "error:70":"Bluetooth nem indult el!",
-"Max travel":"Max utazás",
 "Plate thickness":"Érintőlemez vastagsága",
 "Show probe panel":"Mutassa a szonda panelt",
 "Probe":"Szonda",
@@ -424,5 +419,4 @@ var hungariantrans = {
 "Z Max travel, mm":"Z Max utazás, mm",
 "File extensions (use ; to separate)":"Fájl kiterjesztések (használja; szétválasztáshoz)",
 "Web Socket":"Web modulon"
-};
-//endRemoveIf(hu_lang_disabled)
+}

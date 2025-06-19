@@ -1,6 +1,4 @@
-//removeIf(uk_lang_disabled)
-//Ukrainian
-var ukrtrans = {
+{
 "uk": "Українська",
 "ESP3D for": "ESP3D для",
 "Value of auto-check must be between 0s and 99s !!": "Значення автоматичної перевірки має бути від 0 до 99 секунд !!",
@@ -46,7 +44,7 @@ var ukrtrans = {
 "Controls": "Управління",
 "Credits": "Подяки",
 "Dashboard": "Панель управління",
-"Data mofified": "Дані змінено",
+"Data modified": "Дані змінено",
 "Do you want to save?": "Зберегти?",
 "Enable second extruder controls": "Увімкнути керування другим екструдером",
 "Error": "Помилка",
@@ -181,7 +179,7 @@ var ukrtrans = {
 "E feedrate": "Швидкість подачі осі екструдера",
 "Camera address": "IP-камери ",
 "Setup": "Конфігурація",
-"Start setup": "Почати налаштування",
+"Start": "Почати",
 "This wizard will help you to configure the basic settings.": "Цей майстер допоможе вам налаштувати основні параметри.",
 "Press start to proceed.": "Натисніть кнопку «Почати налаштування», щоб продовжити.",
 "Save your printer's firmware base:": "Виберіть тип програмного забезпечення принтера:",
@@ -371,5 +369,4 @@ var ukrtrans = {
 "error:63": "Каталог не знайдено на SD-карті",
 "error:64": "Файл відсутній на SD-карті",
 "error:70": "Запуск Bluetooth неможливий"
-};
-//endRemoveIf(uk_lang_disabled)
+}

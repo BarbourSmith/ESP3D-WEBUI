@@ -1,4 +1,4 @@
-// import - closeModal, setactiveModal, showModal, id
+import { closeModal, setactiveModal, showModal, id, setValue } from "./common.js";
 
 const inputDlgCancel = () => closeInputModal("cancel");
 const inputDlgClose = () => closeInputModal("Ok");
@@ -27,3 +27,5 @@ function closeInputModal(response) {
 	const answer = response === "Ok" ? getValueTrimmed("inputldg_text") : "";
 	closeModal(answer);
 }
+
+export { inputdlg };

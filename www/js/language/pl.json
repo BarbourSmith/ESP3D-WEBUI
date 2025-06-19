@@ -1,6 +1,4 @@
-//removeIf(pl_lang_disabled)
-//Polish
-var polishtrans = {
+{
 "pl":"Polski",
 "ESP3D for":"ESP3D dla",
 "Value of auto-check must be between 0s and 99s !!":"Warto&sacute;&cacute; automatycznego spawdzania musi by&cacute; z zakresu 0-99s !",
@@ -46,7 +44,7 @@ var polishtrans = {
 "Controls":"Sterowanie",
 "Credits":"Informacje",
 "Dashboard":"Panel g&lstrok;&oacute;wny",
-"Data mofified":"Dane zmodyfikowane",
+"Data modified":"Dane zmodyfikowane",
 "Do you want to save?":"Czy zapisa&cacute;?",
 "Enable second extruder controls":"Enable second extruder controls",
 "Error":"B&lstrok;&aogon;d",
@@ -181,7 +179,7 @@ var polishtrans = {
 "E feedrate":"E feedrate",
 "Camera address":"Adres kamery",
 "Setup":"Konfiguracja",
-"Start setup":"Uruchom konfiguracj&eogon;",
+"Start":"Uruchom",
 "This wizard will help you to configure the basic settings.":"Ten kreator pomo&zacute;e Tobie w skonfigurowaniu podstawowych ustawie&nacute;.",
 "Press start to proceed.":"Naci&sacute;nij 'Uruchom konfiguracj&eogon;' aby kontynuowa&cacute;.",
 "Save your printer's firmware base:":"Ustaw typ oprogramowania drukarki:",
@@ -287,7 +285,6 @@ var polishtrans = {
 "Web Update":"Aktualizacja przez Web",
 "Pin Recovery":"Odzyskiwanie pinu",
 "Disabled":"Wy&lstrok;&aogon;czone",
-"Authentication":"Autoryzacja",
 "Target Firmware":"Typ oprogramowania drukarki",
 "SD Card Support":"Wsparcie dla karty SD",
 "Time Support":"Czas",
@@ -373,6 +370,5 @@ var polishtrans = {
 "error:63":"Nie znaleziono folderu na karcie SD",
 "error:64":"Plik na karcie SD jest pusty",
 "error:70":"B&lstrok;&aogon;d uruchamiania Bluetooth",
-"error:700":"B&lstrok;&aogon;d: Nieznana komenda",
-};
-//endRemoveIf(pl_lang_disabled)
+"error:700":"B&lstrok;&aogon;d: Nieznana komenda"
+}

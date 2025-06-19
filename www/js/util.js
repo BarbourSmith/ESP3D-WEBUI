@@ -12,6 +12,16 @@ const setValue = (name, val) => {
   }
 }
 
+/** Set the className of the element with an id matching the supplied name.
+ * If the element cannot be found - nothing happens
+ */
+const setClassName = (name, className) => {
+  const elem = id(name);
+  if (elem) {
+    elem.className = className;
+  }
+}
+
 /** Return an element's `value` value, or its `innerText` value.
  * If the element does not exist or does not have a `value` or `innerText` value `undefined` is returned.
  * This does the opposite of getText, which checks the innerText value first. */
@@ -74,54 +84,6 @@ const setText = (name, val) => {
   }
 }
 
-/** Set the display style of the element identified by name to the supplied value */
-const setDisplay = (name, val) => {
-  const elem = id(name);
-  if (!elem) {
-    return;
-  }
-  elem.style.display = val;
-}
-
-/** Set the display style of the element identified by name to 'none' */
-const displayNone = (name) => setDisplay(name, 'none');
-
-/** Set the display style of the element identified by name to 'block' */
-const displayBlock = (name) => setDisplay(name, 'block');
-
-const disable_items = (item, state) => {
-  if (!item) {
-    return;
-  }
-  const liste = item.getElementsByTagName('*');
-  for (let i = 0; i < liste.length; i++) {
-    liste[i].disabled = state;
-  }
-}
-
-function displayFlex(name) {
-  setDisplay(name, 'flex')
-}
-function displayTable(name) {
-  setDisplay(name, 'table-row')
-}
-function displayInline(name) {
-  setDisplay(name, 'inline')
-}
-function displayInitial(name) {
-  setDisplay(name, 'initial')
-}
-function displayUndoNone(name) {
-  setDisplay(name, '')
-}
-
-/** Set the disabled value for the elements matching the selector */
-function setDisabled(selector, value) {
-  for ((element) of document.querySelectorAll(selector)) {
-    element.disabled = value;
-  }
-}
-
 /** Set a checkbox element's default `value`, its `checked` field (if the element exists) */
 const setCheckedDefault = (name, val, setBoth = true) => {
   const checkBox = id(name);
@@ -149,18 +111,18 @@ const getChecked = (name) => {
   return checkBox?.value || "false";
 }
 
-const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
-
 /** Build a 'standard' format error message */
 const stdErrMsg = (error_code, response = "", error_prefix = "Error") => `${error_prefix} ${error_code} : ${response}`;
+
 /** Use `console.error` to report an error
- * If the response message is falsey, and the error_prefix is the default, we assume that we've been supplied with a stdErrMsg
+ * If the response message is falsey, and the error_prefix is the default,
+ * we assume that we've been supplied with a simple error message that's already structured correctly
  * Otherwise, we build a stdErrMsg with what was supplied
  */
 const conErr = (error_code, response, error_prefix = "Error") => {
   const errMsg = (!response && error_prefix === "Error")
-      ? error_code
-      : stdErrMsg(error_code, response || "", error_prefix);
+    ? error_code
+    : stdErrMsg(error_code, response || "", error_prefix);
   console.error(errMsg);
 }
 
@@ -185,7 +147,47 @@ const HTMLEncode = (value) => {
 const HTMLDecode = (value) => {
   const tmpelement = document.createElement('div');
   tmpelement.innerHTML = value;
-  value = tmpelement.textContent;
+  const decValue = tmpelement.textContent;
   tmpelement.textContent = '';
-  return value;
+  return decValue;
 }
+
+/** Super basic browser check,
+ * TODO: Fix this, it is extremely naive */
+const browser_is = (bname) => {
+	const ua = navigator.userAgent;
+	switch (bname) {
+		case "IE":
+			if (ua.indexOf("Trident/") !== -1) return true;
+			break;
+		case "Edge":
+			if (ua.indexOf("Edge") !== -1) return true;
+			break;
+		case "Chrome":
+			if (ua.indexOf("Chrome") !== -1) return true;
+			break;
+		case "Firefox":
+			if (ua.indexOf("Firefox") !== -1) return true;
+			break;
+		case "MacOSX":
+			if (ua.indexOf("Mac OS X") !== -1) return true;
+			break;
+		default:
+			return false;
+	}
+	return false;
+}
+
+
+export {
+  elemsByClass,
+  conErr,
+  stdErrMsg,
+  getChecked, setChecked,
+  getValue, setValue, getValueTrimmed,
+  getText, setText, setTextContent,
+  setClassName, setHTML,
+  HTMLEncode, HTMLDecode,
+  id,
+  browser_is,
+};

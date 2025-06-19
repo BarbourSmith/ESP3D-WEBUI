@@ -1,7 +1,21 @@
-// import get_icon_svg, conErr, stdErrMsg, displayBlock, displayNone, id, setHTML, closeModal, getactiveModal, setactiveModal, showModal, SendGetHttp, translate_text_item
-
-let statuspage = 0;
-let statuscontent = "";
+import {
+	Common,
+	conErr,
+	stdErrMsg,
+	displayBlock,
+	displayNone,
+	id,
+	setHTML,
+	closeModal,
+	get_icon_svg,
+	getactiveModal,
+	setactiveModal,
+	showModal,
+	httpCmdType,
+	buildHttpCommandCmd,
+	SendGetHttp,
+	trx_text_item,
+} from "./common.js";
 
 const statusDlgCancel = () => closeModal("cancel");
 
@@ -13,86 +27,63 @@ const statusdlg = () => {
 	}
 
 	id("status_dlg_close").addEventListener("click", statusDlgCancel);
-	id("next_status_btn").addEventListener("click", next_status);
 	id("status_dlg_btn_close").addEventListener("click", statusDlgCancel);
 	id("status_dlg_refreshstatus").addEventListener("click", refreshstatus);
 
+	const iconOptions = {t: "translate(50,1200) scale(1,-1)"};
+	setHTML("status_dlg_refreshstatus", get_icon_svg("refresh", iconOptions));
+
 	showModal();
 	refreshstatus();
-	update_btn_status(0);
 };
 
-function next_status() {
-	const modal = getactiveModal();
-	const text = modal.element.getElementsByClassName("modal-text")[0];
-	text.innerHTML =
-		statuspage === 0
-			? statuscontent
-			: `<table><tr><td width='auto' style='vertical-align:top;'><label translate>Browser:</label></td><td>&nbsp;</td><td width='100%'><span class='text-info'><strong>${navigator.userAgent}</strong></span></td></tr></table>`;
-	update_btn_status();
+const buildSettingData = (response) => {
+	const common = new Common();
+	const tresponse = response.split("\n").map((item) => item.trim()).filter((item) => item);
+	tresponse.push(`WebUI version:${common.web_ui_version}`);
+	tresponse.push(`Browser:${navigator.userAgent}`);
+	const dataDef = tresponse.map((item) => {
+		const data = item.split(":").map((d) => d.trim());
+		return {"name": data[0], "value": data.slice(1).join(":")};
+	});
+	return dataDef;
 }
 
-function update_btn_status(forcevalue) {
-	if (typeof forcevalue !== "undefined") {
-		statuspage = forcevalue;
+const buildSettingList = (dataDef) => {
+	const settingList = ["<dl>"];
+	for (let i = 0; i < dataDef.length; i++) {
+		const data = dataDef[i];
+		settingList.push(`<dt>${trx_text_item(data.name)}</dt><dd class='text-info'>${data.value || ""}</dd>`);
 	}
-	setHTML(
-		"next_status_btn",
-		get_icon_svg(
-			statuspage === 0 ? "triangle-right" : "triangle-left",
-			"1em",
-			"1em",
-		),
-	);
-	statuspage = statuspage === 0 ? 1 : 0;
+	settingList.push("</dl>");
+	return settingList.join("\n");
 }
 
 function statussuccess(response) {
 	displayBlock("refreshstatusbtn");
 	displayNone("status_loader");
+
 	const modal = getactiveModal();
 	if (modal == null) {
 		return;
 	}
-
+	
 	const text = modal.element.getElementsByClassName("modal-text")[0];
-	const tresponse = response.split("\n");
-	statuscontent = "";
-	for (let i = 0; i < tresponse.length; i++) {
-		const data = tresponse[i].split(":");
-		if (data.length >= 2) {
-			statuscontent += `<label>${translate_text_item(data[0])}: </label>&nbsp;<span class='text-info'><strong>`;
-			const data2 = data[1].split(" (");
-			statuscontent += translate_text_item(data2[0].trim());
-			for (v = 1; v < data2.length; v++) {
-				statuscontent += ` (${data2[v]}`;
-			}
-			for (v = 2; v < data.length; v++) {
-				statuscontent += `:${data[v]}`;
-			}
-			statuscontent += "</strong></span><br>";
-		} //else statuscontent += tresponse[i] + "<br>";
-	}
-	statuscontent += `<label>${translate_text_item("WebUI version")}: </label>&nbsp;<span class='text-info'><strong>`;
-	statuscontent += web_ui_version;
-	statuscontent += "</strong></span><br>";
-	text.innerHTML = statuscontent;
-	update_btn_status(0);
-	//console.log(response);
+
+	const dataDef = buildSettingData(response);
+	text.innerHTML = buildSettingList(dataDef);
 }
 
 function statusfailed(error_code, response) {
-	displayBlock("refreshstatusbtn");
+	displayBlock(["refreshstatusbtn", "status_msg"]);
 	displayNone("status_loader");
-	displayBlock("status_msg");
 	const errMsg = stdErrMsg(error_code, response);
 	conErr(errMsg);
 	setHTML("status_msg", errMsg);
 }
 
 function refreshstatus() {
-	displayNone("refreshstatusbtn");
-	displayBlock("status_loader");
+	displayNone(["refreshstatusbtn", "status_loader"]);
 	const modal = getactiveModal();
 	if (modal == null) {
 		return;
@@ -105,3 +96,5 @@ function refreshstatus() {
 	const cmd = buildHttpCommandCmd(httpCmdType.plain, "[ESP420]plain");
 	SendGetHttp(cmd, statussuccess, statusfailed);
 }
+
+export { statusdlg };

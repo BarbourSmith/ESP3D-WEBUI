@@ -1,17 +1,36 @@
-// When we can change to proper ESM - uncomment this
-// import M from "constants";
+import {
+  Common,
+  get_icon_svg,
+  M,
+  conErr,
+  stdErrMsg,
+  displayBlock,
+  displayNone,
+  id,
+  browser_is,
+  setChecked,
+  setHTML,
+  Set_page_title,
+  scanwifidlg,
+  update_UI_firmware_target,
+  alertdlg,
+  confirmdlg,
+  init_files_panel,
+  httpCmdType,
+  buildHttpCommandCmd,
+  SendGetHttp,
+  trx_text_item,
+  restartdlg,
+  CheckForHttpCommLock,
+  setClassName,
+} from "./common.js";
 
 /** setting_configList */
 const scl = [];
 let setting_error_msg = "";
 let setting_lasti = -1;
 let setting_lastj = -1;
-let current_setting_filter = "nvs";
-/** Has the setup been done?
- * Note: this value is also set by initUI.js and setupdlg.js
- */
-var setup_is_done = false;
-let do_not_build_settings = false;
+
 const CONFIG_TOOLTIPS = {
   Maslow_vertical: `If the ${M} is oriented horizontally, set this to false`,
   Maslow_calibration_offset_X: "mm offset from the edge of the frame, X",
@@ -34,18 +53,17 @@ const CONFIG_TOOLTIPS = {
   Maslow_Calibration_Current_Threshold: `Sets how hard should ${M} pull on the belts during the calibration process.`,
   Maslow_calibration_extend_top_y: "starting Y for top belts on extend all (-1000 to 1000) default 0",
   Maslow_calibration_extend_bottom_y: "starting Y for bottom belts on extend all (-1000 to 1000) default ",
-}
+};
 
-function refreshSettings(hide_setting_list) {
+const refreshSettings = (hide_setting_list) => {
+  const common = new Common();
   if (CheckForHttpCommLock()) {
     return;
   }
-  do_not_build_settings = typeof hide_setting_list === 'undefined' ? false : !hide_setting_list
+  common.do_not_build_settings = typeof hide_setting_list === "undefined" ? false : !hide_setting_list;
 
   displayBlock("settings_loader");
-  displayNone("settings_list_content");
-  displayNone("settings_status");
-  displayNone("settings_refresh_btn");
+  displayNone(["settings_list_content", "settings_status", "settings_refresh_btn"]);
 
   // Clear all of the elements in the array
   scl.length = 0;
@@ -143,11 +161,12 @@ const build_scanWiFiBtn_for_setting_list = (i, j, actions) => {
 }
 
 function update_UI_setting() {
+  const common = new Common();
   for (let i = 0; i < scl.length; i++) {
     const defVal = scl[i].defaultvalue;
     switch (scl[i].pos) {
       case "850":
-        direct_sd = defVal === 1;
+        common.fwData.direct_sd = defVal === 1;
         update_UI_firmware_target();
         init_files_panel(false);
         break;
@@ -159,10 +178,17 @@ function update_UI_setting() {
   }
 }
 
+/** Build a span with the translated text */
+const trx_span = (item_text) => {
+    const translated_content = trx_text_item(item_text)
+    return `<span english_content="${item_text}" translate>${translated_content}</span>`;
+}
+
 /** to generate setting editor in setting or setup */
 const build_control_from_index = (i, actions) => {
   const content = ["<table>"];
   if (i < scl.length && i > -1) {
+    const common = new Common();
     const sEntry = scl[i];
     const nbsub = sEntry.type === "F" ? sEntry.Options.length : 1;
     for (let j = 0; j < nbsub; j++) {
@@ -171,7 +197,7 @@ const build_control_from_index = (i, actions) => {
       }
       content.push("<tr><td style='vertical-align: middle;'>");
       if (sEntry.type === "F") {
-        content.push(translate_text_item(sEntry.Options[j].display, true));
+        content.push(trx_span(sEntry.Options[j].display));
         content.push("</td><td>&nbsp;</td><td>");
       }
 
@@ -213,7 +239,7 @@ const build_control_from_index = (i, actions) => {
       content.push("<input class='hide_it'></input>");
       content.push("<div class='input-group-btn'>");
       const btnId = sId(sEntry, j, "btn_");
-      content.push(`<button id='${btnId}' data-i="${i}" data-j="${j}" class='btn btn-default' translate english_content='Set'>`, translate_text_item("Set"), "</button>");
+      content.push(`<button id='${btnId}' data-i="${i}" data-j="${j}" class='btn btn-default' translate english_content='Set'>`, trx_text_item("Set"), "</button>");
       actions.push({ id: btnId, type: "click", method: settingsetvalue });
 
       if (sEntry.pos === EP_STA_SSID) {
@@ -242,7 +268,7 @@ const configFileName = "maslow.yaml";
 const configSaveResultId = "maslow_save_result";
 
 /** Send a command to call Config/Overwrite.
- * 
+ *
  * If the configuration is invalid, e.g. because the ESP32 performed a panic reset,
  * Then the error code 153 will be returned via the socket.
  * @see maslow.js maslowErrorMsgHandling()
@@ -267,8 +293,10 @@ const saveConfigFail = (response) => {
 
 /** Build the HTML for the list of settings */
 const build_HTML_setting_list = (filter) => {
+  const common = new Common();
+
   // this to prevent concurrent process to update after we clean content
-  if (do_not_build_settings) {
+  if (common.do_not_build_settings) {
     return;
   }
 
@@ -287,13 +315,13 @@ const build_HTML_setting_list = (filter) => {
     actions.push({ id: btnId, type: "click", method: saveMaslowYaml });
   }
 
-  current_setting_filter = filter;
-  setChecked(`${current_setting_filter}_setting_filter`, true);
+  common.current_setting_filter = filter;
+  setChecked(`${common.current_setting_filter}_setting_filter`, true);
 
   for (let i = 0; i < scl.length; i++) {
     const fname = scl[i].F.trim().toLowerCase();
     if (fname === "network" || fname === filter || filter === "all") {
-      let tr = `<tr><td style='vertical-align:middle'>${translate_text_item(scl[i].label, true)}`;
+      let tr = `<tr><td style='vertical-align:middle'>${trx_span(scl[i].label)}`;
       const tooltip = CONFIG_TOOLTIPS[scl[i].label.substring(1)];
       if (tooltip) {
         tr += '<div class="tooltip" style="padding-left: 20px; margin-top: 10px;">';
@@ -321,13 +349,12 @@ const build_HTML_setting_list = (filter) => {
       elem.addEventListener(action.type, action.method);
     }
   };
-
   if (filter === "tree") {
     // TODO: figure out what the correct 'result' should be here - this is a guess
-    document.querySelector("#setting__meta_0").value = result;
+    document.querySelector("#setting__meta_0").value = common.fwData.result;
   }
   // set calibration values if exists
-  const calRes = calibrationResults;
+  const calRes = common.calibrationResults;
   if (Object.keys(calRes).length) {
     document.querySelector("#setting__Maslow_brX_0").value = calRes.br.x;
     document.querySelector("#setting__Maslow_brY_0").value = calRes.br.y;
@@ -339,7 +366,7 @@ const build_HTML_setting_list = (filter) => {
     document.querySelector("#setting__Maslow_blY_0").value = calRes.bl.y;
   }
   // set calibration values if exists END
-}
+};
 
 function setting_check_value(value, i) {
   let valid = true;
@@ -415,8 +442,9 @@ function process_settings_answer(response_text) {
           scl.push(sEntry);
         }
         if (vi > 0) {
-          if (setup_is_done) {
-            build_HTML_setting_list(current_setting_filter);
+          const common = new Common();
+          if (common.setup_is_done) {
+            build_HTML_setting_list(common.current_setting_filter);
           }
           update_UI_setting();
         } else {
@@ -494,11 +522,13 @@ const create_setting_entry = (sentry, vi) => {
   };
 }
 
-
 /** Check it is valid setting entry */
 const is_setting_entry = (sline) => typeof sline.T !== "undefined" && typeof sline.V !== "undefined" && typeof sline.P !== "undefined" && typeof sline.H !== "undefined";
 
-const getFlag = (i, j) => scl[i].type !== "F" || scl[i].Options.length <= j ? -1 : Number.parseInt(scl[i].Options[j].id);
+const getFlag = (i, j) =>
+  scl[i].type !== "F" || scl[i].Options.length <= j
+    ? -1
+    : Number.parseInt(scl[i].Options[j].id);
 
 /** Get the element matching the settings index value (i) and its subindex value (j)  */
 const setting = (i, j) => id(sId(scl[i], j));
@@ -564,7 +594,7 @@ function settingsetvalue(event) {
   //remove possible spaces
   let value = setting(i, j).value.trim();
   const defVal = defval(i);
-
+  
   //Apply flag here
   value = applyFlag(value, defVal, i, j);
   if (value === defVal) {
@@ -576,7 +606,7 @@ function settingsetvalue(event) {
   //if not valid show error
   if (!isvalid) {
     setsettingerror(i);
-    alertdlg(translate_text_item("Out of range"), `${translate_text_item("Value must be ")} ${setting_error_msg}!`);
+    alertdlg(trx_text_item("Out of range"), `${trx_text_item("Value must be ")}${setting_error_msg} !`);
   } else {
     //value is ok save it
     setting_lasti = i;
@@ -651,7 +681,7 @@ function setESPsettingsSuccess(response) {
 
 function setESPsettingsfailed(error_code, response) {
   const errMsg = stdErrMsg(error_code, response);
-  alertdlg(translate_text_item("Set failed"), errMsg);
+  alertdlg(trx_text_item("Set failed"), errMsg);
   conErr(errMsg);
   setBtn(setting_lasti, setting_lastj, "btn-danger");
   const iconName = `icon_setting_${setting_lasti}_${setting_lastj}`;
@@ -664,7 +694,7 @@ function getESPsettingsSuccess(response) {
   displayNone("settings_loader");
   displayBlock("settings_refresh_btn");
   if (!process_settings_answer(response)) {
-    getESPsettingsfailed(406, translate_text_item("Wrong data"));
+    getESPsettingsfailed(406, trx_text_item("Wrong data"));
     console.log(response);
     return;
   }
@@ -675,13 +705,12 @@ function getESPsettingsSuccess(response) {
 function getESPsettingsfailed(error_code, response) {
   conErr(error_code, response);
   displayNone("settings_loader");
-  displayBlock('settings_status');
-  displayBlock('settings_refresh_btn');
-  setHTML("settings_status", stdErrMsg(error_code, response, translate_text_item("Failed")));
+  displayBlock(["settings_status", "settings_refresh_btn"]);
+  setHTML("settings_status", stdErrMsg(error_code, response, trx_text_item("Failed")));
 }
 
 const restart_esp = () => {
-  confirmdlg(translate_text_item("Please Confirm"), translate_text_item("Restart FluidNC"), process_restart_esp);
+  confirmdlg(trx_text_item("Please Confirm"), trx_text_item("Restart FluidNC"), process_restart_esp);
 };
 
 function process_restart_esp(answer) {
@@ -691,24 +720,35 @@ function process_restart_esp(answer) {
 }
 
 const define_esp_role = (index) => {
+  const common = new Common();
   switch (Number(defval(index))) {
-    case SETTINGS_FALLBACK_MODE:
-      displayBlock("setup_STA");
-      displayBlock("setup_AP");
+    case common.SETTINGS_FALLBACK_MODE:
+      displayBlock(["setup_STA", "setup_AP"]);
       break;
-    case SETTINGS_AP_MODE:
+    case common.SETTINGS_AP_MODE:
       displayNone("setup_STA");
       displayBlock("setup_AP");
       break;
-    case SETTINGS_STA_MODE:
+    case common.SETTINGS_STA_MODE:
       displayBlock("setup_STA");
       displayNone("setup_AP");
       break;
     default:
-      displayNone("setup_STA");
-      displayNone("setup_AP");
+      displayNone(["setup_STA", "setup_AP"]);
       break;
   }
 };
 
 const define_esp_role_from_pos = (pos) => define_esp_role(get_index_from_eeprom_pos(pos));
+
+export {
+  build_control_from_pos,
+  build_HTML_setting_list,
+  define_esp_role,
+  define_esp_role_from_pos,
+  defval,
+  get_index_from_eeprom_pos,
+  refreshSettings,
+  restart_esp,
+  saveMaslowYaml,
+};

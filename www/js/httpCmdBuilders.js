@@ -1,4 +1,5 @@
 // Various helper methods for building http commands
+import { files_currentPath, pageID } from "./common.js";
 
 /** 'Commands' to be sent as the first part of the URL after the host name */
 const httpCmd = {
@@ -109,3 +110,5 @@ const BuildFormDataFiles = (filename, filedata, options) => {
     const blob = new Blob(filedata, options);
     return new File([blob], filename);
 }
+
+export { httpCmd, httpCmdType, BuildFormDataFiles, buildHttpLoginCmd, buildHttpFilesCmd, buildHttpFileCmd, buildHttpFileGetCmd, buildHttpCommandCmd };

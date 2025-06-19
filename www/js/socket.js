@@ -1,6 +1,20 @@
-// import - Monitor_output_Update, id, HTMLDecode, setHTML, on_autocheck_position, enable_ping, grblHandleMessage, reportNone, clear_cmd_list, translate_text_item, UIdisableddlg
+import {
+	Monitor_output_Update,
+	Common,
+	id,
+	HTMLDecode,
+	setHTML,
+	on_autocheck_position,
+	enable_ping,
+	grblHandleMessage,
+	reportNone,
+	clear_cmd_list,
+	trx_text_item,
+	UIdisableddlg,
+	valueStartsWith,
+} from "./common.js";
 
-let convertDHT2Fahrenheit = false;
+const convertDHT2Fahrenheit = false;
 let event_source;
 
 let wsmsg = "";
@@ -8,45 +22,46 @@ let ws_source;
 
 const CancelCurrentUpload = () => {
 	xmlhttpupload.abort();
-	//http_communication_locked = false;
+	//const common = new Common();
+	//common.http_communication_locked = false;
 	console.log("Cancel Upload");
 };
 
 const check_ping = () => {
-	if (Date.now() - last_ping > 20000) {
+	const common = new Common();
+	if (Date.now() - common.last_ping > 20000) {
 		Disable_interface(true);
 		console.log("No heart beat for more than 20s");
 	}
 };
 
-let interval_ping = -1;
 /** Turn ping on or off based on its current value */
 const handlePing = () => {
-	if (enable_ping) {
-		// First clear any existing interval
-		if (interval_ping) {
-			clearInterval(interval_ping);
-		}
-		last_ping = Date.now();
-		interval_ping = setInterval(() => check_ping(), 10 * 1000);
+	const common = new Common();
+
+	// First clear any existing interval
+	clearInterval(common.interval_ping);
+
+	if (enable_ping()) {
+		common.last_ping = Date.now();
+		common.interval_ping = setInterval(() => check_ping(), 10 * 1000);
 		console.log("enable ping");
 	} else {
-		clearInterval(interval_ping);
-		interval_ping = -1;
 		console.log("disable ping");
 	}
 };
 
 let log_off = false;
 const Disable_interface = (lostconnection) => {
-	let lostcon = false;
-	if (typeof lostconnection !== "undefined") lostcon = lostconnection;
+	const lostcon = typeof lostconnection !== "undefined" ? lostconnection : false;
+
 	//block all communication
-	http_communication_locked = true;
+	const common = new Common();
+	common.http_communication_locked = true;
 	log_off = true;
-	if (interval_ping !== -1) {
-		clearInterval(interval_ping);
-	}
+
+	clearInterval(common.interval_ping);
+
 	//clear all waiting commands
 	clear_cmd_list();
 	//no camera
@@ -54,21 +69,22 @@ const Disable_interface = (lostconnection) => {
 	//No auto check
 	on_autocheck_position(false);
 	reportNone();
-	if (async_webcommunication) {
+	if (common.fwData.async_webcommunication) {
 		event_source.removeEventListener("ActiveID", ActiveID_events, false);
 		event_source.removeEventListener("InitID", Init_events, false);
 		event_source.removeEventListener("DHT", DHT_events, false);
 	}
 	ws_source.close();
-	document.title += `('${HTMLDecode(translate_text_item("Disabled"))})`;
+	document.title += `('${HTMLDecode(trx_text_item("Disabled"))})`;
 	UIdisableddlg(lostcon);
 };
 
 const EventListenerSetup = () => {
-	if (!async_webcommunication) {
+	const common = new Common();
+	if (!common.fwData.async_webcommunication) {
 		return;
 	}
-	if (!!window.EventSource) {
+	if (window.EventSource) {
 		event_source = new EventSource("/events");
 		event_source.addEventListener("InitID", Init_events, false);
 		event_source.addEventListener("ActiveID", ActiveID_events, false);
@@ -109,9 +125,7 @@ const Handle_DHT = (data) => {
 		return;
 	}
 
-	const temp = convertDHT2Fahrenheit
-		? Number.parseFloat(tdata[0]) * 1.8 + 32
-		: Number.parseFloat(tdata[0]);
+	const temp = convertDHT2Fahrenheit ? Number.parseFloat(tdata[0]) * 1.8 + 32 : Number.parseFloat(tdata[0]);
 	setHTML("DHT_humidity", `${Number.parseFloat(tdata[1]).toFixed(2).toString()}%`);
 	const temps = `${temp.toFixed(2).toString()}&deg;${convertDHT2Fahrenheit ? "F" : "C"}`;
 	setHTML("DHT_temperature", temps);
@@ -120,24 +134,20 @@ const Handle_DHT = (data) => {
 const process_socket_response = (msg) => msg.split("\n").forEach(grblHandleMessage);
 
 const startSocket = () => {
+	const common = new Common();
 	try {
-		if (async_webcommunication) {
-			ws_source = new WebSocket(`ws://${document.location.host}/ws`, [
-				"arduino",
-			]);
-		} else {
-			console.log(`Socket is ${websocket_ip}:${websocket_port}`);
-			ws_source = new WebSocket(`ws://${websocket_ip}:${websocket_port}`, [
-				"arduino",
-			]);
+		const wsUrl = !common.fwData.async_webcommunication
+			? `${document.location.host}/ws`
+			: `${common.fwData.websocket_ip}:${common.fwData.websocket_port}`;
+		ws_source = new WebSocket(`ws://${wsUrl}`, ["arduino"]);
+		if (!common.fwData.async_webcommunication) {
+			console.log(`Socket is ${wsUrl}`);
 		}
 	} catch (exception) {
 		console.error(exception);
 	}
 	ws_source.binaryType = "arraybuffer";
-	ws_source.onopen = (e) => {
-		console.log("Connected");
-	};
+	ws_source.onopen = (e) => { console.log("Connected"); };
 	ws_source.onclose = (e) => {
 		console.log("Disconnected");
 		//seems sometimes it disconnect so wait 3s and reconnect
@@ -162,8 +172,7 @@ const startSocket = () => {
 					msg = "";
 					Monitor_output_Update(thismsg);
 					process_socket_response(thismsg);
-					const noNeedToShowMsg = ["<", "ok T:", "X:", "FR:", "echo:E0 Flow"].some((msgStart) => thismsg.startsWith(msgStart));
-					if (!noNeedToShowMsg && thismsg !== "ok") {
+					if (!valueStartsWith(thismsg, ["<", "ok T:", "X:", "FR:", "echo:E0 Flow"]) && thismsg !== "ok") {
 						console.log(thismsg);
 					}
 				}
@@ -177,15 +186,14 @@ const startSocket = () => {
 					pageID(tval[1]);
 					console.log(`connection id = ${pageID()}`);
 				}
-				if (enable_ping) {
+				if (enable_ping()) {
 					if (tval[0] === "PING") {
 						pageID(tval[1]);
 						// console.log("ping from id = " + pageID());
-						last_ping = Date.now();
-						if (interval_ping === -1)
-							interval_ping = setInterval(() => {
-								check_ping();
-							}, 10 * 1000);
+						common.last_ping = Date.now();
+						if (common.interval_ping === -1) {
+							common.interval_ping = setInterval(() => { check_ping(); }, 10 * 1000);
+						}
 					}
 				}
 				if (tval[0] === "ACTIVE_ID") {
@@ -197,8 +205,8 @@ const startSocket = () => {
 					Handle_DHT(tval[1]);
 				}
 				if (tval[0] === "ERROR") {
-					esp_error_message = tval[2];
-					esp_error_code = tval[1];
+					common.esp_error_message = tval[2];
+					common.esp_error_code = tval[1];
 					console.error(`ERROR: ${tval[2]} code:${tval[1]}`);
 					CancelCurrentUpload();
 				}
@@ -209,4 +217,13 @@ const startSocket = () => {
 		}
 		//console.log(msg);
 	};
+};
+
+export {
+	CancelCurrentUpload,
+	handlePing,
+	EventListenerSetup,
+	pageID,
+	process_socket_response,
+	startSocket,
 };

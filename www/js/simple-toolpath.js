@@ -3,13 +3,17 @@
 // by Babel (http://babeljs.io/repl), with preset "stage-2"
 // The import and export statements were first removed from Toolpath.js
 
+// and then the imports and exports were added back in, because using globals everywhere is a @#$%#$%#$% recipe for complete disaster
+
+import { Interpreter } from "./common.js";
+
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+const _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? ((obj) => typeof obj) : ((obj) => obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj);
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+const _extends = Object.assign || ((target, ...sources) => { for (const source of sources) { for (const key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+const _createClass = (() => { function defineProperties(target, props) { for (let i = 0; i < props.length; i++) { const descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return (Constructor, protoProps, staticProps) => { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -21,7 +25,7 @@ function in2mm(inches) {
 // noop
 // var noop = function noop() {};
 
-var Toolpath = function () {
+const Toolpath = (() => {
 
     // @param {object} [options]
     // @param {object} [options.position]
@@ -29,7 +33,7 @@ var Toolpath = function () {
     // @param {function} [options.addLine]
     // @param {function} [options.addArcCurve]
     function Toolpath(options) {
-        var _this = this;
+        const _this = this;
 
         _classCallCheck(this, Toolpath);
 
@@ -113,17 +117,17 @@ var Toolpath = function () {
                     _this.setModal({ motion: 'G0' });
                 }
 
-                var v1 = {
+                const v1 = {
                     x: _this.position.x,
                     y: _this.position.y,
                     z: _this.position.z
                 };
-                var v2 = {
+                const v2 = {
                     x: _this.translateX(params.X),
                     y: _this.translateY(params.Y),
                     z: _this.translateZ(params.Z)
                 };
-                var targetPosition = { x: v2.x, y: v2.y, z: v2.z };
+                const targetPosition = { x: v2.x, y: v2.y, z: v2.z };
 
                 offsetAddLine(v1, v2);
 
@@ -149,17 +153,17 @@ var Toolpath = function () {
                     _this.setModal({ motion: 'G1' });
                 }
 
-                var v1 = {
+                const v1 = {
                     x: _this.position.x,
                     y: _this.position.y,
                     z: _this.position.z
                 };
-                var v2 = {
+                const v2 = {
                     x: _this.translateX(params.X),
                     y: _this.translateY(params.Y),
                     z: _this.translateZ(params.Z)
                 };
-                var targetPosition = { x: v2.x, y: v2.y, z: v2.z };
+                const targetPosition = { x: v2.x, y: v2.y, z: v2.z };
 
                 offsetAddLine(v1, v2);
 
@@ -189,56 +193,56 @@ var Toolpath = function () {
                     _this.setModal({ motion: 'G2' });
                 }
 
-                let v1 = _this.position;
-                let v2 = {
+                const v1 = _this.position;
+                const v2 = {
                     x: _this.translateX(params.X),
                     y: _this.translateY(params.Y),
                     z: _this.translateZ(params.Z)
                 };
-                let v0 = { // fixed point
+                const v0 = { // fixed point
                     x: _this.translateI(params.I),
                     y: _this.translateJ(params.J),
                     z: _this.translateK(params.K)
                 };
-                let isClockwise = true;
-                let targetPosition = { x: v2.x, y: v2.y, z: v2.z };
+                const isClockwise = true;
+                const targetPosition = { x: v2.x, y: v2.y, z: v2.z };
 
                 if (_this.isXYPlane()) {
-                    let _ref1 = [v1.x, v1.y, v1.z]; // XY-plane
+                    const _ref1 = [v1.x, v1.y, v1.z]; // XY-plane
                     v1.x = _ref1[0];
                     v1.y = _ref1[1];
                     v1.z = _ref1[2];
-                    let _ref2 = [v2.x, v2.y, v2.z];
+                    const _ref2 = [v2.x, v2.y, v2.z];
                     v2.x = _ref2[0];
                     v2.y = _ref2[1];
                     v2.z = _ref2[2];
-                    let _ref0 = [v0.x, v0.y, v0.z];
+                    const _ref0 = [v0.x, v0.y, v0.z];
                     v0.x = _ref0[0];
                     v0.y = _ref0[1];
                     v0.z = _ref0[2];
                 } else if (_this.isZXPlane()) {
-                    let _ref1 = [v1.z, v1.x, v1.y]; // ZX-plane
+                    const _ref1 = [v1.z, v1.x, v1.y]; // ZX-plane
                     v1.x = _ref1[0];
                     v1.y = _ref1[1];
                     v1.z = _ref1[2];
-                    let _ref2 = [v2.z, v2.x, v2.y];
+                    const _ref2 = [v2.z, v2.x, v2.y];
                     v2.x = _ref2[0];
                     v2.y = _ref2[1];
                     v2.z = _ref2[2];
-                    let _ref0 = [v0.z, v0.x, v0.y];
+                    const _ref0 = [v0.z, v0.x, v0.y];
                     v0.x = _ref0[0];
                     v0.y = _ref0[1];
                     v0.z = _ref0[2];
                 } else if (_this.isYZPlane()) {
-                    let _ref1 = [v1.y, v1.z, v1.x]; // YZ-plane
+                    const _ref1 = [v1.y, v1.z, v1.x]; // YZ-plane
                     v1.x = _ref1[0];
                     v1.y = _ref1[1];
                     v1.z = _ref1[2];
-                    let _ref2 = [v2.y, v2.z, v2.x];
+                    const _ref2 = [v2.y, v2.z, v2.x];
                     v2.x = _ref2[0];
                     v2.y = _ref2[1];
                     v2.z = _ref2[2];
-                    let _ref0 = [v0.y, v0.z, v0.x];
+                    const _ref0 = [v0.y, v0.z, v0.x];
                     v0.x = _ref0[0];
                     v0.y = _ref0[1];
                     v0.z = _ref0[2];
@@ -248,10 +252,10 @@ var Toolpath = function () {
                 }
 
                 if (params.R) {
-                    let radius = _this.translateR(Number(params.R) || 0);
-                    let x = v2.x - v1.x;
-                    let y = v2.y - v1.y;
-                    let distance = Math.hypot(x, y);
+                    const radius = _this.translateR(Number(params.R) || 0);
+                    const x = v2.x - v1.x;
+                    const y = v2.y - v1.y;
+                    const distance = Math.hypot(x, y);
                     let height = Math.sqrt(4 * radius * radius - x * x - y * y) / 2;
 
                     if (isClockwise) {
@@ -261,8 +265,8 @@ var Toolpath = function () {
                         height = -height;
                     }
 
-                    let offsetX = x / 2 - y / distance * height;
-                    let offsetY = y / 2 + x / distance * height;
+                    const offsetX = x / 2 - y / distance * height;
+                    const offsetY = y / 2 + x / distance * height;
 
                     v0.x = v1.x + offsetX;
                     v0.y = v1.y + offsetY;
@@ -278,57 +282,57 @@ var Toolpath = function () {
                     _this.setModal({ motion: 'G3' });
                 }
 
-                let v1 = _this.position;
-                let v2 = {
+                const v1 = _this.position;
+                const v2 = {
                     x: _this.translateX(params.X),
                     y: _this.translateY(params.Y),
                     z: _this.translateZ(params.Z)
                 };
-                let v0 = { // fixed point
+                const v0 = { // fixed point
                     x: _this.translateI(params.I),
                     y: _this.translateJ(params.J),
                     z: _this.translateK(params.K)
                 };
-                let isClockwise = false;
-                let targetPosition = { x: v2.x, y: v2.y, z: v2.z };
+                const isClockwise = false;
+                const targetPosition = { x: v2.x, y: v2.y, z: v2.z };
 
                 if (_this.isXYPlane()) {
-                    let _ref1 = [v1.x, v1.y, v1.z]; // XY-plane
+                    const _ref1 = [v1.x, v1.y, v1.z]; // XY-plane
 
                     v1.x = _ref1[0];
                     v1.y = _ref1[1];
                     v1.z = _ref1[2];
-                    let _ref2 = [v2.x, v2.y, v2.z];
+                    const _ref2 = [v2.x, v2.y, v2.z];
                     v2.x = _ref2[0];
                     v2.y = _ref2[1];
                     v2.z = _ref2[2];
-                    let _ref0 = [v0.x, v0.y, v0.z];
+                    const _ref0 = [v0.x, v0.y, v0.z];
                     v0.x = _ref0[0];
                     v0.y = _ref0[1];
                     v0.z = _ref0[2];
                 } else if (_this.isZXPlane()) {
-                    let _ref1 = [v1.z, v1.x, v1.y]; // ZX-plane
+                    const _ref1 = [v1.z, v1.x, v1.y]; // ZX-plane
                     v1.x = _ref1[0];
                     v1.y = _ref1[1];
                     v1.z = _ref1[2];
-                    let _ref2 = [v2.z, v2.x, v2.y];
+                    const _ref2 = [v2.z, v2.x, v2.y];
                     v2.x = _ref2[0];
                     v2.y = _ref2[1];
                     v2.z = _ref2[2];
-                    let _ref0 = [v0.z, v0.x, v0.y];
+                    const _ref0 = [v0.z, v0.x, v0.y];
                     v0.x = _ref0[0];
                     v0.y = _ref0[1];
                     v0.z = _ref0[2];
                 } else if (_this.isYZPlane()) {
-                    let _ref1 = [v1.y, v1.z, v1.x]; // YZ-plane
+                    const _ref1 = [v1.y, v1.z, v1.x]; // YZ-plane
                     v1.x = _ref1[0];
                     v1.y = _ref1[1];
                     v1.z = _ref1[2];
-                    let _ref2 = [v2.y, v2.z, v2.x];
+                    const _ref2 = [v2.y, v2.z, v2.x];
                     v2.x = _ref2[0];
                     v2.y = _ref2[1];
                     v2.z = _ref2[2];
-                    let _ref0 = [v0.y, v0.z, v0.x];
+                    const _ref0 = [v0.y, v0.z, v0.x];
                     v0.x = _ref0[0];
                     v0.y = _ref0[1];
                     v0.z = _ref0[2];
@@ -338,10 +342,10 @@ var Toolpath = function () {
                 }
 
                 if (params.R) {
-                    let radius = _this.translateR(Number(params.R) || 0);
-                    let x = v2.x - v1.x;
-                    let y = v2.y - v1.y;
-                    let distance = Math.hypot(x, y);
+                    const radius = _this.translateR(Number(params.R) || 0);
+                    const x = v2.x - v1.x;
+                    const y = v2.y - v1.y;
+                    const distance = Math.hypot(x, y);
                     let height = Math.sqrt(4 * radius * radius - x * x - y * y) / 2;
 
                     if (isClockwise) {
@@ -351,8 +355,8 @@ var Toolpath = function () {
                         height = -height;
                     }
 
-                    let offsetX = x / 2 - y / distance * height;
-                    let offsetY = y / 2 + x / distance * height;
+                    const offsetX = x / 2 - y / distance * height;
+                    const offsetY = y / 2 + x / distance * height;
 
                     v0.x = v1.x + offsetX;
                     v0.y = v1.y + offsetY;
@@ -517,18 +521,18 @@ var Toolpath = function () {
                 } else {
 		    // The calls to translateX/Y/Z() below are necessary for inch/mm conversion
 		    // params.X/Y/Z must be interpreted as absolute positions, hence the "false"
-                    if (params.X != undefined) {
-			var xmm = _this.translateX(params.X, false);
+                    if (params.X !== undefined) {
+			const xmm = _this.translateX(params.X, false);
                         _this.g92offset.x += _this.position.x - xmm;
                         _this.position.x = xmm;
                     }
-                    if (params.Y != undefined) {
-			var ymm = _this.translateY(params.Y, false);
+                    if (params.Y !== undefined) {
+			const ymm = _this.translateY(params.Y, false);
                         _this.g92offset.y += _this.position.y - ymm;
                         _this.position.y = ymm;
                     }
-                    if (params.Z != undefined) {
-			var zmm = _this.translateX(params.Z, false);
+                    if (params.Z !== undefined) {
+			const zmm = _this.translateX(params.Z, false);
                         _this.g92offset.z += _this.position.z - zmm;
                         _this.position.z = zmm;
                     }
@@ -626,7 +630,7 @@ var Toolpath = function () {
             // Coolant Control
             // M7: Turn mist coolant on
             'M7': function M7() {
-                var coolants = _this.modal.coolant.split(',');
+                const coolants = _this.modal.coolant.split(',');
                 if (coolants.indexOf('M7') >= 0) {
                     return;
                 }
@@ -637,7 +641,7 @@ var Toolpath = function () {
             },
             // M8: Turn flood coolant on
             'M8': function M8() {
-                var coolants = _this.modal.coolant.split(',');
+                const coolants = _this.modal.coolant.split(',');
                 if (coolants.indexOf('M8') >= 0) {
                     return;
                 }
@@ -659,52 +663,45 @@ var Toolpath = function () {
             }
         };
 
-        var _options = _extends({}, options),
-            position = _options.position,
-            modal = _options.modal,
-            _options$addLine = _options.addLine,
-            addLine = _options$addLine === undefined ? noop : _options$addLine,
-            _options$addArcCurve = _options.addArcCurve,
-            addArcCurve = _options$addArcCurve === undefined ? noop : _options$addArcCurve;
+        const _options = _extends({}, options);
+        const position = _options.position;
+        const modal = _options.modal;
+        const _options$addLine = _options.addLine;
+        const addLine = _options$addLine === undefined ? noop : _options$addLine;
+        const _options$addArcCurve = _options.addArcCurve;
+        const addArcCurve = _options$addArcCurve === undefined ? noop : _options$addArcCurve;
 
         // Position
 
 
         if (position) {
-            var _position = _extends({}, position),
-                x = _position.x,
-                y = _position.y,
-                z = _position.z;
+            const _position = _extends({}, position);
+            const x = _position.x;
+            const y = _position.y;
+            const z = _position.z;
 
             this.setPosition(x, y, z);
         }
         this.g92offset.x = this.g92offset.y = this.g92offset.z = 0;
 
         // Modal
-        var nextModal = {};
-        Object.keys(_extends({}, modal)).forEach(function (key) {
+        const nextModal = {};
+        for (const key of Object.keys(_extends({}, modal))) {
             if (!Object.prototype.hasOwnProperty.call(_this.modal, key)) {
                 return;
             }
             nextModal[key] = modal[key];
-        });
+        };
         this.setModal(nextModal);
 
         this.fn = { addLine: addLine, addArcCurve: addArcCurve };
 
-        var toolpath = new Interpreter({ handlers: this.handlers });
-        toolpath.getPosition = function () {
-            return _extends({}, _this.position);
-        };
-        toolpath.getModal = function () {
-            return _extends({}, _this.modal);
-        };
-        toolpath.setPosition = function () {
-            return _this.setPosition.apply(_this, arguments);
-        };
-        toolpath.setModal = function (modal) {
-            return _this.setModal(modal);
-        };
+        const toolpath = new Interpreter({ handlers: this.handlers });
+        toolpath.getPosition = () => _extends({}, _this.position);
+        toolpath.getModal = () => _extends({}, _this.modal);
+        // biome-ignore lint/style/noArguments: <explanation>
+        toolpath.setPosition = () => _this.setPosition.apply(_this, arguments);
+        toolpath.setModal = (modal) => _this.setModal(modal);
 
         return toolpath;
     }
@@ -754,24 +751,21 @@ var Toolpath = function () {
         }
     }, {
         key: 'setPosition',
-        value: function setPosition() {
-            for (var _len = arguments.length, pos = Array(_len), _key = 0; _key < _len; _key++) {
-                pos[_key] = arguments[_key];
-            }
+        value: function setPosition(...pos) {
 
             if (_typeof(pos[0]) === 'object') {
-                var _pos$ = _extends({}, pos[0]),
-                    x = _pos$.x,
-                    y = _pos$.y,
-                    z = _pos$.z;
+                const _pos$ = _extends({}, pos[0]);
+                const x = _pos$.x;
+                const y = _pos$.y;
+                const z = _pos$.z;
 
                 this.position.x = typeof x === 'number' ? x : this.position.x;
                 this.position.y = typeof y === 'number' ? y : this.position.y;
                 this.position.z = typeof z === 'number' ? z : this.position.z;
             } else {
-                var _x = pos[0],
-                    _y = pos[1],
-                    _z = pos[2];
+                const _x = pos[0];
+                const _y = pos[1];
+                const _z = pos[2];
 
                 this.position.x = typeof _x === 'number' ? _x : this.position.x;
                 this.position.y = typeof _y === 'number' ? _y : this.position.y;
@@ -781,15 +775,15 @@ var Toolpath = function () {
     }, {
         key: 'translatePosition',
         value: function translatePosition(position, newPosition, relative) {
-            if (newPosition == undefined) {
+            if (newPosition === undefined) {
                 return position;
             }
-            newPosition = this.isImperialUnits() ? in2mm(newPosition) : newPosition;
-            newPosition = Number(newPosition);
-            if (Number.isNaN(newPosition)) {
+            const adjPosition = this.isImperialUnits() ? in2mm(newPosition) : newPosition;
+            const newAdjPosition = Number(adjPosition);
+            if (Number.isNaN(newAdjPosition)) {
                 return position;
             }
-            return (!!relative) ? position + newPosition : newPosition;
+            return (!!relative) ? position + newAdjPosition : newAdjPosition;
         }
     }, {
         key: 'translateX',
@@ -824,13 +818,15 @@ var Toolpath = function () {
     }, {
         key: 'translateR',
         value: function translateR(r) {
-            r = Number(r);
-            if (Number.isNaN(r)) {
+            const rNum = Number(r);
+            if (Number.isNaN(rNum)) {
                 return 0;
             }
-            return this.isImperialUnits() ? in2mm(r) : r;
+            return this.isImperialUnits() ? in2mm(rNum) : rNum;
         }
     }]);
 
     return Toolpath;
-}();
+})();
+
+export { Toolpath };

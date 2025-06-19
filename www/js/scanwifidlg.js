@@ -1,4 +1,21 @@
-// import get_icon_svg, conErr, stdErrMsg, displayBlock, displayNone, id, getValue, setValue, setHTML, closeModal, setactiveModal, showModal, SendGetHttp, translate_text_item
+import {
+	get_icon_svg,
+	conErr,
+	stdErrMsg,
+	displayBlock,
+	displayNone,
+	id,
+	getValue,
+	setValue,
+	setHTML,
+	closeModal,
+	setactiveModal,
+	showModal,
+	httpCmdType,
+	buildHttpCommandCmd,
+	SendGetHttp,
+	trx_text_item,
+} from "./common.js";
 
 let ssid_item_scanwifi = -1;
 let ssid_subitem_scanwifi = -1;
@@ -20,36 +37,19 @@ const scanwifidlg = (event) => {
 	id("scanWiFiDlgClose").addEventListener("click", scanWiFiDlgCancel);
 	id("refresh_scanwifi_btn").addEventListener("click", refresh_scanwifi);
 
+	const iconOptions = {t: "translate(50,1200) scale(1,-1)"};
+	setHTML("refresh_scanwifi_btn", get_icon_svg("refresh", iconOptions));
+
+	ssid_item_scanwifi = item;
+	ssid_subitem_scanwifi = subitem;
 	showModal();
 	refresh_scanwifi();
 };
 
 function refresh_scanwifi() {
-	displayBlock("AP_scan_loader");
-	displayNone("AP_scan_list");
-	displayBlock("AP_scan_status");
-	setHTML("AP_scan_status", translate_text_item("Scanning"));
-	displayNone("refresh_scanwifi_btn");
-	//removeIf(production)
-	const testResponse = [
-		'{"AP_LIST":[',
-		'{"SSID":"HP-Setup>71-M277LaserJet","SIGNAL":"90","IS_PROTECTED":"0"},',
-		'{"SSID":"NETGEAR_2GEXT_OFFICE2","SIGNAL":"58","IS_PROTECTED":"1"},',
-		'{"SSID":"NETGEAR_2GEXT_OFFICE","SIGNAL":"34","IS_PROTECTED":"1"},',
-		'{"SSID":"NETGEAR_2GEXT_COULOIR","SIGNAL":"18","IS_PROTECTED":"1"},',
-		'{"SSID":"HP-Print-D3-ColorLaserJetPro","SIGNAL":"14","IS_PROTECTED":"0"},',
-		'{"SSID":"external-wifi","SIGNAL":"20","IS_PROTECTED":"1"},',
-		'{"SSID":"Livebox-4D0F","SIGNAL":"24","IS_PROTECTED":"1"},',
-		'{"SSID":"SFR_2000","SIGNAL":"20","IS_PROTECTED":"1"}',
-		'{"SSID":"SFR_0D90","SIGNAL":"26","IS_PROTECTED":"1"},',
-		'{"SSID":"SFRWiFiFON","SIGNAL":"18","IS_PROTECTED":"0"},',
-		'{"SSID":"SFRWiFiMobile","SIGNAL":"18","IS_PROTECTED":"1"},',
-		'{"SSID":"FreeWifi","SIGNAL":"16","IS_PROTECTED":"0"}',
-		']}'
-	];
-	getscanWifiSuccess(testResponse.join(""));
-	return;
-	//endRemoveIf(production)
+	displayBlock(["AP_scan_loader", "AP_scan_status"]);
+	displayNone(["AP_scan_list", "refresh_scanwifi_btn"]);
+	setHTML("AP_scan_status", trx_text_item("Scanning"));
 	const cmd = buildHttpCommandCmd(httpCmdType.plain, "[ESP410]");
 	SendGetHttp(cmd, getscanWifiSuccess, getscanWififailed);
 }
@@ -65,9 +65,7 @@ function process_scanWifi_answer(response_text) {
 		} else {
 			const aplist = response.AP_LIST;
 			//console.log("found " + aplist.length + " AP");
-			aplist.sort((a, b) => Number.parseInt(a.SIGNAL) < Number.parseInt(b.SIGNAL)
-				? -1
-				: Number.parseInt(a.SIGNAL) > Number.parseInt(b.SIGNAL) ? 1 : 0);
+			aplist.sort((a, b) => Number.parseInt(a.SIGNAL) - Number.parseInt(b.SIGNAL));
 			for (let i = aplist.length - 1; i >= 0; i--) {
 				const protIcon = aplist[i].IS_PROTECTED === "1" ? get_icon_svg("lock") : "";
 				const escapedSSID = aplist[i].SSID.replace("'", "\\'").replace('"', '\\"',);
@@ -110,26 +108,22 @@ function select_ap_ssid(ssid_name) {
 
 function getscanWifiSuccess(response) {
 	if (!process_scanWifi_answer(response)) {
-		getscanWififailed(406, translate_text_item("Wrong data"));
+		getscanWififailed(406, trx_text_item("Wrong data"));
 		return;
 	}
-	displayNone("AP_scan_loader");
-	displayBlock("AP_scan_list");
-	displayNone("AP_scan_status");
-	displayBlock("refresh_scanwifi_btn");
+	displayNone(["AP_scan_loader", "AP_scan_status"]);
+	displayBlock(["AP_scan_list", "refresh_scanwifi_btn"]);
 }
 
 function getscanWififailed(error_code, response) {
 	conErr(error_code, response);
 	displayNone("AP_scan_loader");
-	displayBlock("AP_scan_status");
-	setHTML(
-		"AP_scan_status",
-		stdErrMsg(error_code, response, translate_text_item("Failed")),
-	);
-	displayBlock("refresh_scanwifi_btn");
+	displayBlock(["AP_scan_status", "refresh_scanwifi_btn"]);
+	setHTML("AP_scan_status", stdErrMsg(error_code, response, trx_text_item("Failed")));
 }
 
 function scanwifidlg_close(response) {
 	//console.log(response);
 }
+
+export { scanwifidlg };

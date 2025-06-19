@@ -1,4 +1,4 @@
-<div id="filesPanel" class="panel panel-default panel-flex-col">
+<div id="filesPanel" class="panel panel-default panel-flex-col hide_it">
     <div class="panel-heading">
         <div class="row">
             <div class="col-md-12">
@@ -21,7 +21,7 @@
                                 </button>
                             </td>
                             <td>&nbsp;&nbsp;</td>
-                            <td><span id="files_currentPath"></span></td>
+                            <td><span id="filesCurrentPath"></span></td>
                             <td>&nbsp;&nbsp;</td>
                             <td>
                                 <div id="files_nav_loader" style="width:1em;height:1em" class="loader hide_it"></div>
@@ -45,17 +45,7 @@
                     <div class="item-flex-row-wrap">
                         <div class="tooltip">
                             <span class="tooltip-text">Show runnable files or all files</span>
-                            <button id="files_filter_btn" class="btn btn-xs btn-primary">
-                                <span id="files_filter_glyph" style="position:relative; top:2px">
-                                    <svg width='1.3em' height='1.2em' viewBox='0 0 1300 1200'>
-                                        <g transform='translate(50,1200) scale(1, -1)'>
-                                            <path fill='currentColor'
-                                                d='M150 1200h900q21 0 35.5 -14.5t14.5 -35.5t-14.5 -35.5t-35.5 -14.5h-900q-21 0 -35.5 14.5t-14.5 35.5t14.5 35.5t35.5 14.5zM700 500v-300l-200 -200v500l-350 500h900z'>
-                                            </path>
-                                        </g>
-                                    </svg>
-                                </span>
-                            </button>
+                            <button id="files_filter_btn" class="btn btn-xs btn-primary"></button>
                         </div>
                         &nbsp;
                         <button id="files_refresh_btn" class="btn btn-xs btn-primary hide_it" translate>Refresh</button>

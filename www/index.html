@@ -8,126 +8,64 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <title>ESP3D WebUI</title>
-  <script>
-    var target_firmware = "";
-    var web_ui_version = "replaceVERSION";
-    var direct_sd = false;
-    var fw_version = "";
-    var primary_sd = "/ext/";
-    var secondary_sd = "/sd/";
-  </script>
-  <!--removeIf(cleanheader)-->
-  <link href="css/bootstrap.css" rel="stylesheet" />
-  <link href="css/menu.css" rel="stylesheet" />
-  <link href="css/tabs.css" rel="stylesheet" />
-  <link href="css/modaldlg.css" rel="stylesheet" />
-  <link href="css/wizard.css" rel="stylesheet" />
-  <link href="css/tablet.css" rel="stylesheet" />
-  <link href="css/tooltip.css" rel="stylesheet" />
-  <link href="css/loadingOverlay.css" rel="stylesheet" />
+  <script type="module" src="./js/loadHTML.js"></script>
 
-  <!--endRemoveIf(cleanheader)-->
+  <link href="./css/bootstrap.css" rel="stylesheet" />
+  <link href="./css/menu.css" rel="stylesheet" />
+  <link href="./css/tabs.css" rel="stylesheet" />
+  <link href="./css/modaldlg.css" rel="stylesheet" />
+  <link href="./css/wizard.css" rel="stylesheet" />
+  <link href="./css/tablet.css" rel="stylesheet" />
+  <link href="./css/tooltip.css" rel="stylesheet" />
 
-  <!-- smoosh -->
-  <link href="css/style.css" rel="stylesheet" />
-  <!-- endsmoosh -->
+  <link href="./css/style.css" rel="stylesheet" />
+  <link href="./css/numpad-light.css" rel="stylesheet" />
+
+  <!-- All the 'other' JS -->
+  <script type="module" src="./js/langUtils.js"></script>
+  <script type="module" src="./js/common.js"></script>
+  <script type="module" src="./js/app.js"></script>
 </head>
 
 <body>
   <div id="loadingmsg">
     <h3 class="center">Loading....</h3>
   </div>
-  <!-- <div id="main_ui" class="container-fluid hide_it"> -->
-  <div id="main_ui" class="hide_it"></div>
   <!-- topnavbar -->
-  <file-include w3-include-html="'sub/navbar.html'"></file-include>
+  <div id="./sub/navbar.html" class="loadhtml"></div>
   <!-- /topnavbar -->
   <!-- content -->
   <div id="mainuitabscontent">
     <!-- dashtab is actually maintab -->
-    <file-include w3-include-html="'sub/dashtab.html'"></file-include>
-    <file-include w3-include-html="'sub/cameratab.html'"></file-include>
-    <file-include w3-include-html="'sub/configtab.html'"></file-include>
-    <file-include w3-include-html="'sub/settingstab.html'"></file-include>
-    <file-include w3-include-html="'sub/tablettab.html'"></file-include>
+    <div id="./sub/dashtab.html" class="loadhtml"></div>
+    <div id="./sub/cameratab.html" class="loadhtml"></div>
+    <div id="./sub/configtab.html" class="loadhtml"></div>
+    <div id="./sub/settingstab.html" class="loadhtml"></div>
+    <div id="./sub/tablettab.html" class="loadhtml"></div>
   </div>
   <!-- / content -->
   </div>
   <!-- template -->
-  <file-include w3-include-html="'sub/connectdlg.html'"></file-include>
-  <file-include w3-include-html="'sub/alertdlg.html'"></file-include>
-  <file-include w3-include-html="'sub/passworddlg.html'"></file-include>
-  <file-include w3-include-html="'sub/confirmdlg.html'"></file-include>
-  <file-include w3-include-html="'sub/logindlg.html'"></file-include>
-  <file-include w3-include-html="'sub/inputdlg.html'"></file-include>
-  <file-include w3-include-html="'sub/creditsdlg.html'"></file-include>
-  <file-include w3-include-html="'sub/scanwifidlg.html'"></file-include>
-  <file-include w3-include-html="'sub/SPIFFSdlg.html'"></file-include>
-  <file-include w3-include-html="'sub/statusdlg.html'"></file-include>
-  <file-include w3-include-html="'sub/updatedlg.html'"></file-include>
-  <file-include w3-include-html="'sub/setupdlg.html'"></file-include>
-  <file-include w3-include-html="'sub/macrodlg.html'"></file-include>
-  <file-include w3-include-html="'sub/preferencesdlg.html'"></file-include>
-  <file-include w3-include-html="'sub/restartdlg.html'"></file-include>
-  <file-include w3-include-html="'sub/UIdisableddlg.html'"></file-include>
-
+  <div id="./sub/connectdlg.html" class="loadhtml"></div>
+  <div id="./sub/alertdlg.html" class="loadhtml"></div>
+  <div id="./sub/passworddlg.html" class="loadhtml"></div>
+  <div id="./sub/confirmdlg.html" class="loadhtml"></div>
+  <div id="./sub/logindlg.html" class="loadhtml"></div>
+  <div id="./sub/inputdlg.html" class="loadhtml"></div>
+  <div id="./sub/creditsdlg.html" class="loadhtml"></div>
+  <div id="./sub/scanwifidlg.html" class="loadhtml"></div>
+  <div id="./sub/SPIFFSdlg.html" class="loadhtml"></div>
+  <div id="./sub/statusdlg.html" class="loadhtml"></div>
+  <div id="./sub/updatedlg.html" class="loadhtml"></div>
+  <div id="./sub/setupdlg.html" class="loadhtml"></div>
+  <div id="./sub/macrodlg.html" class="loadhtml"></div>
+  <div id="./sub/preferencesdlg.html" class="loadhtml"></div>
+  <div id="./sub/restartdlg.html" class="loadhtml"></div>
+  <div id="./sub/UIdisableddlg.html" class="loadhtml"></div>
   <!-- / template -->
   <div id="loading-overlay" class="loading-overlay">
     <div class="spinner"></div>
   </div>
-  <!--removeIf(cleanheader)-->
-  <!-- The following must be imported first, and in this order -->
-  <script src="js/constants.js"></script>
-  <script src="js/util.js"></script>
-  <script src="js/numpad.js"></script>
-  <script src="js/httpCmdBuilder.js"></script>
-
-  <script src="js/socket.js"></script>
-
-  <script src="js/connectdlg.js"></script>
-  <script src="js/controls.js"></script>
-  <script src="js/navbar.js"></script>
-  <script src="js/tablet.js"></script>
-
-  <script src="js/loadingOverlay.js"></script>
-  <script src="js/wizard.js"></script>
-  <script src="js/http.js"></script>
-  <script src="js/icons.js"></script>
-  <script src="js/camera.js"></script>
-  <script src="js/configtab.js"></script>
-  <script src="js/settings.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/tabs.js"></script>
-  <script src="js/alertdlg.js"></script>
-  <script src="js/confirmdlg.js"></script>
-  <script src="js/passworddlg.js"></script>
-  <script src="js/logindlg.js"></script>
-  <script src="js/inputdlg.js"></script>
-  <script src="js/creditsdlg.js"></script>
-  <script src="js/scanwifidlg.js"></script>
-  <script src="js/restartdlg.js"></script>
-  <script src="js/modaldlg.js"></script>
-  <script src="js/SPIFFSdlg.js"></script>
-  <script src="js/statusdlg.js"></script>
-  <script src="js/updatedlg.js"></script>
-  <script src="js/setupdlg.js"></script>
-  <script src="js/macrodlg.js"></script>
-  <script src="js/preferencesdlg.js"></script>
-  <script src="js/translate.js"></script>
-  <script src="js/commands.js"></script>
-  <script src="js/printercmd.js"></script>
-  <script src="js/grblpanel.js"></script>
-  <script src="js/grbl.js"></script>
-  <script src="js/dropmenu.js"></script>
-  <script src="js/localstorage.js"></script>
-  <script src="js/UIdisableddlg.js"></script>
-  <script src="js/custom.js"></script>
-  <script src="js/calculatesCalibrationStuff.js"></script>
-
-  <!--endRemoveIf(cleanheader)-->
-  <!-- smoosh -->
-  <script src="js/app.js"></script>
-  <!-- endsmoosh -->
 </body>
 
 </html>

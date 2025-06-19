@@ -1,6 +1,4 @@
-//removeIf(es_lang_disabled)
-//Spanish
-var spanishtrans = {
+{
 "es":"Espa&ntilde;ol",
 "ESP3D for":"ESP3D para",
 "Value of auto-check must be between 0s and 99s !!":"&iexcl;El valor del auto-control tiene que estar entre 0s y 99s !",
@@ -46,8 +44,8 @@ var spanishtrans = {
 "Controls":"Controles",
 "Credits":"Cr&eacute;ditos",
 "Dashboard":"Tablero",
-"Data mofified":"Cambio de datos",
-"Do you want to save?":"	&iquest;Desea guardar ?",
+"Data modified":"Cambio de datos",
+"Do you want to save?":"&iquest;Desea guardar ?",
 "Enable second extruder controls":"Activar segundo extrusor",
 "Error":"Error",
 "ESP3D Filesystem":"Archivos ESP3D",
@@ -181,7 +179,7 @@ var spanishtrans = {
 "E feedrate":"Aceleraci&oacute;n E",
 "Camera address":"Dirección de la c&aacute;mara",
 "Setup":"Configuraci&oacute;n",
-"Start setup":"Iniciar configuraci&oacute;n",
+"Start":"Iniciar",
 "This wizard will help you to configure the basic settings.":"Este asistente le ayudar&aacute; a configurar los ajustes b&aacute;sicos.",
 "Press start to proceed.":"Pulse iniciar para continuar.",
 "Save your printer's firmware base:":"Guarde la base de firmware de la impresora:",
@@ -286,7 +284,6 @@ var spanishtrans = {
 "Web Update":"Actualizaci&oacute;n web",
 "Pin Recovery":"Bot&oacute;n restablecer",
 "Disabled":"Desactivado",
-"Authentication":"Autenticaci&oacute;n",
 "Target Firmware":"Firmware de destino",
 "SD Card Support":"Soporte de tarjeta SD",
 "Time Support":"Servidor de tiempo",
@@ -371,6 +368,5 @@ var spanishtrans = {
 "error:62":"SD card failed to open directory",
 "error:63":"SD Card directory not found",
 "error:64":"SD Card file empty",
-"error:70":"Bluetooth failed to start",
-};
-//endRemoveIf(es_lang_disabled)
+"error:70":"Bluetooth failed to start"
+}

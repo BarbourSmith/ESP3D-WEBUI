@@ -1,13 +1,39 @@
-// When we can change to proper ESM - uncomment this
-// import { checkHomed, maslowErrorMsgHandling, maslowInfoMsgHandling, maslowMsgHandling, sendCommand } from "maslow";
+import {
+  Common,
+  getValue,
+  id,
+  setValue,
+  getText, setText, setTextContent,
+  numpad,
+  SendPrinterCommand,
+  files_currentPath,
+  files_file_list,
+  files_list_success,
+  files_select_upload,
+  SendRealtimeCmd,
+  MPOS,
+  WPOS,
+  AxisFeedRate,
+  buildHttpFileCmd,
+  SendGetHttp,
+  checkHomed,
+  loadConfigValues,
+  loadCornerValues,
+  maslowErrorMsgHandling,
+  maslowInfoMsgHandling,
+  maslowMsgHandling,
+  saveConfigValues,
+  sendCommand,
+  arrayToXYZ, refreshGcode, tpDisplayer, tpInit,
+  drawTPBtns,
+  getAxisFromValue,
+  valueStartsWith,
+} from "./common.js";
 
-var gCodeLoaded = false;
-var gCodeDisplayable = false;
+let gCodeLoaded = false;
 
-var snd = null;
-var sndok = true;
-
-var versionNumber = "1.07";
+let snd = null;
+let sndok = true;
 
 const addMessage = (msg, scroll = true, clear = false) => {
   const msgWindow = id("messages");
@@ -20,23 +46,26 @@ const addMessage = (msg, scroll = true, clear = false) => {
 }
 
 /** Print the version number to the console */
-const showVersionNumber = () => addMessage(`Index.html Version: ${versionNumber}`);
+const showVersionNumber = () => {
+  const common = new Common();
+  addMessage(`Index.html Version: ${common.web_ui_version}`);
+}
 
 function beep(vol, freq, duration) {
   if (snd == null) {
     if (sndok) {
       try {
         snd = new Audio(
-          'data:audio/wav;base64,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qJrx4KOQjahZxWbcZgztj2c49nKmkId44S71j0c8eV9yDK6uPRzx5X18eDvjvQ6yKo9ZSS6l//8elePK/Lf//IInrOF/FvDoADYAGBMGb7FtErm5MXMlmPAJQVgWta7Zx2go+8xJ0UiCb8LHHdftWyLJE0QIAIsI+UbXu67dZMjmgDGCGl1H+vpF4NSDckSIkk7Vd+sxEhBQMRU8j/12UIRhzSaUdQ+rQU5kGeFxm+hb1oh6pWWmv3uvmReDl0UnvtapVaIzo1jZbf/pD6ElLqSX+rUmOQNpJFa/r+sa4e/pBlAABoAAAAA3CUgShLdGIxsY7AUABPRrgCABdDuQ5GC7DqPQCgbbJUAoRSUj+NIEig0YfyWUho1VBBBA//uQZB4ABZx5zfMakeAAAAmwAAAAF5F3P0w9GtAAACfAAAAAwLhMDmAYWMgVEG1U0FIGCBgXBXAtfMH10000EEEEEECUBYln03TTTdNBDZopopYvrTTdNa325mImNg3TTPV9q3pmY0xoO6bv3r00y+IDGid/9aaaZTGMuj9mpu9Mpio1dXrr5HERTZSmqU36A3CumzN/9Robv/Xx4v9ijkSRSNLQhAWumap82WRSBUqXStV/YcS+XVLnSS+WLDroqArFkMEsAS+eWmrUzrO0oEmE40RlMZ5+ODIkAyKAGUwZ3mVKmcamcJnMW26MRPgUw6j+LkhyHGVGYjSUUKNpuJUQoOIAyDvEyG8S5yfK6dhZc0Tx1KI/gviKL6qvvFs1+bWtaz58uUNnryq6kt5RzOCkPWlVqVX2a/EEBUdU1KrXLf40GoiiFXK///qpoiDXrOgqDR38JB0bw7SoL+ZB9o1RCkQjQ2CBYZKd/+VJxZRRZlqSkKiws0WFxUyCwsKiMy7hUVFhIaCrNQsKkTIsLivwKKigsj8XYlwt/WKi2N4d//uQRCSAAjURNIHpMZBGYiaQPSYyAAABLAAAAAAAACWAAAAApUF/Mg+0aohSIRobBAsMlO//Kk4soosy1JSFRYWaLC4qZBYWFRGZdwqKiwkNBVmoWFSJkWFxX4FFRQWR+LsS4W/rFRb/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////VEFHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU291bmRib3kuZGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMjAwNGh0dHA6Ly93d3cuc291bmRib3kuZGUAAAAAAAAAACU='
-        )
+          "data:audio/wav;base64,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qJrx4KOQjahZxWbcZgztj2c49nKmkId44S71j0c8eV9yDK6uPRzx5X18eDvjvQ6yKo9ZSS6l//8elePK/Lf//IInrOF/FvDoADYAGBMGb7FtErm5MXMlmPAJQVgWta7Zx2go+8xJ0UiCb8LHHdftWyLJE0QIAIsI+UbXu67dZMjmgDGCGl1H+vpF4NSDckSIkk7Vd+sxEhBQMRU8j/12UIRhzSaUdQ+rQU5kGeFxm+hb1oh6pWWmv3uvmReDl0UnvtapVaIzo1jZbf/pD6ElLqSX+rUmOQNpJFa/r+sa4e/pBlAABoAAAAA3CUgShLdGIxsY7AUABPRrgCABdDuQ5GC7DqPQCgbbJUAoRSUj+NIEig0YfyWUho1VBBBA//uQZB4ABZx5zfMakeAAAAmwAAAAF5F3P0w9GtAAACfAAAAAwLhMDmAYWMgVEG1U0FIGCBgXBXAtfMH10000EEEEEECUBYln03TTTdNBDZopopYvrTTdNa325mImNg3TTPV9q3pmY0xoO6bv3r00y+IDGid/9aaaZTGMuj9mpu9Mpio1dXrr5HERTZSmqU36A3CumzN/9Robv/Xx4v9ijkSRSNLQhAWumap82WRSBUqXStV/YcS+XVLnSS+WLDroqArFkMEsAS+eWmrUzrO0oEmE40RlMZ5+ODIkAyKAGUwZ3mVKmcamcJnMW26MRPgUw6j+LkhyHGVGYjSUUKNpuJUQoOIAyDvEyG8S5yfK6dhZc0Tx1KI/gviKL6qvvFs1+bWtaz58uUNnryq6kt5RzOCkPWlVqVX2a/EEBUdU1KrXLf40GoiiFXK///qpoiDXrOgqDR38JB0bw7SoL+ZB9o1RCkQjQ2CBYZKd/+VJxZRRZlqSkKiws0WFxUyCwsKiMy7hUVFhIaCrNQsKkTIsLivwKKigsj8XYlwt/WKi2N4d//uQRCSAAjURNIHpMZBGYiaQPSYyAAABLAAAAAAAACWAAAAApUF/Mg+0aohSIRobBAsMlO//Kk4soosy1JSFRYWaLC4qZBYWFRGZdwqKiwkNBVmoWFSJkWFxX4FFRQWR+LsS4W/rFRb/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////VEFHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU291bmRib3kuZGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMjAwNGh0dHA6Ly93d3cuc291bmRib3kuZGUAAAAAAAAAACU=",
+        );
       } catch (error) {
-        snd = null
-        sndok = false
+        snd = null;
+        sndok = false;
       }
     }
   }
   if (snd) {
-    snd.play()
+    snd.play();
   }
 }
 
@@ -50,7 +79,7 @@ function tabletClick() {
 const MDIcmd = (value) => {
   tabletClick();
   sendCommand(value);
-}
+};
 
 // const MDI = (field) => {
 //   MDIcmd(getValue(field))
@@ -58,33 +87,31 @@ const MDIcmd = (value) => {
 
 // const enterFullscreen = () => {
 //   try {
-//     document.documentElement.requestFullscreen()
+//     document.documentElement.requestFullscreen();
 //   } catch (exception) {
 //     try {
-//       document.documentElement.webkitRequestFullscreen()
+//       document.documentElement.webkitRequestFullscreen();
 //     } catch (exception) {
-//       return
+//       return;
 //     }
 //   }
-// }
+// };
 // const exitFullscreen = () => {
 //   try {
-//     document.exitFullscreen()
+//     document.exitFullscreen();
 //   } catch (exception) {
 //     try {
-//       document.webkitExitFullscreen()
+//       document.webkitExitFullscreen();
 //     } catch (exception) {
-//       return
+//       return;
 //     }
 //   }
-// }
+// };
 
-/** This does nothing, but it does get called */
-const toggleFullscreen = () => { }
+const toggleFullscreen = () => { };
 
-// const inputFocused = () => { isInputFocused = true; };
-
-// const inputBlurred = () => { isInputFocused = false; };
+// const inputFocused = () => isInputFocused = true;
+// const inputBlurred = () => isInputFocused = false;
 
 // Define XY Home functions
 let xyHomeTimerId = null;
@@ -103,7 +130,7 @@ const clearXYHomeTimer = () => {
   xyHomeTimerId = null;
   // Reset the button label
   setTimeout(setXYHomeBtnText, 1000);
-}
+};
 
 const setXYHome = () => {
   clearXYHomeTimer();
@@ -112,7 +139,7 @@ const setXYHome = () => {
   // This changed label will only show for 1 second before being reset
   setXYHomeBtnText(xyHomeLabelRedefined);
   setTimeout(refreshGcode, 100);
-}
+};
 
 const xyHomeTimer = () => {
   const buttonText = getXYHomeBtnText();
@@ -128,20 +155,20 @@ const xyHomeTimer = () => {
     // The user clicked / tapped once or didn't press+hold for 5 full seconds
     setTimeout(setXYHomeBtnText, 1000);
   }
-}
+};
 
 /** Click down starts the xyHomeTimer function and sets the button text to 5 */
 const setHomeClickDown = () => {
   setXYHomeBtnText(5);
   xyHomeTimer();
-}
+};
 
 /** Click up cancels the xyHomeTimer and cleans up */
 const setHomeClickUp = () => {
   if (xyHomeTimerId != null) {
     setXYHomeBtnText(xyHomeLabelInstr);
   }
-}
+};
 
 const zeroAxis = (axis) => {
   tabletClick()
@@ -150,22 +177,12 @@ const zeroAxis = (axis) => {
 }
 
 const toggleUnits = () => {
-  tabletClick()
-  sendCommand(gCodeModal.units === 'G21' ? 'G20' : 'G21');
+  tabletClick();
+  const common = new Common();
+  sendCommand(common.modal.units === "G21" ? "G20" : "G21");
   // The button label will be fixed by the response to $G
-  sendCommand('$G');
-}
-
-// const btnSetDistance = () => {
-//   tabletClick()
-//   var distance = event.target.innerText
-//   setValue('jog-distance', distance)
-// }
-
-// const setDistance = (distance) => {
-//   tabletClick()
-//   setValue('jog-distance', distance)
-// }
+  sendCommand("$G");
+};
 
 const goAxisByValue = (axis, coordinate) => {
   tabletClick()
@@ -184,8 +201,8 @@ const setAxis = (axis, field) => {
   sendCommand(cmd);
 }
 
-var timeout_id = 0,
-  hold_time = 1000
+const timeout_id = 0;
+const hold_time = 1000;
 
 /** Check the parameters used by jog and move commands,
  * and return them as a composite string */
@@ -218,10 +235,11 @@ const jog = (params = {}) => {
 }
 
 const jogTo = (axisAndDistance) => {
-  // Always force G90 mode because synchronization of gCodeModal reports is unreliable
-  // JogFeedRate is defined in controls.js
-  let feedrate = JogFeedrate(axisAndDistance);
-  if (gCodeModal.units === "G20") {
+  const axis = getAxisFromValue(axisAndDistance);
+  // Always force G90 mode because synchronization of modal reports is unreliable
+  let feedrate = AxisFeedRate(axis);
+  const common = new Common();
+  if (common.modal.units === "G20") {
     feedrate /= 25.4;
     feedrate = feedrate.toFixed(2);
   }
@@ -291,29 +309,29 @@ const moveHome = () => {
   }
 
   //We want to move to the opposite of the machine's current X,Y cordinates
-  const x = Number.parseFloat(getText('mpos-x'));
-  const y = Number.parseFloat(getText('mpos-y'));
+  const x = Number.parseFloat(getText("mpos-x"));
+  const y = Number.parseFloat(getText("mpos-y"));
 
-  jog({ X: -1 * x, Y: -1 * y })
-}
+  jog({ X: -1 * x, Y: -1 * y });
+};
 
-function saveSerialMessages() {
-  // save off the serial messages
-  const msgs = getValue('messages') || "";
-  const link = document.createElement('a');
-  link.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURI(msgs)}`);
-  link.setAttribute('download', "Maslow-serial.log");
+/** save off the serial messages */
+const saveSerialMessages = () => {
+  const msgs = getValue("messages") || "";
+  const link = document.createElement("a");
+  link.setAttribute("href", `data:text/plain;charset=utf-8,${encodeURI(msgs)}`);
+  link.setAttribute("download", "Maslow-serial.log");
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-}
+};
 
 /** Loaded Values of the maslow config, this can be a const because we only change the fields within it */
 const loaded_values = {};
 /** Work with the maslow config loaded values.
- * If `fieldName` is undefined, or `value` is undefined and `fieldname` is not in the values, then return the values we have.
- * If `value` is undefined, but `fieldname` exists, just return the value for `fieldname`
- * Otherwise set `fieldname` to the `value` and return it
+ * * If `fieldName` is undefined, or `value` is undefined and `fieldname` is not in the values, then return the values we have.
+ * * If `value` is undefined, but `fieldname` exists, just return the value for `fieldname`
+ * * Otherwise set `fieldname` to the `value` and return it
  */
 const loadedValues = (fieldName, value) => {
   if (typeof fieldName === "undefined") {
@@ -328,18 +346,16 @@ const loadedValues = (fieldName, value) => {
   return loaded_values[fieldName];
 };
 
-function tabletShowMessage(msg, collecting) {
+const tabletShowMessage = (msg = "", collecting = false) => {
   if (collecting || !msg) {
     return;
   }
   if (valueStartsWith(msg, ["<", "ok", "\n", "\r"])) {
     return;
   }
-
   if (maslowInfoMsgHandling(msg)) {
     return;
   }
-
   if (valueStartsWith(msg, ["[GC"])) {
     return;
   }
@@ -357,12 +373,12 @@ function tabletShowMessage(msg, collecting) {
 
 function tabletShowResponse(response) { }
 
-function clearAlarm() {
-  if (getText('systemStatus') === 'Alarm') {
-    id('systemStatus').classList.remove('system-status-alarm')
-    SendPrinterCommand('$X', true, null, null, 114, 1)
+const clearAlarm = () => {
+  if (getText("systemStatus") === "Alarm") {
+    id("systemStatus").classList.remove("system-status-alarm");
+    SendPrinterCommand("$X", true, null, null, 114, 1)
   }
-}
+};
 
 function setJogSelector(units) {
   let buttonDistances = [];
@@ -380,20 +396,20 @@ function setJogSelector(units) {
     selected = "10";
   }
   // const buttonNames = [
-  //   'jog00',
-  //   'jog01',
-  //   'jog02',
-  //   'jog03',
-  //   'jog10',
-  //   'jog11',
-  //   'jog12',
-  //   'jog13',
-  //   'jog20',
-  //   'jog21',
-  //   'jog22',
-  //   'jog23',
-  // ]
-  //buttonNames.forEach( function(n, i) { setHTML(n, buttonDistances[i]); } );
+  //   "jog00",
+  //   "jog01",
+  //   "jog02",
+  //   "jog03",
+  //   "jog10",
+  //   "jog11",
+  //   "jog12",
+  //   "jog13",
+  //   "jog20",
+  //   "jog21",
+  //   "jog22",
+  //   "jog23",
+  // ];
+  //buttonNames.forEach( function(n, i) { id(n).innerHTML = buttonDistances[i]; } );
 
   // var selector = id('jog-distance');
   // selector.length = 0;
@@ -418,8 +434,6 @@ function addJogDistance(distance) {
   //return selector.appendChild(option);
 }
 
-var runTime = 0
-
 function setButton(name, isEnabled, color, text) {
   const button = id(name);
   if (!button) {
@@ -430,14 +444,14 @@ function setButton(name, isEnabled, color, text) {
   button.innerText = text;
 }
 
-var playButtonHandler
+let playButtonHandler;
 function setPlayButton(isEnabled, color, text, click) {
-  setButton('playBtn', isEnabled, color, text);
+  setButton("playBtn", isEnabled, color, text);
   playButtonHandler = click;
 }
 function doPlayButton() {
   if (playButtonHandler) {
-    playButtonHandler()
+    playButtonHandler();
   }
 
   addMessage(`Starting File: ${id('filelist').options[selectElement.selectedIndex].text}`);
@@ -470,21 +484,21 @@ function setRunControls() {
   }
 }
 
-var grblReportingUnits = 0
-var startTime = 0
+const grblReportingUnits = 0;
+let startTime = 0;
 
-var spindleDirection = ''
-var spindleSpeed = ''
+let spindleDirection = "";
+let spindleSpeed = "";
 
 function stopAndRecover() {
-  stopGCode()
+  stopGCode();
   // To stop GRBL you send a reset character, which causes some modes
   // be reset to their default values.  In particular, it sets G21 mode,
   // which affects the coordinate display and the jog distances.
-  requestModes()
+  requestModes();
 }
 
-var oldCannotClick = null
+let oldCannotClick = null;
 
 function scaleUnits(target) {
   //Scale the units to move when jogging down or up by 25.4 to keep them reasonable
@@ -492,30 +506,42 @@ function scaleUnits(target) {
   const currentValue = Number(distanceElement.innerText);
 
   if (!Number.isNaN(currentValue)) {
-    distanceElement.innerText = gCodeModal.units == 'G20' ? currentValue / 25.4 : currentValue * 25.4;
+    const common = new Common();
+    distanceElement.innerText = common.modal.units === "G20" ? currentValue / 25.4 : currentValue * 25.4;
   } else {
-    console.error('Invalid number in disM element');
+    console.error("Invalid number in disM element");
+  }
+}
+
+/** Set the disabled value for the elements matching the selector */
+const setDisabled = (selector, value) => {
+  for (const element of document.querySelectorAll(selector)) {
+    element.disabled = value;
   }
 }
 
 function tabletUpdateModal() {
-  const newUnits = gCodeModal.units === "G21" ? "mm" : "Inch";
+  const common = new Common();
+  const newUnits = common.modal.units === "G21" ? "mm" : "Inch";
   if (getValue("tablettab_toggle_units") === newUnits) {
     return;
   }
 
   setText("tablettab_toggle_units", newUnits);
-  setJogSelector(gCodeModal.units);
+  setJogSelector(common.modal.units);
   scaleUnits("disM");
   scaleUnits("disZ");
 }
 
-function tabletGrblState(grbl, response) {
+let runTime = 0;
+const tabletGrblState = (grbl, response) => {
   // tabletShowResponse(response)
   const stateName = grbl.stateName;
 
   // Unit conversion factor - depends on both $13 setting and parser units
   let factor = 1.0;
+
+  const common = new Common();
 
   //  spindleSpeed = grbl.spindleSpeed;
   //  spindleDirection = grbl.spindle;
@@ -525,54 +551,54 @@ function tabletGrblState(grbl, response) {
   //  spindleOverride = OVR.spindle/100.0;
 
   const mmPerInch = 25.4;
-  switch (gCodeModal.units) {
-    case 'G20':
-      factor = grblReportingUnits === 0 ? 1 / mmPerInch : 1.0
-      break
-    case 'G21':
-      factor = grblReportingUnits === 0 ? 1.0 : mmPerInch
-      break
+  switch (common.modal.units) {
+    case "G20":
+      factor = grblReportingUnits === 0 ? 1 / mmPerInch : 1.0;
+      break;
+    case "G21":
+      factor = grblReportingUnits === 0 ? 1.0 : mmPerInch;
+      break;
   }
 
-  const cannotClick = stateName === 'Run' || stateName === 'Hold'
+  const cannotClick = stateName === "Run" || stateName === "Hold";
   // Recompute the layout only when the state changes
   if (oldCannotClick !== cannotClick) {
-    setDisabled('.dropdown-toggle', cannotClick)
-    setDisabled('.axis-position .position', cannotClick)
-    setDisabled('.axis-position .form-control', cannotClick)
-    setDisabled('.axis-position .btn', cannotClick)
-    setDisabled('.axis-position .position', cannotClick)
+    setDisabled(".dropdown-toggle", cannotClick);
+    setDisabled(".axis-position .position", cannotClick);
+    setDisabled(".axis-position .form-control", cannotClick);
+    setDisabled(".axis-position .btn", cannotClick);
+    setDisabled(".axis-position .position", cannotClick);
     // if (!cannotClick) {
     //     contractVisualizer();
     // }
   }
-  oldCannotClick = cannotClick
+  oldCannotClick = cannotClick;
 
-  tabletUpdateModal()
+  tabletUpdateModal();
 
   switch (stateName) {
-    case 'Sleep':
-    case 'Alarm':
-      setPlayButton(true, gray, 'Start', null)
-      //setPauseButton(false, gray, 'Pause', null)
-      break
-    case 'Idle':
-      setRunControls()
-      break
-    case 'Hold':
-      setPlayButton(true, green, 'Resume', resumeGCode)
-      //setPauseButton(true, red, 'Stop', stopAndRecover)
-      break
-    case 'Jog':
-    case 'Home':
-    case 'Run':
-      setPlayButton(false, gray, 'Start', null)
-      //setPauseButton(true, red, 'Pause', pauseGCode)
-      break
-    case 'Check':
-      setPlayButton(true, gray, 'Start', null)
-      //setPauseButton(true, red, 'Stop', stopAndRecover)
-      break
+    case "Sleep":
+    case "Alarm":
+      setPlayButton(true, gray, "Start", null);
+      //setPauseButton(false, gray, "Pause", null);
+      break;
+    case "Idle":
+      setRunControls();
+      break;
+    case "Hold":
+      setPlayButton(true, green, "Resume", resumeGCode);
+      //setPauseButton(true, red, "Stop", stopAndRecover);
+      break;
+    case "Jog":
+    case "Home":
+    case "Run":
+      setPlayButton(false, gray, "Start", null);
+      //setPauseButton(true, red, "Pause", pauseGCode);
+      break;
+    case "Check":
+      setPlayButton(true, gray, "Start", null);
+      //setPauseButton(true, red, "Stop", stopAndRecover);
+      break;
   }
 
   if (grbl.spindleDirection) {
@@ -591,7 +617,7 @@ function tabletGrblState(grbl, response) {
 
   const now = new Date();
   //setText('time-of-day', now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0'));
-  if (stateName === 'Run') {
+  if (stateName === "Run") {
     let elapsed = now.getTime() - startTime;
     if (elapsed < 0) {
       elapsed = 0;
@@ -601,7 +627,7 @@ function tabletGrblState(grbl, response) {
     seconds = seconds % 60;
     if (seconds < 10) {
       seconds = `0${seconds}`;
-    };
+    }
     runTime = `${minutes}:${seconds}`;
   } else {
     startTime = now.getTime();
@@ -609,17 +635,21 @@ function tabletGrblState(grbl, response) {
 
   //setText('runtime', runTime);
 
-  //setText('wpos-label', gCodeModal.wcs);
-  const distanceText = gCodeModal.distance === 'G90' ? gCodeModal.distance : `<div style='color:red'>${gCodeModal.distance}</div>`;
+  //setText('wpos-label', common.modal.wcs);
+  const distanceText =
+    common.modal.distance === "G90"
+      ? common.modal.distance
+      : `<div style='color:red'>${common.modal.distance}</div>`;
   //setHTML('distance', distanceText);
 
-  let stateText = '';
-  if (stateName === 'Run') {
-    const rateNumber = gCodeModal.units === 'G21'
-      ? Number(grbl.feedrate).toFixed(0)
-      : Number(grbl.feedrate / 25.4).toFixed(2)
+  let stateText = "";
+  if (stateName === "Run") {
+    const rateNumber =
+      common.modal.units === "G21"
+        ? Number(grbl.feedrate).toFixed(0)
+        : Number(grbl.feedrate / 25.4).toFixed(2);
 
-    const rateText = rateNumber + (gCodeModal.units === 'G21' ? ' mm/min' : ' in/min')
+    const rateText = `${rateNumber}${(common.modal.units === "G21" ? " mm/min" : " in/min")}`;
 
     stateText = `${rateText} ${spindleSpeed} ${spindleDirection}`;
   } else {
@@ -628,41 +658,49 @@ function tabletGrblState(grbl, response) {
   }
   //setText('active-state', stateText);
 
-  // var modeText = `${gCodeModal.distance} ${gCodeModal.wcs} ${gCodeModal.units} T${gCodeModal.tool} F${gCodeModal.feedrate} S${gCodeModal.spindle}`;
+  // const modeText = `${common.modal.distance} ${common.modal.wcs} ${common.modal.units} T${common.modal.tool} F${common.modal.feedrate} S${common.modal.spindle}`;
 
   if (grbl.lineNumber && ["Run", "Hold", "Stop"].includes(stateName)) {
     //setText('line', grbl.lineNumber);
-    if (gCodeDisplayable) {
+    if (common.gCodeDisplayable) {
       scrollToLine(grbl.lineNumber);
     }
   }
-  if (gCodeDisplayable) {
-    tpDisplayer().reDrawTool(gCodeModal, arrayToXYZ(WPOS));
+  if (common.gCodeDisplayable) {
+    tpDisplayer().reDrawTool(common.modal, arrayToXYZ(WPOS()));
   }
 
-  const digits = gCodeModal.units === 'G20' ? 4 : 2;
+  const digits = common.modal.units === "G20" ? 4 : 2;
 
-  if (WPOS) {
-    WPOS.forEach((pos, index) => {
-      setTextContent(`mpos-${axisNames[index]}`, Number(pos * factor).toFixed(index > 2 ? 2 : digits));
-    })
+  if (WPOS()) {
+    WPOS().forEach((pos, index) => {
+      setTextContent(`mpos-${common.axisNames[index]}`, Number(pos * factor).toFixed(index > 2 ? 2 : digits));
+    });
   }
 
-  MPOS.forEach((pos, index) => {
-    //setTextContent('mpos-'+axisNames[index], Number(pos*factor).toFixed(index > 2 ? 2 : digits));
+  MPOS().forEach((pos, index) => {
+    // setTextContent(`mpos-${common.axisNames[index]}`, Number(pos*factor).toFixed(index > 2 ? 2 : digits));
   })
 }
 
-let gCodeFilename = '';
+// function addOption(selector, name, value, isDisabled, isSelected) {
+//   const opt = document.createElement('option');
+//   opt.appendChild(document.createTextNode(name));
+//   opt.disabled = isDisabled;
+//   opt.selected = isSelected;
+//   opt.value = value;
+//   selector.appendChild(opt);
+// }
 
 function tabletGetFileList(tabPath) {
+  const common = new Common();
   // Clear/reset the gCodeFilename
-  gCodeFilename = "";
+  common.gCodeFilename = "";
   const cmd = buildHttpFileCmd({ path: tabPath });
   SendGetHttp(cmd, files_list_success);
 }
 
-const tabletDOMActivate = () => {
+const tabletTabActivate = () => {
   fullscreenIfMobile();
   setBottomHeight();
 }
@@ -716,7 +754,8 @@ const tabletConfigPopupHide = () => hideModal("configuration-popup");
 // Control event handlers - Common
 const tabletPopupStopProp = (event) => event.stopPropagation();
 
-function tabletInit() {
+const tabletInit = () => {
+  tpInit();
   // put in a timeout to allow things to settle. when they were here at startup ui froze from time to time.
   setTimeout(() => {
     showVersionNumber();
@@ -743,7 +782,7 @@ function tabletInit() {
     setJogSelector('mm');
     loadJogDists();
 
-    id("tablettablink").addEventListener("DOMActivate", tabletDOMActivate, false);
+    id("tablettablink").addEventListener("DOMActivate", tabletTabActivate, false);
 
     // Buttons - First Row
     id("tablettab_zUp").addEventListener("click", tabletMoveZUp);
@@ -765,6 +804,7 @@ function tabletInit() {
     // Buttons - Fourth Row
     id("tablettab_set_z_home").addEventListener("mousedown", tabletSetZHomeMDown);
     id("tablettab_set_z_home").addEventListener("mouseup", tabletSetZHomeMUp);
+
     id("tablettab_move_to_xy_home").addEventListener("click", moveHome);
     id("tablettab_toggle_units").addEventListener("click", toggleUnits);
     id("tablettab_set_xy_home").addEventListener("mousedown", setHomeClickDown);
@@ -799,11 +839,13 @@ function tabletInit() {
 
     // Buttons - Configuration Pop-up
     id("configuration-popup").addEventListener("click", tabletConfigPopupHide);
-    id("configuration_popup_content").addEventListener("click", tabletPopupStopProp);
+    id("tabelttab_config_popup_content").addEventListener("click", tabletPopupStopProp);
     id("tablettab_config_save").addEventListener("click", saveConfigValues);
 
+    drawTPBtns();
+
   }, 1000);
-}
+};
 
 const showGCode = (gcode) => {
   gCodeLoaded = gcode !== "";
@@ -812,12 +854,13 @@ const showGCode = (gcode) => {
     tpDisplayer().clear();
   } else {
     setValue("tablettab_gcode", gcode);
-    if (gCodeDisplayable) {
-      tpDisplayer().showToolpath(gcode, gCodeModal, arrayToXYZ(WPOS));
+    const common = new Common();
+    if (common.gCodeDisplayable) {
+      tpDisplayer().showToolpath(gcode, common.modal, arrayToXYZ(WPOS()));
     }
   }
 
-  // TODO: this needs to take into account error states
+  // XXX this needs to take into account error states
   setRunControls();
 }
 
@@ -839,10 +882,10 @@ function nthLineEnd(str, n) {
 
 function scrollToLine(lineNumber) {
   const gCodeLines = id("tablettab_gcode");
-  const lineHeight = Number.parseFloat(getComputedStyle(gCodeLines).getPropertyValue('line-height'));
+  const lineHeight = Number.parseFloat(getComputedStyle(gCodeLines).getPropertyValue("line-height"));
   const gCodeText = gCodeLines.value;
 
-  gCodeLines.scrollTop = lineNumber * lineHeight
+  gCodeLines.scrollTop = lineNumber * lineHeight;
 
   let start;
   let end;
@@ -859,8 +902,9 @@ function scrollToLine(lineNumber) {
 }
 
 function runGCode() {
-  if (gCodeFilename) {
-    const cmd = `$sd/run=${gCodeFilename}`;
+  const common = new Common();
+  if (common.gCodeFilename) {
+    const cmd = `$sd/run=${common.gCodeFilename}`;
     sendCommand(cmd);
   }
   setTimeout(() => { SendRealtimeCmd(0x7e); }, 1500);
@@ -868,21 +912,22 @@ function runGCode() {
 }
 
 function tabletLoadGCodeFile(path, size) {
-  gCodeFilename = path
-  if ((Number.isNaN(size) && size.endsWith('GB')) || size > 10000000) {
-    showGCode('GCode file too large to display (> 1MB)');
-    gCodeDisplayable = false;
+  const common = new Common();
+  common.gCodeFilename = path;
+  if ((Number.isNaN(size) && size.endsWith("GB")) || size > 10000000) {
+    showGCode("GCode file too large to display (> 1MB)");
+    common.gCodeDisplayable = false;
     tpDisplayer().clear();
   } else {
-    gCodeDisplayable = true;
-    fetch(encodeURIComponent(`SD${gCodeFilename}`))
+    common.gCodeDisplayable = true;
+    fetch(encodeURIComponent(`SD${common.gCodeFilename}`))
       .then((response) => response.text())
       .then((gcode) => showGCode(gcode));
   }
 }
 
 function selectFile() {
-  tabletClick()
+  tabletClick();
   const filelist = id("filelist");
   const index = Number(filelist.options[filelist.selectedIndex].value);
   if (index === -3) {
@@ -895,14 +940,16 @@ function selectFile() {
   }
   if (index === -1) {
     // Go up
-    gCodeFilename = "";
-    files_go_levelup()
-    return
+    const common = new Common();
+    common.gCodeFilename = "";
+    files_go_levelup();
+    return;
   }
   const file = files_file_list[index];
   const filename = file.name;
   if (file.isdir) {
-    gCodeFilename = "";
+    const common = new Common();
+    common.gCodeFilename = "";
     files_enter_dir(filename);
   } else {
     tabletLoadGCodeFile(`${files_currentPath()}${filename}`, file.size);
@@ -950,15 +997,14 @@ const cycleDistance = (up) => {
   //    tabletClick();
   //    sel.selectedIndex = newIndex;
   //}
-}
-
-/** "Click" on the named button/element */
+};
 const clickon = (name) => {
   //    $('[data-route="workspace"] .btn').removeClass('active');
   const button = id(name);
   button.classList.add("active");
   button.dispatchEvent(new Event("click"));
-}
+};
+
 let ctrlDown = false;
 let oldIndex = null;
 let newChild = null;
@@ -982,7 +1028,7 @@ function shiftDown() {
   if (newChild) {
     return;
   }
-  const sel = id('jog-distance');
+  const sel = id("jog-distance");
   const distance = sel.value;
   oldIndex = sel.selectedIndex;
   newChild = addJogDistance(distance * 10);
@@ -991,7 +1037,7 @@ function altDown() {
   if (newChild) {
     return;
   }
-  const sel = id('jog-distance');
+  const sel = id("jog-distance");
   const distance = sel.value;
   oldIndex = sel.selectedIndex;
   newChild = addJogDistance(distance / 10);
@@ -1000,7 +1046,8 @@ function altDown() {
 /** Reports whether a text input box has focus - see the next comment.
  * TODO: Currently this is always false. Maybe we should remove all usages of it
  */
-var isInputFocused = false
+const isInputFocused = false;
+
 function tabletIsActive() {
   const elem = id("tablettab");
   return !elem ? false : elem.style.display !== "none";
@@ -1069,9 +1116,9 @@ function handleKeyUp(event) {
     return;
   }
   switch (event.key) {
-    case 'Shift': shiftUp(); break;
-    case 'Control': ctrlDown = false; break;
-    case 'Alt': altUp(); break;
+    case "Shift": shiftUp(); break;
+    case "Control": ctrlDown = false; break;
+    case "Alt": altUp(); break;
   }
 }
 
@@ -1111,6 +1158,16 @@ function fullscreenIfMobile() {
     toggleFullscreen();
   }
 }
+function setBottomHeight() {
+  if (!tabletIsActive()) {
+    return;
+  }
+  const tStyle = getComputedStyle(id("tablettab"));
+  let tPad =
+    Number.parseFloat(tStyle.paddingTop) +
+    Number.parseFloat(tStyle.paddingBottom);
+  tPad += 20;
+}
 
 // setMessageHeight(), with these helper functions, adjusts the size of the message
 // window to fill the height of the screen.  It would be nice if we could do that
@@ -1120,24 +1177,7 @@ function fullscreenIfMobile() {
 function height(element) {
   return element?.getBoundingClientRect()?.height;
 }
-function heightId(eid) {
-  return height(id(eid));
-}
-function bodyHeight() {
-  return height(document.body);
-}
-function controlHeight() {
-  return heightId('nav-panel') + heightId('axis-position') + heightId('setAxis');
-}
-function setBottomHeight() {
-  if (!tabletIsActive()) {
-    return;
-  }
-  const residue = bodyHeight() - heightId('navbar') - controlHeight();
-  const tStyle = getComputedStyle(id('tablettab'));
-  let tPad = Number.parseFloat(tStyle.paddingTop) + Number.parseFloat(tStyle.paddingBottom);
-  tPad += 20;
-}
+
 window.onresize = setBottomHeight
 
 const tabletDocumentClick = (event) => {
@@ -1179,12 +1219,27 @@ const onCalibrationButtonsClick = async (command, msg = "") => {
 
   //Prints out the index.html version number when test is pressed
   if (command === '$TEST') {
-    addMessage(`Index.html Version: ${versionNumber}`);
+    const common = new Common();
+    addMessage(`Index.html Version: ${common.web_ui_version}`);
   }
 
   if (command !== '$MINFO') {
     setTimeout(() => { sendCommand('$MINFO'); }, 1000);
   }
-}
+};
 
+export {
+  loadedValues,
+  openModal,
+  hideModal,
+  goAxisByValue,
+  onCalibrationButtonsClick,
+  saveJogDists,
+  saveSerialMessages,
+  showGCode,
+  tabletInit,
+  tabletGrblState,
+  tabletShowMessage,
+  tabletUpdateModal,
+};
 /* Calibration modal END */

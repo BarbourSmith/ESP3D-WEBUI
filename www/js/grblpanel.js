@@ -1,4 +1,25 @@
-// import - id, opentab, SendPrinterCommand, grbl_reset, reportNone, tryAutoReport, reportPolled, onAutoReportIntervalChange, onstatusIntervalChange, onprobemaxtravelChange, onprobefeedrateChange, onproberetractChange, onprobetouchplatethicknessChange, SendRealtimeCmd, StartProbeProcess
+import {
+	Common,
+	id,
+	opentab,
+	SendPrinterCommand,
+	grbl_reset,
+	reportNone,
+	tryAutoReport,
+	reportPolled,
+	onAutoReportIntervalChange,
+	onstatusIntervalChange,
+	onprobemaxtravelChange,
+	onprobefeedrateChange,
+	onproberetractChange,
+	onprobetouchplatethicknessChange,
+	SendRealtimeCmd,
+	StartProbeProcess,
+	setSpindleSpeed,
+	trx_text_item,
+	setHTML,
+	get_icon_svg,
+} from "./common.js";
 
 const grblPanelClearStatus = () => SendPrinterCommand("$X", true, null, null, 114, 1);
 const grblPanelPause = () => SendRealtimeCmd(0x21);
@@ -20,8 +41,14 @@ const grblPanelSpindle = () => SendRealtimeCmd(0x9e);
 const grblPanelFlood = () => SendRealtimeCmd(0xa0);
 const grblPanelMist = () => SendRealtimeCmd(0xa1);
 
-const grblPanelSpindleFwd = () => SendPrinterCommand(`M3 S${spindleTabSpindleSpeed}`, false, null, null, 1, 1);
-const grblPanelSpindleRew = () => SendPrinterCommand(`M4 S${spindleTabSpindleSpeed}`, false, null, null, 1, 1);
+const grblPanelSpindleFwd = () => {
+	const common = new Common();
+	SendPrinterCommand(`M3 S${common.spindleTabSpindleSpeed}`, false, null, null, 1, 1);
+}
+const grblPanelSpindleRew = () => {
+	const common = new Common();
+	SendPrinterCommand(`M4 S${common.spindleTabSpindleSpeed}`, false, null, null, 1, 1);
+}
 const grblPanelSpindleOff = () => SendPrinterCommand("M5 S0", false, null, null, 1, 1);
 const grblPanelSpindleRpm = (event) => setSpindleSpeed(event.value);
 
@@ -31,6 +58,8 @@ const grblPanelProbeTabLink = (event) => opentab(event, "grblprobetab", "grbluit
 
 /** Set up the event handlers for the grblpanel */
 const grblpanel = () => {
+	const common = new Common();
+
     // GRBL reporting
     id("report_none").addEventListener("change", onReportType);
     id("report_auto").addEventListener("change", onReportType);
@@ -76,7 +105,41 @@ const grblpanel = () => {
     id("grblspindletablink").addEventListener("click", grblPanelSpindleTabLink);
     id("grblprobetablink").addEventListener("click", grblPanelProbeTabLink);
 
-    id("global_reset_btn").addEventListener("click", grbl_reset);
+	id("global_reset_btn").addEventListener("click", grbl_reset);
+
+	const clearAlarmTitle = `<span class="tooltip-text">${trx_text_item("Clear Alarm")}</span>`
+	const bellIcon = get_icon_svg("bell", {h: "1.8em", w: "2em", t: "translate(50,1200) scale(1,-1)", v:"-200 -200 1700 1600", color: "black"});
+	const alarmIcon = bellIcon.replace("</path>", '</path><circle cx="600" cy="600" r="700" stroke="red" stroke-width="100" fill="none"></circle><line x1="106" y1="106" x2="1094" y2="1094" stroke="red" stroke-width="100"></line>');
+	setHTML("clear_status_btn", `${clearAlarmTitle}${alarmIcon}`);
+
+	setHTML("sd_pause_btn", get_icon_svg("pause", {h: "1.4em", w: "2em", t: "translate(50,1200) scale(1,-1)", color: "blue"}));
+	setHTML("sd_resume_btn", get_icon_svg("play", {h: "1.4em", w: "2em", t: "translate(50,1200) scale(1,-1)", color: "green"}));
+
+	setHTML("grblspindle_rew", `On Rew${get_icon_svg("triangle-left")}`);
+	setHTML("grblspindle_fwd", `On Fwd${get_icon_svg("triangle-right")}`);
+	setHTML("grblspindle_off", `Off${get_icon_svg("stop")}`);
+
+	const iconPlayOptions = {h: "1.4em", w: "1.3em", t: "translate(50,1200) scale(1,-1)", color: "black"};
+	setHTML("FFastBack", get_icon_svg("fast-backward", iconPlayOptions));
+	setHTML("FBack", get_icon_svg("step-backward", iconPlayOptions));
+	setHTML("grblpanel_F0", get_icon_svg("play", iconPlayOptions));
+	setHTML("FFwd", get_icon_svg("step-forward", iconPlayOptions));
+	setHTML("FFastFwd", get_icon_svg("fast-forward", iconPlayOptions));
+
+	setHTML("SFastBack", get_icon_svg("fast-backward", iconPlayOptions));
+	setHTML("SBack", get_icon_svg("step-backward", iconPlayOptions));
+	setHTML("grblpanel_S0", get_icon_svg("play", iconPlayOptions));
+	setHTML("SFwd", get_icon_svg("step-forward", iconPlayOptions));
+	setHTML("SFastFwd", get_icon_svg("fast-forward", iconPlayOptions));
+
+	setHTML("grblSpindle", get_icon_svg("record", iconPlayOptions));
+	setHTML("grblFlood", get_icon_svg("tint", iconPlayOptions));
+	setHTML("grblMist", get_icon_svg("cloud-download", iconPlayOptions).replace("</path>", '</path><circle cx="600" cy="450" r="300" stroke="black" fill="black"></circle>'));
+
+	const iconResetOptions = {h: "1.4em", w: "2em", t: "translate(1200,1200) scale(-1, -1)", v: "0 0 1200 1200", color: "white"};
+	setHTML("sd_reset_btn", get_icon_svg("play", iconResetOptions));
+	setHTML("global_reset_btn", get_icon_svg("play", iconResetOptions));
+
 };
 
 const onReportType = (e) => {
@@ -86,3 +149,5 @@ const onReportType = (e) => {
         case "poll": reportPolled(); break;
     }
 };
+
+export { grblpanel };

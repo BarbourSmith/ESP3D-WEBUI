@@ -7,15 +7,15 @@
                                 <td><span>Uploading </span></td><td>&nbsp;</td>
                                 <td><span class="text-info" data-ng-bind="fileVM.currentUploadedFile.filename"></span></td><td>&nbsp;</td>
                                 <td width='100em'>
-                                    <uib-progressbar class="progress-striped active" value="fileVM.currentUploadedFile.percentage">
+                                    <!-- <uib-progressbar class="progress-striped active" value="fileVM.currentUploadedFile.percentage">
                                         <span data-ng-bind="fileVM.currentUploadedFile.percentage + '%'" data-ng-hide="fileVM.currentUploadedFile.percentage < 5"></span>
-                                    </uib-progressbar>
+                                    </uib-progressbar> -->
                                 </td>
                                 </tr></table>
                             </div>
                             <div class="pull-right" ng-if="!fileVM.uploading">
                                 <button class="btn btn-xs btn-primary glyphicon" data-ng-hide="fileVM.showfilter()" ng-class="{false : 'glyphicon-filter' , true : 'glyphicon-list-alt'}[fileVM.filterfiles]" data-ng-click="fileVM.filterfiles=!fileVM.filterfiles;fileVM.refreshFileslist();"></button>
-                                <button class="btn btn-xs btn-primary" data-ng-click="fileVM.progress()" translate>Progress</button>
+                                <!-- <button class="btn btn-xs btn-primary" data-ng-click="fileVM.progress()" translate>Progress</button> -->
                                 <button class="btn btn-xs btn-primary" data-ng-click="fileVM.abort()" translate>Abort</button>
                                 <button class="btn btn-xs btn-primary" data-ng-click="fileVM.setsd()"  ngf-validate-async-fn="fileVM.validate($file)" data-ngf-select="fileVM.uploadFile($file)" data-ngf-accept="'.g,.gco,.gcode'" translate>Upload</button>
                             </div>
@@ -26,7 +26,7 @@
                                     <div class="row">
                                         <div class="col-md-1 col-sm-1"><span  class="glyphicon glyphicon-folder-open" style="color:DeepSkyBlue" ng-if="fileVM.isDir(file.filename)"></span ><span  class="glyphicon glyphicon-file" style="color:DeepSkyBlue" ng-if="!(fileVM.isDir(file.filename))"></span ></div>
                                         <div class="col-md-4 col-sm-4" data-ng-bind="file.filename"></div>
-                                        <div class="col-md-3 col-sm-3"><uib-progressbar class="progress-striped active" data-ng-show="file.uploading" value="file.percentage"><span data-ng-bind="file.percentage + '%'" data-ng-hide="file.percentage < 5"></span></uib-progressbar></div>
+                                        <!-- <div class="col-md-3 col-sm-3"><uib-progressbar class="progress-striped active" data-ng-show="file.uploading" value="file.percentage"><span data-ng-bind="file.percentage + '%'" data-ng-hide="file.percentage < 5"></span></uib-progressbar></div> -->
                                         <div class="col-md-4 col-sm-2">
                                             <div class="pull-right">
                                                 <button class="btn btn-xs btn-default glyphicon glyphicon-print" ng-if="fileVM.showprintbutton(file.filename)" data-ng-click="fileVM.print(file.filename)" ></button>
@@ -45,7 +45,9 @@
                                                  <td>Total:&nbsp;<span data-ng-bind="fileVM.sd_status_total"></span></td> 
                                                  <td>&nbsp;| Used Space:&nbsp;<span data-ng-bind="fileVM.sd_status_used"> </span></td> 
                                                  <td>&nbsp;| Occupation:&nbsp;</td> 
-                                                 <td><uib-progressbar style="width:5em; text-color:black !important" animate="false" value="fileVM.sd_status_percent" type="success"></uib-progressbar></td>
+                                                 <td>
+                                                    <!-- <uib-progressbar style="width:5em; text-color:black !important" animate="false" value="fileVM.sd_status_percent" type="success"></uib-progressbar> -->
+                                                </td>
                                                  <td><span  data-ng-bind="fileVM.sd_status_percent"></span><span>%</span></td>
                                             </tr>
                                             <tr ng-if="!fileVM.showSDstatus()" data-ng-cloak>

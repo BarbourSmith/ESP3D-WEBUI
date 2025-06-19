@@ -1,5 +1,14 @@
-// When we can change to proper ESM - uncomment this
-// import M from "constants";
+import {
+	Common,
+	M,
+	get_Position,
+	SendPrinterCommand,
+	refreshSettings,
+	saveMaslowYaml,
+	hideModal,
+	loadedValues,
+	setValue,
+} from "./common.js";
 
 /** Maslow Status */
 let maslowStatus = { homed: false, extended: false, state: 0 };
@@ -9,7 +18,6 @@ let maslowStatus = { homed: false, extended: false, state: 0 };
 let lastHeartBeatTime = new Date().getTime();
 
 const err = "error: ";
-// When we can change to proper ESM - prefix these const strings and functions with 'export' (minus the quotes of course)
 const MaslowErrMsgKeyValueCantUse = `${err}Could not use supplied key-value pair.`;
 const MaslowErrMsgNoKey = `${err}No key supplied for value.`;
 const MaslowErrMsgNoValue = `${err}No value supplied for key.`;
@@ -287,21 +295,21 @@ const maslowErrorMsgHandling = (msg) => {
 
 	// And extra information for certain error codes
 	const msgExtra = {
-		"8": " - Command requires idle state. Unlock machine?",
-		"152": " - Configuration is invalid. Maslow.yaml file may be corrupt. Turning off and back on again can often fix this issue.",
-		"153": " - Configuration is invalid. ESP32 probably did a panic reset. Config changes cannot be saved. Try restarting",
+		8: " - Command requires idle state. Unlock machine?",
+		152: " - Configuration is invalid. Maslow.yaml file may be corrupt. Turning off and back on again can often fix this issue.",
+		153: " - Configuration is invalid. ESP32 probably did a panic reset. Config changes cannot be saved. Try restarting",
 	};
 
 	return `${msg}${msgExtra[msg.split(":")[1]] || ""}`;
-}
+};
 
-/** Is the machine orientation 'vertical' (the default) */
+/** Is the machine orientation 'upright' (the default) */
 const isVert = (value) => value === "horizontal" ? "false" : "true";
 /** What orientation is the machine? */
-const vertIs = (value) => value === "false" ? "horizontal" : "vertical";
+const vertIs = (value) => value === "false" ? "horizontal" : "upright";
 
 const cfgDef = {
-	vertical: { name: "machineOrientation", type: "A", fnVal: isVert, fnDisp: vertIs },
+	orientation: { name: "machineOrientation", type: "A", fnVal: isVert, fnDisp: vertIs },
 	calibration_grid_size: { name: "gridSize", type: "A" },
 	calibration_grid_width_mm_X: { name: "gridWidth", type: "A" },
 	calibration_grid_height_mm_Y: { name: "gridHeight", type: "A" },
@@ -311,24 +319,25 @@ const cfgDef = {
 	Extend_Dist: { name: "extendDist", type: "A" },
 	beltEndExtension: { name: "beltEndExtension", type: "A" },
 	armLength: { name: "armLength", type: "A" },
-	trX: { name: "tr.x", type: "D" },
-	trY: { name: "tr.y", type: "D" },
-	trZ: { name: "tr.z", type: "D" },
-	tlX: { name: "tl.x", type: "D" },
-	tlY: { name: "tl.y", type: "D" },
-	tlZ: { name: "tl.z", type: "D" },
-	brX: { name: "br.x", type: "D" },
-	brY: { name: "br.y", type: "Null" },
-	brZ: { name: "br.z", type: "D" },
-	blX: { name: "bl.x", type: "Null" },
-	blY: { name: "bl.y", type: "Null" },
-	blZ: { name: "bl.z", type: "D" },
+	trX: { name: "initialGuess.tr.x", type: "D" },
+	trY: { name: "initialGuess.tr.y", type: "D" },
+	trZ: { name: "initialGuess.tr.z", type: "D" },
+	tlX: { name: "initialGuess.tl.x", type: "D" },
+	tlY: { name: "initialGuess.tl.y", type: "D" },
+	tlZ: { name: "initialGuess.tl.z", type: "D" },
+	brX: { name: "initialGuess.br.x", type: "D" },
+	brY: { name: "initialGuess.br.y", type: "Null" },
+	brZ: { name: "initialGuess.br.z", type: "D" },
+	blX: { name: "initialGuess.bl.x", type: "Null" },
+	blY: { name: "initialGuess.bl.y", type: "Null" },
+	blZ: { name: "initialGuess.bl.z", type: "D" },
 };
 
 /** Handle Maslow specific configuration messages
  * These would have all started with `$/Maslow_` which is expected to have been stripped away before calling this function
  */
 const maslowMsgHandling = (msg) => {
+	const common = new Common();
 	const keyValue = msg.split("=");
 	const errMsgSuffix = `${MaslowErrMsgKeyValueSuffix}${msg}`;
 	if (keyValue.length !== 2) {
@@ -360,18 +369,18 @@ const maslowMsgHandling = (msg) => {
 			stdAction(cfgVal.name, value);
 			break;
 		case "D": {
-			let dimEnt = initialGuess;
+			let dimEnt = common;
 			if (!cfgVal.name) {
 				// Well this is dangerous - so let's not do anything we'll regret very quickly
 				return maslowErrorMsgHandling(`error: No 'name' value specified for '${key}' in the reference table. ${errMsgSuffix}`);
 			}
 			// Traverse through to the required entity
-			cfgVal.name.split(".").forEach((namePart) => {
+			for (const namePart of cfgVal.name.split(".")) {
 				if (!(namePart in dimEnt)) {
 					dimEnt[namePart] = null;
 				}
 				dimEnt = dimEnt[namePart];
-			});
+			};
 			dimEnt = stdDimensionAction(value);
 		}
 			break;
@@ -382,7 +391,7 @@ const maslowMsgHandling = (msg) => {
 
 	// Success - return an empty string
 	return "";
-}
+};
 
 const checkHomed = () => {
 	if (maslowStatus.state != 7) { // If the state is not 'ready to cut'
@@ -406,30 +415,28 @@ const checkHomed = () => {
  */
 const sendCommand = (cmd) => {
 	SendPrinterCommand(cmd, true, get_Position);
-}
+};
 
 // The following functions are all defined as global functions, and are used by tablettab.html and other places
 // They rely on the global function SendPrinterCommand defined in printercmd.js
 
-/** Get all of the config (not corner) keys in the confiiguration definition */
+/** Get all of the config (not corner) keys in the configuration definition */
 const allConfigKeys = () => Object.keys(cfgDef).filter((key) => cfgDef[key].type === "A");
 
 /** Used to populate the config popup when it loads */
 const loadConfigValues = () => {
-	// biome-ignore lint/complexity/noForEach: <explanation>
-	allConfigKeys().forEach((key) => {
+	for (const key of allConfigKeys()) {
 		const cmd = `$/${M}_${key}`;
 		SendPrinterCommand(cmd);
-	});
+	};
 };
 
 /** Load all of the corner values */
 const loadCornerValues = () => {
-	// biome-ignore lint/complexity/noForEach: <explanation>
-	Object.keys(cfgDef).filter((key) => cfgDef[key].type === "D").forEach((key) => {
+	for (const key of Object.keys(cfgDef).filter((key) => cfgDef[key].type === "D")) {
 		const cmd = `$/${M}_${key}`;
 		SendPrinterCommand(cmd);
-	});
+	};
 };
 
 const saveConfigValues = () => {
@@ -461,10 +468,26 @@ const saveConfigValues = () => {
 		}
 	};
 
-	refreshSettings(current_setting_filter);
+	const common = new Common();
+	refreshSettings(common.current_setting_filter);
 	saveMaslowYaml();
 	loadCornerValues();
 
-	hideModal('configuration-popup');
-}
+	hideModal("configuration-popup");
+};
 
+export {
+	MaslowErrMsgKeyValueCantUse,
+	MaslowErrMsgNoKey,
+	MaslowErrMsgNoValue,
+	MaslowErrMsgNoMatchingKey,
+	MaslowErrMsgKeyValueSuffix,
+	maslowInfoMsgHandling,
+	maslowErrorMsgHandling,
+	maslowMsgHandling,
+	checkHomed,
+	sendCommand,
+	loadConfigValues,
+	loadCornerValues,
+	saveConfigValues,
+};

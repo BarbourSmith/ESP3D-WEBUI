@@ -1,9 +1,9 @@
-<div id="tablettab" class="tabcontent tablettab">
+<div id="tablettab" class="tabcontent tablettab hide_it">
   <div id="tablet-listener">
     <div class="maslow">
       <div class="display tablettab-canvas-wrapper">
         <canvas id="small-toolpath" class="previewer" style="width: 100%; height: 100%"></canvas>
-        <textarea id="tablettab_gcode" style="border: none" class="gcode" rows="8" placeholder="GCode File Display"
+        <textarea id="tablettab_gcode" style="border:none" class="gcode" rows="8" placeholder="GCode File Display"
           spellcheck="false" readonly>
         </textarea>
       </div>
@@ -11,7 +11,7 @@
         <div style="grid-template-columns: 20% 20% 20% 20% 20%;" class="maslow-grid-container tablettab-controls-item">
           <!-- Buttons row 1 -->
           <div id="tablettab_zUp" class="maslow-grid-item maslow-grid-item-btn"
-            style="background-color: #f2f0e4;; color: #337ab7; border-right: 2px solid grey;">
+            style="background-color: #f2f0e4; color: #337ab7; border-right: 2px solid grey;">
             <svg width="32" height="32" viewBox="0 0 38 38">
               <polygon fill="currentColor" points="10.319 5.525 17.833 13.039 2.805 13.039 10.319 5.525" />
               <rect fill="currentColor" height="2.5" transform="translate(31.899 11.262) rotate(90)" width="21.79"
@@ -65,7 +65,9 @@
             Z
           </div>
           <div id="tablettab_bottomLeft" class="maslow-grid-item maslow-grid-item-btn"
-            style="background-color: #b69fcb;"><canvas id="blBtn" style="width: 100%; height: 100%"></canvas> </div>
+            style="background-color: #b69fcb;">
+            <canvas id="blBtn" style="width: 100%; height: 100%"></canvas>
+          </div>
           <div id="tablettab_bottom" class="maslow-grid-item maslow-grid-item-btn" style="background-color: #9d88c0;">
             <canvas id="dnBtn" style="width: 100%; height: 100%">
           </div>
@@ -131,7 +133,7 @@
             </table>
           </div>
         </div>
-        <textarea style="border: none" class="messages tablettab-controls-item" id="messages" rows="14"
+        <textarea id="messages" style="border: none" class="messages tablettab-controls-item" rows="14"
           spellcheck="false" readonly>Serial Messages</textarea>
         <button id="tablettab_save_serial_msg" class="btn btn-primary">Save Serial</button>
       </div>
@@ -170,7 +172,7 @@
   </div>
 
   <div id="configuration-popup" class="calibration-modal-container">
-    <div id="configuration_popup_content" class="calibration-modal-content">
+    <div id="tabelttab_config_popup_content" class="calibration-modal-content">
       <div class="calibration-modal-button-container">
         <div class="input-row">
           <div style="display: flex; justify-content: center;">
@@ -191,7 +193,7 @@
           <div class="input-row">
             <select id="machineOrientation" class="calibration-modal-input">
               <option value="horizontal">Horizontal</option>
-              <option value="vertical">Vertical</option>
+              <option value="upright">Upright</option>
             </select>
           </div>
         </div>
@@ -250,3 +252,4 @@
       </div>
     </div>
   </div>
+</div>
