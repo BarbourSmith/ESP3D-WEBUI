@@ -77,7 +77,8 @@ function isCaptivePortal() {
 
 // Function to show captive portal warning modal
 function showCaptivePortalWarning() {
-	const message = "You appear to be using a browser popup with limited connectivity. File uploading and downloading may not work properly. For full functionality, please open your browser and navigate directly to maslow.local or the machine's IP address.";
+	const message = translate_text_item("You appear to be using a browser popup with limited connectivity. File uploading and downloading may not work properly. For full functionality, please open your browser and navigate directly to maslow.local or the machine's IP address.");
+	const buttonText = translate_text_item("I Understand");
 	
 	// Create the modal dynamically
 	const modal = document.createElement('div');
@@ -105,7 +106,7 @@ function showCaptivePortalWarning() {
 	`;
 	
 	const closeButton = document.createElement('button');
-	closeButton.textContent = 'I Understand';
+	closeButton.textContent = buttonText;
 	closeButton.style.cssText = `
 		margin-top: 10px;
 		padding: 8px 16px;

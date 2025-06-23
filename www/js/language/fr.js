@@ -371,4 +371,6 @@ var frenchtrans = {
 "error:63":"R&eacute;pertoire non trouv&eacute; sur la carte SD",
 "error:64":"Fichier vide sur la carte SD",
 "error:70":"Echec de d&eacute;marrage du Bluetooth",
+"You appear to be using a browser popup with limited connectivity. File uploading and downloading may not work properly. For full functionality, please open your browser and navigate directly to maslow.local or the machine's IP address.":"Il semble que vous utilisiez une fenêtre contextuelle de navigateur avec une connectivité limitée. Le téléchargement et l'envoi de fichiers peuvent ne pas fonctionner correctement. Pour une fonctionnalité complète, veuillez ouvrir votre navigateur et naviguer directement vers maslow.local ou l'adresse IP de la machine.",
+"I Understand":"J'ai compris",
 };

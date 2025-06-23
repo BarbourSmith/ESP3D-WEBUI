@@ -372,5 +372,7 @@ var spanishtrans = {
 "error:63":"SD Card directory not found",
 "error:64":"SD Card file empty",
 "error:70":"Bluetooth failed to start",
+"You appear to be using a browser popup with limited connectivity. File uploading and downloading may not work properly. For full functionality, please open your browser and navigate directly to maslow.local or the machine's IP address.":"Parece que estás usando una ventana emergente del navegador con conectividad limitada. La carga y descarga de archivos puede no funcionar correctamente. Para obtener la funcionalidad completa, abre tu navegador y navega directamente a maslow.local o la dirección IP de la máquina.",
+"I Understand":"Entiendo",
 };
 //endRemoveIf(es_lang_disabled)
