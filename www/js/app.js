@@ -56,6 +56,75 @@ function browser_is(bname) {
 	return false;
 }
 
+// Function to detect if user is in a captive portal (limited connectivity state)
+function isCaptivePortal() {
+	const hostname = window.location.hostname;
+	
+	// If hostname is 'maslow.local', user has proper connectivity
+	if (hostname === 'maslow.local') {
+		return false;
+	}
+	
+	// Check if hostname is an IP address (IPv4 pattern)
+	const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+	if (ipv4Pattern.test(hostname)) {
+		return false;
+	}
+	
+	// If hostname is anything else, user is likely in captive portal
+	return true;
+}
+
+// Function to show captive portal warning modal
+function showCaptivePortalWarning() {
+	const message = "You appear to be using a browser popup with limited connectivity. File uploading and downloading may not work properly. For full functionality, please open your browser and navigate directly to maslow.local or the machine's IP address.";
+	
+	// Create the modal dynamically
+	const modal = document.createElement('div');
+	modal.id = 'captive-portal-warning-modal';
+	modal.style.cssText = `
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		background-color: #fff3cd;
+		padding: 20px;
+		border: 1px solid #ffeaa7;
+		border-radius: 5px;
+		box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+		z-index: 1000;
+		max-width: 400px;
+		text-align: center;
+	`;
+	
+	const messageElement = document.createElement('p');
+	messageElement.textContent = message;
+	messageElement.style.cssText = `
+		margin: 0 0 15px 0;
+		color: #856404;
+	`;
+	
+	const closeButton = document.createElement('button');
+	closeButton.textContent = 'I Understand';
+	closeButton.style.cssText = `
+		margin-top: 10px;
+		padding: 8px 16px;
+		cursor: pointer;
+		background-color: #ffc107;
+		border: none;
+		border-radius: 3px;
+		color: #212529;
+		font-weight: bold;
+	`;
+	closeButton.onclick = function() {
+		document.body.removeChild(modal);
+	};
+	
+	modal.appendChild(messageElement);
+	modal.appendChild(closeButton);
+	document.body.appendChild(modal);
+}
+
 let failSafe = 10;
 
 function loadApp() {
@@ -110,6 +179,14 @@ function loadApp() {
 		if ((startUp.connect.msg && startUp.controls.msg && startUp.navBar.msg && startUp.tabletTab.msg) || failSafe <= 0) {
 			clearInterval(startUpInt);
 			startUpInt = null;
+			
+			// Check for captive portal after UI is loaded
+			if (isCaptivePortal()) {
+				// Add a small delay to ensure UI is fully rendered before showing the warning
+				setTimeout(() => {
+					showCaptivePortalWarning();
+				}, 500);
+			}
 		}
 
 		// Ensure that we always break out of this
