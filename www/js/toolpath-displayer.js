@@ -993,7 +993,122 @@ const updateGcodeViewerAngle = () => {
 	tpDisplayer().cycleCameraAngle(gcode, gCodeModal, arrayToXYZ(WPOS));
 };
 
-canvas.addEventListener("mouseup", updateGcodeViewerAngle); 
+canvas.addEventListener("mouseup", updateGcodeViewerAngle);
+
+// Convert canvas pixel coordinates to real-world coordinates
+const pixelToWorldCoords = (pixelX, pixelY) => {
+    // Convert from canvas pixel coordinates to world coordinates
+    // Based on the transformation: x' = scaler * x + xOffset, y' = -scaler * y + yOffset
+    const worldX = (pixelX - xOffset) / scaler;
+    const worldY = (yOffset - pixelY) / scaler;
+    return { x: worldX, y: worldY };
+};
+
+// Check if current view is top-down (suitable for coordinate clicking)
+const isTopDownView = () => {
+    return cameraAngle >= 2; // Camera angles 2, 3, 4 use topView projection
+};
+
+// Create and show context menu for moving to clicked position
+const showMoveContextMenu = (event, worldCoords) => {
+    // Remove any existing context menu
+    const existingMenu = document.getElementById('canvas-context-menu');
+    if (existingMenu) {
+        existingMenu.remove();
+    }
+
+    // Create context menu element
+    const contextMenu = document.createElement('div');
+    contextMenu.id = 'canvas-context-menu';
+    contextMenu.style.cssText = `
+        position: fixed;
+        top: ${event.clientY}px;
+        left: ${event.clientX}px;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        padding: 8px 0;
+        z-index: 1000;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        min-width: 120px;
+    `;
+
+    // Create menu item
+    const menuItem = document.createElement('div');
+    menuItem.style.cssText = `
+        padding: 8px 16px;
+        cursor: pointer;
+        user-select: none;
+    `;
+    menuItem.textContent = `Move to X${worldCoords.x.toFixed(1)} Y${worldCoords.y.toFixed(1)}`;
+    
+    // Add hover effect
+    menuItem.addEventListener('mouseenter', () => {
+        menuItem.style.backgroundColor = '#f0f0f0';
+    });
+    menuItem.addEventListener('mouseleave', () => {
+        menuItem.style.backgroundColor = 'transparent';
+    });
+
+    // Add click handler to execute move command
+    menuItem.addEventListener('click', () => {
+        // Use the existing moveTo function from tablet.js
+        if (typeof moveTo === 'function') {
+            moveTo(`X${worldCoords.x.toFixed(3)} Y${worldCoords.y.toFixed(3)}`);
+        } else {
+            console.error('moveTo function not available');
+        }
+        contextMenu.remove();
+    });
+
+    contextMenu.appendChild(menuItem);
+    document.body.appendChild(contextMenu);
+
+    // Remove context menu when clicking elsewhere
+    const removeMenu = (e) => {
+        if (!contextMenu.contains(e.target)) {
+            contextMenu.remove();
+            document.removeEventListener('click', removeMenu);
+        }
+    };
+    
+    // Add slight delay to prevent immediate removal
+    setTimeout(() => {
+        document.addEventListener('click', removeMenu);
+    }, 50);
+};
+
+// Handle right-click on canvas
+const handleCanvasRightClick = (event) => {
+    event.preventDefault(); // Prevent default context menu
+    
+    // Only allow in top-down views
+    if (!isTopDownView()) {
+        return;
+    }
+
+    // Only proceed if we have valid transformation parameters
+    if (!bboxIsSet || scaler === 0) {
+        return;
+    }
+
+    // Get canvas-relative coordinates
+    const rect = canvas.getBoundingClientRect();
+    const canvasX = event.clientX - rect.left;
+    const canvasY = event.clientY - rect.top;
+    
+    // Convert to world coordinates
+    const worldCoords = pixelToWorldCoords(canvasX, canvasY);
+    
+    // Show context menu
+    showMoveContextMenu(event, worldCoords);
+};
+
+// Add right-click event listener to canvas
+canvas.addEventListener('contextmenu', handleCanvasRightClick);
+
 var refreshGcode = function() {
     const gcode = getValue("tablettab_gcode");
     tpDisplayer().showToolpath(gcode, gCodeModal, arrayToXYZ(WPOS));
