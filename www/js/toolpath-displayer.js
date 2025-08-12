@@ -993,7 +993,15 @@ const updateGcodeViewerAngle = () => {
 	tpDisplayer().cycleCameraAngle(gcode, gCodeModal, arrayToXYZ(WPOS));
 };
 
-canvas.addEventListener("mouseup", updateGcodeViewerAngle);
+// Only cycle view on left-click, not right-click
+const handleCanvasMouseUp = (event) => {
+    // Only cycle camera angle on left-click (button 0)
+    if (event.button === 0) {
+        updateGcodeViewerAngle();
+    }
+};
+
+canvas.addEventListener("mouseup", handleCanvasMouseUp);
 
 // Convert canvas pixel coordinates to real-world coordinates
 const pixelToWorldCoords = (pixelX, pixelY) => {
