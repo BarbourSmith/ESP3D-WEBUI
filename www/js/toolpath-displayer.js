@@ -14,7 +14,7 @@ tp.lineWidth = 0.1;
 tp.lineCap = 'round';
 tp.strokeStyle = 'black';
 
-var cameraAngle = 0;
+var cameraAngle = 2; // Start in top-down view so right-click functionality is available
 
 // Default fallback values (will be replaced by actual configuration values)
 var tlX = -8.339;
@@ -1011,6 +1011,8 @@ const isTopDownView = () => {
 
 // Create and show context menu for moving to clicked position
 const showMoveContextMenu = (event, worldCoords) => {
+    console.log('Creating context menu for coordinates:', worldCoords); // Debug log
+    
     // Remove any existing context menu
     const existingMenu = document.getElementById('canvas-context-menu');
     if (existingMenu) {
@@ -1029,10 +1031,10 @@ const showMoveContextMenu = (event, worldCoords) => {
         border-radius: 4px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         padding: 8px 0;
-        z-index: 1000;
+        z-index: 10000;
         font-family: Arial, sans-serif;
         font-size: 14px;
-        min-width: 120px;
+        min-width: 140px;
     `;
 
     // Create menu item
@@ -1054,11 +1056,28 @@ const showMoveContextMenu = (event, worldCoords) => {
 
     // Add click handler to execute move command
     menuItem.addEventListener('click', () => {
-        // Use the existing moveTo function from tablet.js
+        console.log('Context menu clicked, attempting to move to:', worldCoords); // Debug log
+        
+        // Check if moveTo function is available
         if (typeof moveTo === 'function') {
-            moveTo(`X${worldCoords.x.toFixed(3)} Y${worldCoords.y.toFixed(3)}`);
+            const moveCommand = `X${worldCoords.x.toFixed(3)} Y${worldCoords.y.toFixed(3)}`;
+            console.log('Executing moveTo command:', moveCommand);
+            moveTo(moveCommand);
+        } else if (typeof window.moveTo === 'function') {
+            // Try window.moveTo as fallback
+            const moveCommand = `X${worldCoords.x.toFixed(3)} Y${worldCoords.y.toFixed(3)}`;
+            console.log('Executing window.moveTo command:', moveCommand);
+            window.moveTo(moveCommand);
         } else {
             console.error('moveTo function not available');
+            // Try alternative approach - send the command directly
+            if (typeof sendCommand === 'function') {
+                const gcode = `G90 G0 X${worldCoords.x.toFixed(3)} Y${worldCoords.y.toFixed(3)}`;
+                console.log('Sending G-code directly:', gcode);
+                sendCommand(gcode);
+            } else {
+                alert('Move function not available. Please check console for details.');
+            }
         }
         contextMenu.remove();
     });
@@ -1066,9 +1085,12 @@ const showMoveContextMenu = (event, worldCoords) => {
     contextMenu.appendChild(menuItem);
     document.body.appendChild(contextMenu);
 
+    console.log('Context menu created and added to page'); // Debug log
+
     // Remove context menu when clicking elsewhere
     const removeMenu = (e) => {
         if (!contextMenu.contains(e.target)) {
+            console.log('Removing context menu due to outside click'); // Debug log
             contextMenu.remove();
             document.removeEventListener('click', removeMenu);
         }
@@ -1082,15 +1104,25 @@ const showMoveContextMenu = (event, worldCoords) => {
 
 // Handle right-click on canvas
 const handleCanvasRightClick = (event) => {
+    console.log('Right-click detected on canvas'); // Debug log
     event.preventDefault(); // Prevent default context menu
+    event.stopPropagation(); // Stop event from bubbling up
+    
+    // Debug information
+    console.log('Camera angle:', cameraAngle);
+    console.log('Is top-down view:', isTopDownView());
+    console.log('BBox is set:', bboxIsSet);
+    console.log('Scaler:', scaler);
     
     // Only allow in top-down views
     if (!isTopDownView()) {
+        console.log('Not in top-down view, skipping context menu');
         return;
     }
 
     // Only proceed if we have valid transformation parameters
     if (!bboxIsSet || scaler === 0) {
+        console.log('Invalid transformation parameters, skipping context menu');
         return;
     }
 
@@ -1099,15 +1131,32 @@ const handleCanvasRightClick = (event) => {
     const canvasX = event.clientX - rect.left;
     const canvasY = event.clientY - rect.top;
     
+    console.log('Canvas coordinates:', canvasX, canvasY);
+    
     // Convert to world coordinates
     const worldCoords = pixelToWorldCoords(canvasX, canvasY);
+    console.log('World coordinates:', worldCoords);
     
     // Show context menu
     showMoveContextMenu(event, worldCoords);
 };
 
-// Add right-click event listener to canvas
-canvas.addEventListener('contextmenu', handleCanvasRightClick);
+// Wait for DOM to be fully loaded before adding event listener
+document.addEventListener('DOMContentLoaded', () => {
+    const toolpathCanvas = document.getElementById('small-toolpath');
+    if (toolpathCanvas) {
+        console.log('Adding right-click listener to canvas');
+        toolpathCanvas.addEventListener('contextmenu', handleCanvasRightClick);
+    } else {
+        console.error('Could not find small-toolpath canvas element');
+    }
+});
+
+// Also add the event listener immediately in case DOM is already loaded
+if (canvas) {
+    console.log('Adding immediate right-click listener to canvas');
+    canvas.addEventListener('contextmenu', handleCanvasRightClick);
+}
 
 var refreshGcode = function() {
     const gcode = getValue("tablettab_gcode");
