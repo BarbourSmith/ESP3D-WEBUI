@@ -654,7 +654,18 @@ var collectHandler = undefined
 // the legacy protocol messages  $0= ... ok
 var collectedSettings = null
 
+// Flag to track if calibration computation is currently in progress
+var calibrationInProgress = false
+
 async function handleCalibrationData(measurements) {
+  // Check if calibration is already in progress
+  if (calibrationInProgress) {
+    console.log('Calibration already in progress, ignoring new calibration request');
+    document.querySelector('#messages').textContent += '\nCalibration already in progress, ignoring new request';
+    return;
+  }
+  
+  calibrationInProgress = true;
   document.querySelector('#messages').textContent += '\nComputing... This may take several minutes'
   sendCommand("$ACKCAL");
   await sleep(500)
@@ -662,6 +673,8 @@ async function handleCalibrationData(measurements) {
     calibrationResults = await findMaxFitness(measurements)
   } catch (error) {
     console.error('An error occurred:', error)
+  } finally {
+    calibrationInProgress = false;
   }
 }
 
