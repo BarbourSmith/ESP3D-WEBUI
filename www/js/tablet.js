@@ -464,10 +464,10 @@ function doPlayButton() {
 //   }
 // }
 
-const green = "#86f686";
-const red = "#f64646";
-const gray = "#f6f6f6";
-const orange = "#ff9500";
+const green = "#2e86ab";  // Changed from green to blue
+const red = "#1d5f7e";    // Changed from red to dark blue  
+const gray = "#a6c8dd";   // Changed from gray to light blue
+const orange = "#4a9bc7"; // Changed from orange to medium blue
 
 function setRunControls() {
   if (gCodeLoaded) {

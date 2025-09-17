@@ -58,8 +58,8 @@ const updateDynamicButtons = () => {
 	const relaxButton = document.getElementById("tablettab_cal_relax");
 	const calibrateButton = document.getElementById("tablettab_cal_calibrate");
 
-	const greenBackground = "#4aa85c"
-	const greyBackground = "#a0a0a0"
+	const greenBackground = "#2e86ab"  // Changed from green to blue
+	const greyBackground = "#7fb3d3"  // Changed from grey to light blue
 
 	// #define UNKNOWN 0
 	// #define RETRACTING 1

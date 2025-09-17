@@ -428,7 +428,7 @@ const updateUnifiedPlayPauseButton = (stateName, clickable) => {
   
   if (clickable.pause) {
     // Machine is running - show pause button (convert play button to pause)
-    playButton.style.backgroundColor = '#f0ad4e'; // Orange background
+    playButton.style.backgroundColor = '#4a9bc7'; // Changed from orange to medium blue
     playButton.innerHTML = `
       <svg width="2em" height="1.4em" viewBox="0 0 1300 1200">
         <g transform="translate(50,1200) scale(1, -1)">
@@ -441,7 +441,7 @@ const updateUnifiedPlayPauseButton = (stateName, clickable) => {
     
   } else if (clickable.resume) {
     // Machine is paused - show play button
-    playButton.style.backgroundColor = '#5cb85c'; // Green background
+    playButton.style.backgroundColor = '#2e86ab'; // Changed from green to blue
     playButton.innerHTML = `
       <svg width="2em" height="1.4em" viewBox="0 0 1300 1200">
         <g transform="translate(50,1200) scale(1, -1)">
@@ -455,10 +455,10 @@ const updateUnifiedPlayPauseButton = (stateName, clickable) => {
     // Machine is idle or in another state - reset button and let tablet.js handle it
     // Only reset if the button was previously in pause mode (orange background) or resume mode (green background)
     const currentBgColor = playButton.style.backgroundColor;
-    if (currentBgColor === 'rgb(240, 173, 78)' || currentBgColor === '#f0ad4e' || 
-        currentBgColor === 'rgb(92, 184, 92)' || currentBgColor === '#5cb85c') {
+    if (currentBgColor === 'rgb(74, 155, 199)' || currentBgColor === '#4a9bc7' || 
+        currentBgColor === 'rgb(46, 134, 171)' || currentBgColor === '#2e86ab') {
       // Reset the button styling
-      playButton.style.backgroundColor = '#4aa85c'; // Set div background to green (same as HTML template)
+      playButton.style.backgroundColor = '#2e86ab'; // Changed from green to blue (same as HTML template)
       playButton.onclick = null;
       
       // Restore the canvas element that tablet.js expects, if it doesn't exist

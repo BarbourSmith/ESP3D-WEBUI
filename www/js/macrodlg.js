@@ -140,7 +140,7 @@ function build_filename_selection(index, actions) {
 	const content = [
 		`<span id='macro_filename_input_line_${index}' class='form-group ${noFilename ? "has-error has-feedback" : ""}'>`,
 		`<input id='${mflId}' data-index="${index}" type='text' style='width:9em' class='form-control' value='${entry.filename}' aria-describedby='inputStatus_line${index}'>`,
-		`<span id='icon_macro_status_line_${index}' style='color:#a94442; position:absolute;bottom:4px;left:7.5em;${noFilename ? "display:none" : ""}'>${get_icon_svg("remove")}</span>`,
+		`<span id='icon_macro_status_line_${index}' style='color:#1d5f7e; position:absolute;bottom:4px;left:7.5em;${noFilename ? "display:none" : ""}'>${get_icon_svg("remove")}</span>`,
 		"</input>",
 		"</span>"
 	];

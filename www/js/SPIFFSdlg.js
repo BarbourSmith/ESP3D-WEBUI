@@ -228,7 +228,7 @@ function SPIFFSdispatchfilestatus(jsonresponse) {
 		const filesize = jsonresponse.files[i].size;
 		const pathname = jsonresponse.path;
 		const filename = jsonresponse.files[i].name;
-		let filecontent = `<td style='vertical-align:middle; color:#5BC0DE'>${get_icon_svg("file")}</td>`;
+		let filecontent = `<td style='vertical-align:middle; color:#4a9bc7'>${get_icon_svg("file")}</td>`;
 		// filecontent += "<td width='100%' style='vertical-align:middle'><a href=\"" + pathname + filename + "\" target=_blank download><button  class=\"btn btn-link no_overflow\">" + filename + "</button></a></td>"
 		filecontent += `<td width='100%' style='vertical-align:middle'>${filename}</td>`;
 		filecontent += `<td nowrap  style='vertical-align:middle; text-align:right'>${filesize}</td>`;
@@ -250,7 +250,7 @@ function SPIFFSdispatchfilestatus(jsonresponse) {
 		const dirname = jsonresponse.files[i].name;
 		const selectDirBtn = `<button id="${bIdD}select_${i}" data-path="${SPIFFS_currentpath}${dirname}" class="btn btn-link">${dirname}</button>`;
 		actions.push({ id: `${bIdD}select_${i}`, method: SPIFFSselect_dir });
-		let dircontent = `<td style='vertical-align:middle ; color:#5BC0DE'>${get_icon_svg("folder-close")}</td>`;
+		let dircontent = `<td style='vertical-align:middle ; color:#4a9bc7'>${get_icon_svg("folder-close")}</td>`;
 		dircontent += `<td width='100%' style='vertical-align:middle'>${selectDirBtn}</td>`;
 		dircontent += "<td nowrap style='vertical-align:middle'></td>"; // No size field
 		dircontent += "<td></td>"; // Spacer for nonexistent download button
