@@ -22,6 +22,7 @@ var default_preferenceslist = [{
     "probefeedrate": "100",
     "probetouchplatethickness": "0.5",
     "proberetract": "1.0",
+    "bitChangeHeight": "60",
     "enable_files_panel": "true",
     "has_TFT_SD": "false",
     "has_TFT_USB": "false",

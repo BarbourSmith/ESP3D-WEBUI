@@ -114,6 +114,7 @@ const probeValues = {
   feedrate: { fldId: "grblpanel_probefeedrate", prefId: "probefeedrate", valType: "float", valTitle: "probe feedrate", minVal: 1, maxVal: 9999, units: "mm/min" },
   retract: { fldId: "grblpanel_proberetract", prefId: "proberetract", valType: "float", valTitle: "probe retract", minVal: 0, maxVal: 999, units: "mm" },
   plateThickness: { fldId: "grblpanel_probetouchplatethickness", prefId: "probetouchplatethickness", valType: "float", valTitle: "probe touch plate thickness", minVal: 0, maxVal: 999, units: "mm" },
+  bitChangeHeight: { fldId: "grblpanel_bitchangeheight", prefId: "bitChangeHeight", valType: "float", valTitle: "bit change height", minVal: 0, maxVal: 999, units: "mm" },
 };
 
 /** This must be done after the preferences have been set */
@@ -577,6 +578,84 @@ function show_grbl_probe_status(probed) {
   grbl_set_probe_detected(probed)
 }
 
+// Bit change functionality
+var bitChangeState = {
+  isChanging: false,
+  storedZPosition: null,
+  probeEnabled: false
+};
+
+function updateBitChangeButton() {
+  const button = id('bitchangebtn');
+  if (!button) return;
+  
+  if (bitChangeState.isChanging) {
+    if (bitChangeState.probeEnabled) {
+      setHTML('bitchangebtn', translate_text_item('Probe for bit length'));
+    } else {
+      setHTML('bitchangebtn', translate_text_item('Lower bit'));
+    }
+  } else {
+    setHTML('bitchangebtn', translate_text_item('Change bit'));
+  }
+}
+
+function StartBitChangeProcess() {
+  // Validate bitChangeHeight value
+  const bitChangeHeight = checkProbeValue(probeValues.bitChangeHeight);
+  if (Number.isNaN(bitChangeHeight)) {
+    return;
+  }
+
+  if (!bitChangeState.isChanging) {
+    // Store current Z position and move to bit change height
+    const currentZ = getValueFloat('control_Z_position');
+    if (Number.isNaN(currentZ)) {
+      console.error('Unable to get current Z position');
+      return;
+    }
+    
+    bitChangeState.storedZPosition = currentZ;
+    bitChangeState.isChanging = true;
+    bitChangeState.probeEnabled = prefList().enable_grbl_probe_panel === 'true';
+    
+    // Move to bit change height
+    const cmd = `G90\nG0 Z${probeValues.bitChangeHeight.value}`;
+    SendPrinterCommand(cmd, true);
+    
+    setClickability('bitchangebtn', false);
+    setTimeout(() => {
+      setClickability('bitchangebtn', true);
+      updateBitChangeButton();
+    }, 1000); // Give movement time to start
+    
+  } else {
+    // Return to original position or start probing
+    if (bitChangeState.probeEnabled) {
+      // Start probe process
+      StartProbeProcess();
+      // After probing is complete, we'll return to stored position
+      bitChangeState.isChanging = false;
+      bitChangeState.storedZPosition = null;
+      updateBitChangeButton();
+    } else {
+      // Simply return to stored position
+      if (bitChangeState.storedZPosition !== null) {
+        const cmd = `G90\nG0 Z${bitChangeState.storedZPosition}`;
+        SendPrinterCommand(cmd, true);
+        
+        setClickability('bitchangebtn', false);
+        setTimeout(() => {
+          setClickability('bitchangebtn', true);
+          bitChangeState.isChanging = false;
+          bitChangeState.storedZPosition = null;
+          updateBitChangeButton();
+        }, 1000); // Give movement time to start
+      }
+    }
+  }
+}
+
 function SendRealtimeCmd(code) {
   var cmd = String.fromCharCode(code)
   SendPrinterCommand(cmd, false, null, null, code, 1)
@@ -863,6 +942,7 @@ const onprobemaxtravelChange = () => !Number.isNaN(checkProbeValue(probeValues.t
 const onprobefeedrateChange = () => !Number.isNaN(checkProbeValue(probeValues.feedrate));
 const onproberetractChange = () => !Number.isNaN(checkProbeValue(probeValues.retract));
 const onprobetouchplatethicknessChange = () => !Number.isNaN(checkProbeValue(probeValues.plateThickness));
+const onbitchangeheightChange = () => !Number.isNaN(checkProbeValue(probeValues.bitChangeHeight));
 
 function StartProbeProcess() {
   for (const key in probeValues) {

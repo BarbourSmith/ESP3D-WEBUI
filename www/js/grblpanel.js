@@ -68,8 +68,10 @@ const grblpanel = () => {
     id("grblpanel_probefeedrate").addEventListener("change", onprobefeedrateChange);
     id("grblpanel_proberetract").addEventListener("change", onproberetractChange);
     id("grblpanel_probetouchplatethickness").addEventListener("change", onprobetouchplatethicknessChange);
+    id("grblpanel_bitchangeheight").addEventListener("change", onbitchangeheightChange);
 
     id("probingbtn").addEventListener("click", StartProbeProcess);
+    id("bitchangebtn").addEventListener("click", StartBitChangeProcess);
 
     id("grblcontroltablink").addEventListener("click", grblPanelControlTabLink);
     id("grblspindletablink").addEventListener("click", grblPanelSpindleTabLink);
