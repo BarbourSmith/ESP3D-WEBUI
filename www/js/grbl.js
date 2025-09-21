@@ -625,9 +625,9 @@ function StartBitChangeProcess() {
     bitChangeState.isChanging = true;
     bitChangeState.probeEnabled = isProbeAvailable();
     
-    // Move to bit change height (relative to work coordinate Z0)
-    // Using G54 (work coordinates) to ensure movement is relative to Z zero, not machine home
-    const cmd = `G54\nG90\nG0 Z${probeValues.bitChangeHeight.value}`;
+    // Move to bit change height (in machine coordinates)
+    // Using G53 (machine coordinates) for the bit change height movement
+    const cmd = `G53\nG90\nG0 Z${probeValues.bitChangeHeight.value}`;
     SendPrinterCommand(cmd, true);
     
     setClickability('bitchangebtn', false);
@@ -646,7 +646,7 @@ function StartBitChangeProcess() {
       bitChangeState.storedZPosition = null;
       updateBitChangeButton();
     } else {
-      // Simply return to stored position (in work coordinates)
+      // Simply return to stored position (using work coordinates, then ensure work coordinate mode)
       if (bitChangeState.storedZPosition !== null) {
         const cmd = `G54\nG90\nG0 Z${bitChangeState.storedZPosition}`;
         SendPrinterCommand(cmd, true);
