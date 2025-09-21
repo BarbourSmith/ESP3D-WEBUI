@@ -482,6 +482,46 @@
                                 <tr>
                                     <td style="height:10px;"></td>
                                 </tr>
+                                <tr>
+                                    <td>
+                                        <table style="width:100%;">
+                                            <tr>
+                                                <td>
+                                                    <div class="input-group">
+                                                        <span class="input-group-addon form_control">
+                                                            <span translate>Bit change height</span>:</span>
+                                                        <input class="hide_it" />
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="input-group">
+                                                        <span class="input-group-addon hide_it"></span>
+                                                        <input id="grblpanel_bitchangeheight" class="form-control w6"
+                                                            type="number" min="0" step="any" />
+                                                        <span class="input-group-addon hide_it"></span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="input-group">
+                                                        <input class="hide_it"></input>
+                                                        <span class="input-group-addon form_control" translate>mm</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="height:5px;"></td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <button id="bitchangebtn" class="btn btn-warning" translate>Change bit</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="height:10px;"></td>
+                                </tr>
                             </table>
                         </div>
                         <div id="grblprobetab" class="tabcontent" style="margin: auto;">
@@ -587,29 +627,6 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>
-                                        <div class="input-group">
-                                            <span class="input-group-addon form_control">
-                                                <span translate>Bit change height</span>:</span>
-                                            <input class="hide_it" />
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="input-group">
-                                            <span class="input-group-addon hide_it"></span>
-                                            <input id="grblpanel_bitchangeheight" class="form-control w6"
-                                                type="number" min="0" step="any" />
-                                            <span class="input-group-addon hide_it"></span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="input-group">
-                                            <input class="hide_it"></input>
-                                            <span class="input-group-addon form_control" translate>mm</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
                                     <td style="height:5px;" colspan="3"></td>
                                 </tr>
                                 <tr>
@@ -617,14 +634,6 @@
                                         <small>
                                             <p translate>* Changes made here are temporary.<br/>Please use Preferences to set defaults for these values.</p>
                                         </small>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="height:10px;" colspan="3"></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="3" style="text-align: center;">
-                                        <button id="bitchangebtn" class="btn btn-warning" translate>Change bit</button>
                                     </td>
                                 </tr>
                                 <tr>

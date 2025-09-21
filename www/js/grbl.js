@@ -585,6 +585,12 @@ var bitChangeState = {
   probeEnabled: false
 };
 
+// Check if probe is actually available (hardware detected)
+function isProbeAvailable() {
+  // Check if probe hardware is detected (same logic as show_grbl_probe_status)
+  return typeof grbl !== 'undefined' && grbl.pins && grbl.pins.indexOf('P') !== -1;
+}
+
 function updateBitChangeButton() {
   const button = id('bitchangebtn');
   if (!button) return;
@@ -617,7 +623,7 @@ function StartBitChangeProcess() {
     
     bitChangeState.storedZPosition = currentZ;
     bitChangeState.isChanging = true;
-    bitChangeState.probeEnabled = prefList().enable_grbl_probe_panel === 'true';
+    bitChangeState.probeEnabled = isProbeAvailable();
     
     // Move to bit change height (relative to work coordinate Z0)
     // Using G54 (work coordinates) to ensure movement is relative to Z zero, not machine home
