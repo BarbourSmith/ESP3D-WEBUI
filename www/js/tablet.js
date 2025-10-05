@@ -12,7 +12,7 @@ var versionNumber = "1.12";
 const addMessage = (msg, scroll = true, clear = false) => {
   const msgWindow = id("messages");
   if (msgWindow) {
-    msgWindow.textContent = clear ? msg : `${msgWindow.textContent}\n${msg}`;
+    msgWindow.value = clear ? msg : `${msgWindow.value}\n${msg}`;
     if (scroll) {
       msgWindow.scrollTop = msgWindow.scrollHeight;
     }

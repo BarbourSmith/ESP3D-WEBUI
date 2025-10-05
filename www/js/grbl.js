@@ -819,7 +819,7 @@ const grblHandleMessage = (msg) => {
     if (typeof parseMotorCurrentMessage === 'function' && parseMotorCurrentMessage(msg)) {
       return;
     }
-    return;
+    // Allow other [MSG: messages to be displayed in the log
   }
   if (valueStartsWith(msg, ["error:"])) {
     if (grbl_errorfn) {
