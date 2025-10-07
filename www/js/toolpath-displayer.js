@@ -1007,8 +1007,10 @@ canvas.addEventListener("mouseup", handleCanvasMouseUp);
 const pixelToWorldCoords = (pixelX, pixelY) => {
     // Convert from canvas pixel coordinates to world coordinates
     // Based on the transformation: x' = scaler * x + xOffset, y' = -scaler * y + yOffset
-    const worldX = (pixelX - xOffset) / scaler;
-    const worldY = (yOffset - pixelY) / scaler;
+    // Invert transformation: worldX = (pixelX - xOffset) / scaler
+    //                       worldY = (pixelY - yOffset) / (-scaler)
+    const worldX = -(pixelX - xOffset) / scaler;
+    const worldY = -(pixelY - yOffset) / scaler;
     return { x: worldX, y: worldY };
 };
 
