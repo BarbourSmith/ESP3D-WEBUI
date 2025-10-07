@@ -370,7 +370,7 @@ const updateModal = () => {
         setJogSelector(modal.units);
     }
     setHTML('gcode-states', modal.modes || "GCode State");
-    setText('wpos-label', modal.wcs);
+    commitWcs(modal.wcs);
     const distanceText = modal.distance == 'G90'
         ? modal.distance
         : "<div style='color:red'>" + modal.distance + "</div>";
@@ -420,10 +420,7 @@ const tabletGrblState = (grbl) => {
         selectDisabled('.jog-controls .form-control', cannotClick);
         selectDisabled('.jog-controls .btn', cannotClick);
         selectDisabled('.dropdown-toggle', cannotClick);
-        selectDisabled('.axis-position .position', cannotClick);
-        selectDisabled('.axis-position .form-control', cannotClick);
-        selectDisabled('.axis-position .btn', cannotClick);
-        selectDisabled('.axis-position .position', cannotClick);
+        selectDisabled('.axis-position .btn-tablet', cannotClick);
         if (cannotClick) {
             expandVisualizer();
         } else {
@@ -760,6 +757,31 @@ const tabletLoadGCodeFile = (path, size) => {
     }
 };
 
+let last_selected_index = 0;
+
+const findOptionIndexByValue = (value) => {
+    const s = id('wcs');
+    for (let i = 0; i < s.options.length; i++) {
+        if (s.options[i].value === value) {
+            return i;
+        }
+    }
+    return null;
+}
+
+const commitWcs = (wcs) => {
+    last_selected_index = findOptionIndexByValue(wcs);
+    id('wcs').selectedIndex = last_selected_index;
+};
+
+const selectWcs = (event) => {
+    tabletClick();
+    sendCommand(id('wcs').value);
+    sendCommand('$G');             // Ask for report of new state
+    // Don't change the control until the report comes back
+    id('wcs').selectedIndex = last_selected_index;
+};
+
 const selectFile = (event) => {
     tabletClick();
     const filelist = id('filelist');
@@ -1040,3 +1062,42 @@ const addListeners = () => {
     window.addEventListener('keyup', handleKeyUp);
     window.onresize = setBottomHeight;
 };
+
+macros = [];
+const tabletClearMacros = () => {
+    parent = id('tablet-dropdown-menu');
+    macros.forEach((item) => {
+        parent.removeChild(item);
+    });
+    macros.length = 0;
+}
+
+const runMacro = (event) => {
+    data = event.srcElement.dataset;
+    macro_command(data.type, data.action);
+    hideMenu();
+}
+
+const tabletAddMacro = (name, classlist, icon, type, action) => {
+    if (name == '') {
+        return;
+    }
+    parent = id('tablet-dropdown-menu');
+    item = document.createElement('div');
+
+    let content = '';
+    if (icon) {
+        content += '<span>' + icon + '</span>';
+    }
+    content += name;
+    item.innerHTML = content;
+    item.setAttribute('class', 'tablet-menu-item');
+    item.setAttribute('data-action', action);
+    item.setAttribute('data-type', type);
+    if (classlist) {
+        classlist.split(' ').forEach( (cls) => { if (cls != 'btn') item.classList.add(cls); } );
+    }
+    item.addEventListener('click', runMacro);
+    parent.appendChild(item);
+    macros.push(item);
+}
