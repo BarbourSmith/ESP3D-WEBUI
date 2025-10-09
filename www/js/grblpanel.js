@@ -71,7 +71,19 @@ const grblpanel = () => {
     id("grblpanel_bitchangeheight").addEventListener("change", onbitchangeheightChange);
 
     id("probingbtn").addEventListener("click", StartProbeProcess);
-    id("bitchangebtn").addEventListener("click", StartBitChangeProcess);
+    
+    // Add bit change button event listener with logging
+    const bitChangeBtn = id("bitchangebtn");
+    console.log('[Bit Change Init] Attaching event listener to bit change button, element:', bitChangeBtn ? 'found' : 'NOT FOUND');
+    if (bitChangeBtn) {
+        bitChangeBtn.addEventListener("click", function() {
+            console.log('[Bit Change] Button clicked!');
+            StartBitChangeProcess();
+        });
+        console.log('[Bit Change Init] Event listener attached successfully');
+    } else {
+        console.error('[Bit Change Init] Failed to find bit change button element!');
+    }
 
     id("grblcontroltablink").addEventListener("click", grblPanelControlTabLink);
     id("grblspindletablink").addEventListener("click", grblPanelSpindleTabLink);

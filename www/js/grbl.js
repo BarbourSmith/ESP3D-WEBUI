@@ -593,31 +593,50 @@ function isProbeAvailable() {
 
 function updateBitChangeButton() {
   const button = id('bitchangebtn');
-  if (!button) return;
+  console.log('[Bit Change] updateBitChangeButton called, button element:', button ? 'found' : 'NOT FOUND');
+  
+  if (!button) {
+    console.error('[Bit Change] Button element not found!');
+    return;
+  }
+  
+  console.log('[Bit Change] Current state for button update - isChanging:', bitChangeState.isChanging, 'probeEnabled:', bitChangeState.probeEnabled);
   
   if (bitChangeState.isChanging) {
     if (bitChangeState.probeEnabled) {
       setHTML('bitchangebtn', translate_text_item('Probe for bit length'));
+      console.log('[Bit Change] Button text set to: Probe for bit length');
     } else {
       setHTML('bitchangebtn', translate_text_item('Lower bit'));
+      console.log('[Bit Change] Button text set to: Lower bit');
     }
   } else {
     setHTML('bitchangebtn', translate_text_item('Change bit'));
+    console.log('[Bit Change] Button text set to: Change bit');
   }
 }
 
 function StartBitChangeProcess() {
+  console.log('[Bit Change] StartBitChangeProcess called');
+  
   // Validate bitChangeHeight value
   checkProbeValue(probeValues.bitChangeHeight);
+  console.log('[Bit Change] Bit change height value:', probeValues.bitChangeHeight.value);
+  
   if (Number.isNaN(probeValues.bitChangeHeight.value)) {
+    console.error('[Bit Change] Invalid bit change height - NaN');
     return;
   }
 
+  console.log('[Bit Change] Current state - isChanging:', bitChangeState.isChanging);
+  
   if (!bitChangeState.isChanging) {
     // Store current Z position and move to bit change height
     const currentZ = getValueFloat('control_Z_position');
+    console.log('[Bit Change] Current Z position:', currentZ);
+    
     if (Number.isNaN(currentZ)) {
-      console.error('Unable to get current Z position');
+      console.error('[Bit Change] Unable to get current Z position - position is NaN');
       return;
     }
     
@@ -625,20 +644,28 @@ function StartBitChangeProcess() {
     bitChangeState.isChanging = true;
     bitChangeState.probeEnabled = isProbeAvailable();
     
+    console.log('[Bit Change] Stored Z position:', bitChangeState.storedZPosition);
+    console.log('[Bit Change] Probe enabled:', bitChangeState.probeEnabled);
+    
     // Move to bit change height (in machine coordinates)
     // Using G53 (machine coordinates) for the bit change height movement
     const cmd = `G53\nG90\nG0 Z${probeValues.bitChangeHeight.value}`;
+    console.log('[Bit Change] Sending command to move to bit change height:', cmd);
     SendPrinterCommand(cmd, true);
     
     setClickability('bitchangebtn', false);
     setTimeout(() => {
       setClickability('bitchangebtn', true);
       updateBitChangeButton();
+      console.log('[Bit Change] Button re-enabled, text updated');
     }, 1000); // Give movement time to start
     
   } else {
+    console.log('[Bit Change] In second phase - returning to original position or probing');
+    
     // Return to original position or start probing
     if (bitChangeState.probeEnabled) {
+      console.log('[Bit Change] Starting probe process');
       // Start probe process
       StartProbeProcess();
       // After probing is complete, we'll return to stored position
@@ -646,9 +673,11 @@ function StartBitChangeProcess() {
       bitChangeState.storedZPosition = null;
       updateBitChangeButton();
     } else {
+      console.log('[Bit Change] Returning to stored position:', bitChangeState.storedZPosition);
       // Simply return to stored position (using work coordinates, then ensure work coordinate mode)
       if (bitChangeState.storedZPosition !== null) {
         const cmd = `G54\nG90\nG0 Z${bitChangeState.storedZPosition}`;
+        console.log('[Bit Change] Sending command to return to original position:', cmd);
         SendPrinterCommand(cmd, true);
         
         setClickability('bitchangebtn', false);
@@ -657,7 +686,10 @@ function StartBitChangeProcess() {
           bitChangeState.isChanging = false;
           bitChangeState.storedZPosition = null;
           updateBitChangeButton();
+          console.log('[Bit Change] Bit change process complete, button reset');
         }, 1000); // Give movement time to start
+      } else {
+        console.error('[Bit Change] Cannot return - stored position is null');
       }
     }
   }
