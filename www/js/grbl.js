@@ -608,8 +608,8 @@ function updateBitChangeButton() {
 
 function StartBitChangeProcess() {
   // Validate bitChangeHeight value
-  const bitChangeHeight = checkProbeValue(probeValues.bitChangeHeight);
-  if (Number.isNaN(bitChangeHeight)) {
+  checkProbeValue(probeValues.bitChangeHeight);
+  if (Number.isNaN(probeValues.bitChangeHeight.value)) {
     return;
   }
 
