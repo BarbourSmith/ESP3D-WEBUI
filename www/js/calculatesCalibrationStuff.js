@@ -998,8 +998,9 @@ function findFitnessGaussNewtonLeastSquares(measurements) {
     messagesBox.scrollTop = messagesBox.scrollHeight;
 
     // Convert to Maslow format and send commands
-    // Based on the issue requirements:
-    // $/Maslow_brX=x1, $/Maslow_tlX=x3, $/Maslow_tlY=y3, $/Maslow_trX=x2, $/Maslow_brY=y2
+    // Parameter mapping from Gauss-Newton algorithm:
+    // x1 → brX, x2 → trX, y2 → trY, x3 → tlX, y3 → tlY
+    // blX, blY, and brY are always 0 by definition
     const x1 = cleanResult.params[0];
     const x2 = cleanResult.params[1];
     const y2 = cleanResult.params[2];
@@ -1010,21 +1011,21 @@ function findFitnessGaussNewtonLeastSquares(measurements) {
     messagesBox.textContent += `  $/kinematics/MaslowKinematics/tlX=${x3.toFixed(1)}\n`;
     messagesBox.textContent += `  $/kinematics/MaslowKinematics/tlY=${y3.toFixed(1)}\n`;
     messagesBox.textContent += `  $/kinematics/MaslowKinematics/trX=${x2.toFixed(1)}\n`;
-    messagesBox.textContent += `  $/kinematics/MaslowKinematics/trY=0.0\n`;
+    messagesBox.textContent += `  $/kinematics/MaslowKinematics/trY=${y2.toFixed(1)}\n`;
     messagesBox.textContent += `  $/kinematics/MaslowKinematics/blX=0.0\n`;
     messagesBox.textContent += `  $/kinematics/MaslowKinematics/blY=0.0\n`;
     messagesBox.textContent += `  $/kinematics/MaslowKinematics/brX=${x1.toFixed(1)}\n`;
-    messagesBox.textContent += `  $/kinematics/MaslowKinematics/brY=${y2.toFixed(1)}\n`;
+    messagesBox.textContent += `  $/kinematics/MaslowKinematics/brY=0.0\n`;
     messagesBox.scrollTop = messagesBox.scrollHeight;
 
     sendCommand(`$/kinematics/MaslowKinematics/tlX=${x3.toFixed(1)}`);
     sendCommand(`$/kinematics/MaslowKinematics/tlY=${y3.toFixed(1)}`);
     sendCommand(`$/kinematics/MaslowKinematics/trX=${x2.toFixed(1)}`);
-    sendCommand(`$/kinematics/MaslowKinematics/trY=0.0`);
+    sendCommand(`$/kinematics/MaslowKinematics/trY=${y2.toFixed(1)}`);
     sendCommand(`$/kinematics/MaslowKinematics/blX=0.0`);
     sendCommand(`$/kinematics/MaslowKinematics/blY=0.0`);
     sendCommand(`$/kinematics/MaslowKinematics/brX=${x1.toFixed(1)}`);
-    sendCommand(`$/kinematics/MaslowKinematics/brY=${y2.toFixed(1)}`);
+    sendCommand(`$/kinematics/MaslowKinematics/brY=0.0`);
 
     // Refresh settings and save to maslow.yaml
     refreshSettings(current_setting_filter);
