@@ -713,7 +713,23 @@ async function handleCalibrationData(measurements) {
   sendCommand("$ACKCAL");
   await sleep(500)
   try {
-    calibrationResults = await findMaxFitness(measurements)
+    // Get the selected calibration algorithm from preferences
+    // Default to Maslow Classic if preference is not available
+    let selectedAlgorithm = "Maslow Classic";
+    try {
+      selectedAlgorithm = GetPrefOrDefault("calibration_algorithm") || "Maslow Classic";
+    } catch (e) {
+      console.log("Could not load calibration algorithm preference, using Maslow Classic");
+    }
+    
+    console.log(`Using calibration algorithm: ${selectedAlgorithm}`);
+    
+    if (selectedAlgorithm === "Lang-Grok1") {
+      calibrationResults = await findFitnessGaussNewtonLeastSquares(measurements)
+    } else {
+      // Default to Maslow Classic
+      calibrationResults = await findMaxFitness(measurements)
+    }
   } catch (error) {
     console.error('An error occurred:', error)
   }
