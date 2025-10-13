@@ -713,7 +713,15 @@ async function handleCalibrationData(measurements) {
   sendCommand("$ACKCAL");
   await sleep(500)
   try {
-    calibrationResults = await findMaxFitness(measurements)
+    // Get the selected calibration algorithm from preferences
+    const selectedAlgorithm = GetPrefOrDefault("calibration_algorithm");
+    
+    if (selectedAlgorithm === "Lang-Grok1") {
+      calibrationResults = await runLangGrok1Calibration(measurements)
+    } else {
+      // Default to Maslow Classic
+      calibrationResults = await findMaxFitness(measurements)
+    }
   } catch (error) {
     console.error('An error occurred:', error)
   }

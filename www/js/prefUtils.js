@@ -31,6 +31,10 @@ const floatFields = {
     preferences_probetouchplatethickness: "preferenceslist[0].probetouchplatethickness",
 };
 
+const stringFields = {
+    preferences_calibration_algorithm: "preferenceslist[0].calibration_algorithm",
+};
+
 const checkBlocks = {
     show_files_panel: "files_preferences",
     show_grbl_panel: "grbl_preferences",
@@ -105,6 +109,12 @@ const PreferencesModified = () => {
 
     for (const floatMap in floatFields) {
         if (getValueFloat(floatMap) !== Number.parseFloat(preferenceslist[0][floatFields[floatMap]])) {
+            return true;
+        }
+    }
+
+    for (const stringMap in stringFields) {
+        if (getValue(stringMap) !== preferenceslist[0][stringFields[stringMap]]) {
             return true;
         }
     }
