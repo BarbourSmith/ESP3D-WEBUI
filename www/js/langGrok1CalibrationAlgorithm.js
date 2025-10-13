@@ -338,7 +338,11 @@ async function runLangGrok1Calibration(measurements) {
     sendCommand(`$/Maslow_trX=${x2.toFixed(1)}`);
     sendCommand(`$/Maslow_brY=${y2.toFixed(1)}`);
 
-    messagesBox.textContent += '\nCalibration complete!\n';
+    // Refresh settings and save to maslow.yaml
+    refreshSettings(current_setting_filter);
+    saveMaslowYaml();
+
+    messagesBox.textContent += '\nCalibration complete! Settings saved to maslow.yaml.\n';
     messagesBox.scrollTop = messagesBox.scrollHeight;
 
     return cleanResult;
