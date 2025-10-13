@@ -674,7 +674,7 @@ const CALIBRATION_EVENT_NAME = 'calibration-data';
 
 
 //=============================================================================
-// Gauss-Newton Least Squares Calibration Algorithm (Lang-Grok1)
+// Gauss-Newton Least Squares Calibration Algorithm with outlier detection
 //=============================================================================
 
 const GN_MAX_ITER = 100;

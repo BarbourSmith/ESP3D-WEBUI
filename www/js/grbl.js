@@ -724,7 +724,7 @@ async function handleCalibrationData(measurements) {
     
     console.log(`Using calibration algorithm: ${selectedAlgorithm}`);
     
-    if (selectedAlgorithm === "Lang-Grok1") {
+    if (selectedAlgorithm === "Gauss-Newton Least Squares with outlier detection") {
       calibrationResults = await findFitnessGaussNewtonLeastSquares(measurements)
     } else {
       // Default to Maslow Classic
