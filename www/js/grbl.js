@@ -714,7 +714,15 @@ async function handleCalibrationData(measurements) {
   await sleep(500)
   try {
     // Get the selected calibration algorithm from preferences
-    const selectedAlgorithm = GetPrefOrDefault("calibration_algorithm");
+    // Default to Maslow Classic if preference is not available
+    let selectedAlgorithm = "Maslow Classic";
+    try {
+      selectedAlgorithm = GetPrefOrDefault("calibration_algorithm") || "Maslow Classic";
+    } catch (e) {
+      console.log("Could not load calibration algorithm preference, using Maslow Classic");
+    }
+    
+    console.log(`Using calibration algorithm: ${selectedAlgorithm}`);
     
     if (selectedAlgorithm === "Lang-Grok1") {
       calibrationResults = await runLangGrok1Calibration(measurements)
