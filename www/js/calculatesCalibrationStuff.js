@@ -1007,17 +1007,23 @@ function findFitnessGaussNewtonLeastSquares(measurements) {
     const y3 = cleanResult.params[4];
 
     messagesBox.textContent += '\n\nSending calibration values to firmware:\n';
-    messagesBox.textContent += `  $/kinematics/MaslowKinematics/brX=${x1.toFixed(1)}\n`;
     messagesBox.textContent += `  $/kinematics/MaslowKinematics/tlX=${x3.toFixed(1)}\n`;
     messagesBox.textContent += `  $/kinematics/MaslowKinematics/tlY=${y3.toFixed(1)}\n`;
     messagesBox.textContent += `  $/kinematics/MaslowKinematics/trX=${x2.toFixed(1)}\n`;
+    messagesBox.textContent += `  $/kinematics/MaslowKinematics/trY=0.0\n`;
+    messagesBox.textContent += `  $/kinematics/MaslowKinematics/blX=0.0\n`;
+    messagesBox.textContent += `  $/kinematics/MaslowKinematics/blY=0.0\n`;
+    messagesBox.textContent += `  $/kinematics/MaslowKinematics/brX=${x1.toFixed(1)}\n`;
     messagesBox.textContent += `  $/kinematics/MaslowKinematics/brY=${y2.toFixed(1)}\n`;
     messagesBox.scrollTop = messagesBox.scrollHeight;
 
-    sendCommand(`$/kinematics/MaslowKinematics/brX=${x1.toFixed(1)}`);
     sendCommand(`$/kinematics/MaslowKinematics/tlX=${x3.toFixed(1)}`);
     sendCommand(`$/kinematics/MaslowKinematics/tlY=${y3.toFixed(1)}`);
     sendCommand(`$/kinematics/MaslowKinematics/trX=${x2.toFixed(1)}`);
+    sendCommand(`$/kinematics/MaslowKinematics/trY=0.0`);
+    sendCommand(`$/kinematics/MaslowKinematics/blX=0.0`);
+    sendCommand(`$/kinematics/MaslowKinematics/blY=0.0`);
+    sendCommand(`$/kinematics/MaslowKinematics/brX=${x1.toFixed(1)}`);
     sendCommand(`$/kinematics/MaslowKinematics/brY=${y2.toFixed(1)}`);
 
     // Refresh settings and save to maslow.yaml
