@@ -725,7 +725,7 @@ async function handleCalibrationData(measurements) {
     console.log(`Using calibration algorithm: ${selectedAlgorithm}`);
     
     if (selectedAlgorithm === "Lang-Grok1") {
-      calibrationResults = await runLangGrok1Calibration(measurements)
+      calibrationResults = await findFitnessGaussNewtonLeastSquares(measurements)
     } else {
       // Default to Maslow Classic
       calibrationResults = await findMaxFitness(measurements)
