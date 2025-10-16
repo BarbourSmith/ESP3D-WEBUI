@@ -1027,6 +1027,18 @@ function findFitnessGaussNewtonLeastSquares(measurements) {
     sendCommand(`$/kinematics/MaslowKinematics/brX=${x1.toFixed(1)}`);
     sendCommand(`$/kinematics/MaslowKinematics/brY=0.0`);
 
+    sendCalibrationEvent({
+      good: true,
+      final: true,
+      bestGuess: {
+        tl: { x: cleanResult.params[3], y: cleanResult.params[4] },
+        tr: { x: cleanResult.params[1], y: cleanResult.params[2] },
+        bl: { x: 0, y: 0 },
+        br: { x: cleanResult.params[0], y: 0 },
+        fitness: 1 / cleanResult.residual
+      }
+    }, true);
+
     // Refresh settings and save to maslow.yaml
     refreshSettings(current_setting_filter);
     saveMaslowYaml();
