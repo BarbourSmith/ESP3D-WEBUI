@@ -266,6 +266,9 @@ function build_dlg_preferences_list() {
     //probetouchplatethickness
     id('preferences_probetouchplatethickness').value = Number.parseFloat(GetPrefOrDefault("probetouchplatethickness"));
 
+    //calibration algorithm
+    id('preferences_calibration_algorithm').value = GetPrefOrDefault("calibration_algorithm");
+
     //file filters
     if (typeof (preferenceslist[0].f_filters) !== 'undefined') {
         console.log("Use prefs filters");
@@ -359,6 +362,8 @@ const getPreferencesForSave = () => {
     saveprefs.push(`"probefeedrate":"${getValue('preferences_probefeedrate') || ""}"`);
     saveprefs.push(`"probetouchplatethickness":"${getValue('preferences_probetouchplatethickness') || ""}"`);
     saveprefs.push(`"proberetract":"${getValue('preferences_proberetract') || ""}"`);
+
+    saveprefs.push(`"calibration_algorithm":"${getValue('preferences_calibration_algorithm') || ""}"`);
 
     saveprefs.push(`"enable_files_panel":"${getChecked('show_files_panel')}"`);
     saveprefs.push(`"has_TFT_SD":"${getChecked('has_tft_sd')}"`);

@@ -28,5 +28,6 @@ var default_preferenceslist = [{
     "f_filters": "g;gc;gco;gcode;nc;txt;G;GC;GCO;GCODE;NC;TXT",
     "enable_commands_panel": "true",
     "enable_autoscroll": "true",
-    "enable_verbose_mode": "true"
+    "enable_verbose_mode": "true",
+    "calibration_algorithm": "Maslow Classic"
 }];
