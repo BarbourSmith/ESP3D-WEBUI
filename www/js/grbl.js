@@ -656,13 +656,13 @@ function StartBitChangeProcess() {
     bitChangeState.isChanging = true;
     bitChangeState.probeEnabled = isProbeAvailable();
     
-    console.log('[Bit Change] Stored Z position:', bitChangeState.storedZPosition);
+    console.log('[Bit Change] Stored Z position (work coordinates):', bitChangeState.storedZPosition);
     console.log('[Bit Change] Probe enabled:', bitChangeState.probeEnabled);
     
-    // Move to bit change height (in work coordinates relative to Z zero)
-    // Using G54 (work coordinates) so movement is relative to Z zero, not Z home
-    const cmd = `G54\nG90\nG0 Z${probeValues.bitChangeHeight.value}`;
-    console.log('[Bit Change] Sending command to move to bit change height:', cmd);
+    // Move to bit change height (in machine coordinates relative to machine home)
+    // Using G53 (machine coordinates) so movement is relative to machine home set during calibration
+    const cmd = `G53\nG90\nG0 Z${probeValues.bitChangeHeight.value}`;
+    console.log('[Bit Change] Sending command to move to bit change height (machine coords):', cmd);
     SendPrinterCommand(cmd, true);
     
     setClickability('bitchangebtn', false);
@@ -685,11 +685,11 @@ function StartBitChangeProcess() {
       bitChangeState.storedZPosition = null;
       updateBitChangeButton();
     } else {
-      console.log('[Bit Change] Returning to stored position:', bitChangeState.storedZPosition);
-      // Simply return to stored position (using work coordinates, then ensure work coordinate mode)
+      console.log('[Bit Change] Returning to stored position (work coordinates):', bitChangeState.storedZPosition);
+      // Return to stored position (using work coordinates) and ensure work coordinate mode
       if (bitChangeState.storedZPosition !== null) {
         const cmd = `G54\nG90\nG0 Z${bitChangeState.storedZPosition}`;
-        console.log('[Bit Change] Sending command to return to original position:', cmd);
+        console.log('[Bit Change] Sending command to return to original position (work coords):', cmd);
         SendPrinterCommand(cmd, true);
         
         setClickability('bitchangebtn', false);
