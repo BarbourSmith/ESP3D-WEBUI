@@ -738,6 +738,7 @@ const tabletCalPopupHide = () => hideModal("calibration-popup");
 const tabletCalRetract = () => onCalibrationButtonsClick("$ALL", "Retract All");
 const tabletCalExtend = () => onCalibrationButtonsClick("$EXT", "Extend All");
 const tabletCalCalibrate = () => {
+  isCalibrationComplete = false; // Reset flag when starting new calibration
   onCalibrationButtonsClick("$CAL", "Calibrate");
   setTimeout(() => { hideModal("calibration-popup"); }, 1000);
 };

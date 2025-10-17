@@ -4,6 +4,9 @@
 /** Maslow Status */
 let maslowStatus = { homed: false, extended: false, state: 0 };
 
+/** Tracks whether firmware has sent calibration complete message */
+let isCalibrationComplete = false;
+
 /** This keeps track of when we saw the last heartbeat from the machine */
 //I think this is not used anymore and can be removed now
 let lastHeartBeatTime = new Date().getTime();
@@ -285,6 +288,7 @@ const maslowInfoMsgHandling = (msg) => {
 
 	//Catch the calibration complete message and alert the user...this locks up the UI which is bad...should be handled better
 	if (msg.startsWith("[MSG:INFO: Calibration complete")) {
+		isCalibrationComplete = true;
 		showCalibrationCompleteMessage();
 		return true;
 	}

@@ -603,6 +603,12 @@ function findMaxFitness(measurements) {
 
         initialGuess = bestGuess;
         initialGuess.fitness = 100000000;
+
+        // Continue calibration to next stage if not complete yet
+        // The firmware sends [MSG:INFO: Calibration complete] when done with all waypoints
+        if (!isCalibrationComplete) {
+          setTimeout(() => { onCalibrationButtonsClick('$CAL', 'Calibrate'); }, 2000);
+        }
       } else {
 
         sendCalibrationEvent({
