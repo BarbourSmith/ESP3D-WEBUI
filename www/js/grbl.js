@@ -619,14 +619,20 @@ function updateBitChangeButton() {
 function StartBitChangeProcess() {
   console.log('[Bit Change] StartBitChangeProcess called');
   
-  // Validate bitChangeHeight value
-  checkProbeValue(probeValues.bitChangeHeight);
-  console.log('[Bit Change] Bit change height value:', probeValues.bitChangeHeight.value);
+  // Get bit change height directly from preferences instead of UI field
+  const preferences = prefList();
+  const bitChangeHeightValue = floatOrZero(preferences.bitChangeHeight);
+  console.log('[Bit Change] Bit change height from preferences:', bitChangeHeightValue);
   
-  if (Number.isNaN(probeValues.bitChangeHeight.value)) {
-    console.error('[Bit Change] Invalid bit change height - NaN');
+  // Validate the value
+  if (Number.isNaN(bitChangeHeightValue) || bitChangeHeightValue > 999 || bitChangeHeightValue < 0) {
+    alertdlgOOR("bit change height", 0, 999, "mm");
+    console.error('[Bit Change] Invalid bit change height value');
     return;
   }
+  
+  // Store the validated value in probeValues for use in movement commands
+  probeValues.bitChangeHeight.value = bitChangeHeightValue;
 
   console.log('[Bit Change] Current state - isChanging:', bitChangeState.isChanging);
   
