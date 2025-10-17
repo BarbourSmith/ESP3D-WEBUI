@@ -603,9 +603,6 @@ function findMaxFitness(measurements) {
 
         initialGuess = bestGuess;
         initialGuess.fitness = 100000000;
-
-        // This restarts calibration process for the next stage
-        setTimeout(() => { onCalibrationButtonsClick('$CAL', 'Calibrate'); }, 2000);
       } else {
 
         sendCalibrationEvent({
