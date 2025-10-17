@@ -31,8 +31,6 @@ const grblPanelProbeTabLink = (event) => opentab(event, "grblprobetab", "grbluit
 
 /** Set up the event handlers for the grblpanel */
 const grblpanel = () => {
-    console.log('[Bit Change Init] grblpanel() function called - starting initialization');
-    
     // GRBL reporting
     id("report_none").addEventListener("change", onReportType);
     id("report_auto").addEventListener("change", onReportType);
@@ -70,52 +68,14 @@ const grblpanel = () => {
     id("grblpanel_probefeedrate").addEventListener("change", onprobefeedrateChange);
     id("grblpanel_proberetract").addEventListener("change", onproberetractChange);
     id("grblpanel_probetouchplatethickness").addEventListener("change", onprobetouchplatethicknessChange);
-    id("grblpanel_bitchangeheight").addEventListener("change", onbitchangeheightChange);
 
     id("probingbtn").addEventListener("click", StartProbeProcess);
-    
-    // Add bit change button event listener with logging
-    console.log('[Bit Change Init] Attempting to attach event listener to bit change button');
-    const bitChangeBtn = id("bitchangebtn");
-    console.log('[Bit Change Init] Button element lookup result:', bitChangeBtn);
-    
-    if (bitChangeBtn) {
-        console.log('[Bit Change Init] Button element found! Attaching click handler...');
-        bitChangeBtn.addEventListener("click", function() {
-            console.log('[Bit Change] ===== BUTTON CLICKED! =====');
-            StartBitChangeProcess();
-        });
-        console.log('[Bit Change Init] Event listener attached successfully');
-    } else {
-        console.error('[Bit Change Init] ERROR: Failed to find bit change button element with id="bitchangebtn"');
-        console.error('[Bit Change Init] Will retry attachment after 1 second...');
-        
-        // Retry after a delay in case the DOM isn't fully loaded
-        setTimeout(() => {
-            console.log('[Bit Change Init] Retrying button attachment...');
-            const retryBtn = id("bitchangebtn");
-            console.log('[Bit Change Init] Retry button lookup result:', retryBtn);
-            
-            if (retryBtn) {
-                console.log('[Bit Change Init] Button found on retry! Attaching click handler...');
-                retryBtn.addEventListener("click", function() {
-                    console.log('[Bit Change] ===== BUTTON CLICKED (attached on retry)! =====');
-                    StartBitChangeProcess();
-                });
-                console.log('[Bit Change Init] Event listener attached successfully on retry');
-            } else {
-                console.error('[Bit Change Init] ERROR: Button still not found after retry. Check HTML for id="bitchangebtn"');
-            }
-        }, 1000);
-    }
 
     id("grblcontroltablink").addEventListener("click", grblPanelControlTabLink);
     id("grblspindletablink").addEventListener("click", grblPanelSpindleTabLink);
     id("grblprobetablink").addEventListener("click", grblPanelProbeTabLink);
 
     id("global_reset_btn").addEventListener("click", grbl_reset);
-    
-    console.log('[Bit Change Init] grblpanel() initialization complete');
 };
 
 const onReportType = (e) => {
