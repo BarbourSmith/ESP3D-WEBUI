@@ -638,11 +638,17 @@ function StartBitChangeProcess() {
   
   if (!bitChangeState.isChanging) {
     // Store current Z position and move to bit change height
-    const currentZ = getValueFloat('control_Z_position');
-    console.log('[Bit Change] Current Z position:', currentZ);
+    // Read Z position from WPOS global variable (work coordinates)
+    let currentZ = null;
+    if (WPOS && WPOS.length > 2 && !Number.isNaN(WPOS[2])) {
+      currentZ = WPOS[2];
+    }
     
-    if (Number.isNaN(currentZ)) {
-      console.error('[Bit Change] Unable to get current Z position - position is NaN');
+    console.log('[Bit Change] Current Z position from WPOS:', currentZ);
+    
+    if (currentZ === null || Number.isNaN(currentZ)) {
+      console.error('[Bit Change] Unable to get current Z position - position is NaN or WPOS not available');
+      alertdlg("Please wait for position data to be available before changing bit", "Error");
       return;
     }
     
@@ -653,9 +659,9 @@ function StartBitChangeProcess() {
     console.log('[Bit Change] Stored Z position:', bitChangeState.storedZPosition);
     console.log('[Bit Change] Probe enabled:', bitChangeState.probeEnabled);
     
-    // Move to bit change height (in machine coordinates)
-    // Using G53 (machine coordinates) for the bit change height movement
-    const cmd = `G53\nG90\nG0 Z${probeValues.bitChangeHeight.value}`;
+    // Move to bit change height (in work coordinates relative to Z zero)
+    // Using G54 (work coordinates) so movement is relative to Z zero, not Z home
+    const cmd = `G54\nG90\nG0 Z${probeValues.bitChangeHeight.value}`;
     console.log('[Bit Change] Sending command to move to bit change height:', cmd);
     SendPrinterCommand(cmd, true);
     
