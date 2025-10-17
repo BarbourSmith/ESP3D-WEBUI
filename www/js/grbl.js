@@ -661,8 +661,10 @@ function StartBitChangeProcess() {
     
     // Move to bit change height (in machine coordinates relative to machine home)
     // Using G53 (machine coordinates) so movement is relative to machine home set during calibration
-    const cmd = `G53\nG90\nG0 Z${probeValues.bitChangeHeight.value}`;
-    console.log('[Bit Change] Sending command to move to bit change height (machine coords):', cmd);
+    // Use $J command with feedrate (same as Z jog buttons) for controlled movement
+    const zFeedrate = GetAxisFeedRate("Z");
+    const cmd = `G53\n$J=G90 F${zFeedrate} Z${probeValues.bitChangeHeight.value}`;
+    console.log('[Bit Change] Sending command to move to bit change height (machine coords) at feedrate', zFeedrate, ':', cmd);
     SendPrinterCommand(cmd, true);
     
     setClickability('bitchangebtn', false);
@@ -687,9 +689,11 @@ function StartBitChangeProcess() {
     } else {
       console.log('[Bit Change] Returning to stored position (work coordinates):', bitChangeState.storedZPosition);
       // Return to stored position (using work coordinates) and ensure work coordinate mode
+      // Use $J command with feedrate (same as Z jog buttons) for controlled movement
       if (bitChangeState.storedZPosition !== null) {
-        const cmd = `G54\nG90\nG0 Z${bitChangeState.storedZPosition}`;
-        console.log('[Bit Change] Sending command to return to original position (work coords):', cmd);
+        const zFeedrate = GetAxisFeedRate("Z");
+        const cmd = `G54\n$J=G90 F${zFeedrate} Z${bitChangeState.storedZPosition}`;
+        console.log('[Bit Change] Sending command to return to original position (work coords) at feedrate', zFeedrate, ':', cmd);
         SendPrinterCommand(cmd, true);
         
         setClickability('bitchangebtn', false);
