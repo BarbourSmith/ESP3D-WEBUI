@@ -753,27 +753,31 @@ function stopConnectionInfoPolling() {
 
 // Query connection info using $CI command
 function queryConnectionInfo() {
-  // Reset accumulator for this query
-  connectionInfoAccumulator = [];
+  // Don't reset accumulator here - let it accumulate across polls
+  // It will be reset after processing
   sendCommand("$CI");
   
-  // Set a timeout to process accumulated data after 200ms
-  // (should be enough time to receive all responses)
+  // Set a timeout to process accumulated data after 500ms
+  // (increased from 200ms to give more time for response to arrive)
   if (connectionInfoTimeout) {
     clearTimeout(connectionInfoTimeout);
   }
-  connectionInfoTimeout = setTimeout(processConnectionInfo, 200);
+  connectionInfoTimeout = setTimeout(processConnectionInfo, 500);
 }
 
 // Accumulate connection info messages
 function accumulateConnectionInfo(msg) {
+  console.log('accumulateConnectionInfo called with:', msg);
   connectionInfoAccumulator.push(msg);
+  console.log('Accumulator now has:', connectionInfoAccumulator.length, 'items');
 }
 
 // Process accumulated connection info
 function processConnectionInfo() {
+  console.log('processConnectionInfo called, accumulator has:', connectionInfoAccumulator.length, 'items:', connectionInfoAccumulator);
   const label = id("connection-info-label");
   if (!label) {
+    console.log('connection-info-label element not found!');
     return;
   }
   
@@ -792,6 +796,8 @@ function processConnectionInfo() {
     }
   }
   
+  console.log('Counted - websocket:', websocketCount, 'telnet:', telnetCount);
+  
   // Update the label text
   label.textContent = `Web:${websocketCount} Tel:${telnetCount}`;
   
@@ -806,6 +812,12 @@ function processConnectionInfo() {
     label.style.backgroundColor = '#eeeeee'; // Gray - disconnected
     label.style.color = 'black';
   }
+  
+  console.log('Display updated to:', label.textContent, 'with background:', label.style.backgroundColor);
+  
+  // Reset accumulator after processing to prepare for next poll
+  connectionInfoAccumulator = [];
+  console.log('Accumulator reset for next poll');
 }
 // Button event handlers - Second Row
 const tabletMoveLeft = () => sendMove("X-");
