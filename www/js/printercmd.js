@@ -30,12 +30,29 @@ function SendPrinterCommand(prnCmd, echo_on, processfn, errorfn, cmd_code, max_c
         grbl_errorfn = errFn;
         // For GRBL commands, route HTTP responses through the GRBL message processor
         procFn = function(response) {
-            // Split response into lines and process each through GRBL handler
-            const lines = response.split('\n');
-            for (const line of lines) {
-                const trimmed = line.trim();
-                if (trimmed.length > 0 && typeof process_grbl_data === 'function') {
-                    process_grbl_data(trimmed);
+            // Special handling for $CI command - response is plain channel names
+            if (prnCmd.trim() === '$CI') {
+                const lines = response.split('\n');
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    // $CI returns plain channel names like "websocket", "telnet", "usbcdc", "macros"
+                    if (trimmed.length > 0 && /^[a-z]+$/.test(trimmed)) {
+                        if (typeof accumulateConnectionInfo === 'function') {
+                            accumulateConnectionInfo(trimmed);
+                        }
+                    } else if (trimmed === 'ok' && typeof process_grbl_data === 'function') {
+                        // Process the "ok" response
+                        process_grbl_data(trimmed);
+                    }
+                }
+            } else {
+                // For other GRBL commands, process normally
+                const lines = response.split('\n');
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (trimmed.length > 0 && typeof process_grbl_data === 'function') {
+                        process_grbl_data(trimmed);
+                    }
                 }
             }
         };

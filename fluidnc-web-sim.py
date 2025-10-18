@@ -246,6 +246,8 @@ def do_proxy(request):
 @app.route('/command')
 def do_command():
     plainval = request.args.get('plain')
+    commandtextval = request.args.get('commandText')
+    print(f"DEBUG: plainval={plainval}, commandtextval={commandtextval}")
 
     # Respond directly to ESP800 instead of proxying it to FluidNC, because
     # we want to provide the correct websocket address
@@ -259,23 +261,27 @@ def do_command():
     if plainval != None:
         if plainval == '[ESP400]':
             return esp400resp
-        commandtextval = request.args.get('commandText')
-        if commandtextval != None:
-            print("commandText:", commandtextval)
-            if commandtextval == '$G':
-                if len(CONNECTIONS):
-                    wsock = CONNECTIONS[0]
-                    wsock.send(gresp)
-            elif commandtextval == '$CI':
-                # Simulate connection info response
-                # $CI returns active channel names, one per line
-                # Return via HTTP since command came via HTTP
-                response = "[MSG:usbcdc]\n"
-                response += "[MSG:websocket]\n"
-                # If you want to simulate multiple websocket connections, add more:
-                # response += "[MSG:websocket]\n"
-                response += "ok\n"
-                return response
+    
+    # Handle commandText parameter (used for GRBL commands like $CI)
+    if commandtextval != None:
+        print("commandText:", commandtextval)
+        if commandtextval == '$G':
+            if len(CONNECTIONS):
+                wsock = CONNECTIONS[0]
+                wsock.send(gresp)
+        elif commandtextval == '$CI':
+            # Simulate connection info response
+            # $CI returns plain channel names, one per line
+            # Return via HTTP since command came via HTTP
+            response = "usbcdc\n"
+            response += "macros\n"
+            response += "websocket\n"
+            # If you want to simulate multiple websocket connections, add more:
+            # response += "websocket\n"
+            # If you want to simulate telnet, add:
+            # response += "telnet\n"
+            response += "ok\n"
+            return response
     return ""
 
 def handle_files(fs, request):
