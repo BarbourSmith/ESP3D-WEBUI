@@ -28,7 +28,17 @@ function SendPrinterCommand(prnCmd, echo_on, processfn, errorfn, cmd_code, max_c
     if (!prnCmd.startsWith("[ESP")) {
         grbl_processfn = procFn;
         grbl_errorfn = errFn;
-        procFn = noop;
+        // For GRBL commands, route HTTP responses through the GRBL message processor
+        procFn = function(response) {
+            // Split response into lines and process each through GRBL handler
+            const lines = response.split('\n');
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.length > 0 && typeof process_grbl_data === 'function') {
+                    process_grbl_data(trimmed);
+                }
+            }
+        };
         errFn = noop;
     }
 

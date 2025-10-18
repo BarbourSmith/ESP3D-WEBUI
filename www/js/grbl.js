@@ -815,12 +815,17 @@ const grblHandleMessage = (msg) => {
     return;
   }
   // Handle $CI (connection info) command response
-  // Collect all client connection messages
-  if (valueStartsWith(msg, ["[MSG:Client "])) {
-    if (typeof accumulateConnectionInfo === 'function') {
-      accumulateConnectionInfo(msg);
+  // $CI outputs channel names directly: "websocket", "telnet", "usbcdc", "macros"
+  // Each active connection appears as a separate line with the channel name
+  if (valueStartsWith(msg, ["[MSG:"])) {
+    const content = msg.substring(5, msg.length - 1).trim(); // Extract content between [MSG: and ]
+    // Check if this is a channel name (simple word without spaces or special format)
+    if (/^[a-z]+$/.test(content)) {
+      if (typeof accumulateConnectionInfo === 'function') {
+        accumulateConnectionInfo(content);
+      }
+      return;
     }
-    return;
   }
   if (valueStartsWith(msg, ["[MSG:"])) {
     // Check for motor current debugging messages

@@ -777,32 +777,33 @@ function processConnectionInfo() {
     return;
   }
   
-  // Count webconnect and telnet entries
-  let webconnectCount = 0;
+  // Count websocket and telnet channel occurrences
+  // $CI returns channel names for each active connection
+  // If there are 2 websocket connections, "websocket" appears twice
+  let websocketCount = 0;
   let telnetCount = 0;
   
   for (const msg of connectionInfoAccumulator) {
-    // Example: [MSG:Client 0: webconnect from ::ffff:192.168.1.10]
-    if (msg.includes('webconnect') || msg.includes('webui')) {
-      webconnectCount++;
-    }
-    if (msg.includes('telnet')) {
+    const lowerMsg = msg.toLowerCase().trim();
+    if (lowerMsg === 'websocket') {
+      websocketCount++;
+    } else if (lowerMsg === 'telnet') {
       telnetCount++;
     }
   }
   
   // Update the label text
-  label.textContent = `Web:${webconnectCount} Tel:${telnetCount}`;
+  label.textContent = `Web:${websocketCount} Tel:${telnetCount}`;
   
-  // Set background color based on webconnect count
-  if (webconnectCount > 1) {
-    label.style.backgroundColor = '#ff4444'; // Red
-    label.style.color = 'white';
-  } else if (webconnectCount === 1) {
-    label.style.backgroundColor = '#44ff44'; // Green
+  // Set background color based on websocket count
+  if (websocketCount > 1) {
+    label.style.backgroundColor = '#ffcccc'; // Red - multiple browsers
+    label.style.color = 'black';
+  } else if (websocketCount === 1) {
+    label.style.backgroundColor = '#ccffcc'; // Green - single connection
     label.style.color = 'black';
   } else {
-    label.style.backgroundColor = '#cccccc'; // Gray
+    label.style.backgroundColor = '#eeeeee'; // Gray - disconnected
     label.style.color = 'black';
   }
 }

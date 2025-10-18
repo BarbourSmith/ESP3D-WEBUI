@@ -268,11 +268,14 @@ def do_command():
                     wsock.send(gresp)
             elif commandtextval == '$CI':
                 # Simulate connection info response
-                if len(CONNECTIONS):
-                    wsock = CONNECTIONS[0]
-                    # Send a mock response showing one webconnect connection
-                    wsock.send("[MSG:Client 0: webconnect from ::ffff:127.0.0.1]\n")
-                    wsock.send("ok\n")
+                # $CI returns active channel names, one per line
+                # Return via HTTP since command came via HTTP
+                response = "[MSG:usbcdc]\n"
+                response += "[MSG:websocket]\n"
+                # If you want to simulate multiple websocket connections, add more:
+                # response += "[MSG:websocket]\n"
+                response += "ok\n"
+                return response
     return ""
 
 def handle_files(fs, request):
