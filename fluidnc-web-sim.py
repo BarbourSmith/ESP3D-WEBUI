@@ -266,6 +266,13 @@ def do_command():
                 if len(CONNECTIONS):
                     wsock = CONNECTIONS[0]
                     wsock.send(gresp)
+            elif commandtextval == '$CI':
+                # Simulate connection info response
+                if len(CONNECTIONS):
+                    wsock = CONNECTIONS[0]
+                    # Send a mock response showing one webconnect connection
+                    wsock.send("[MSG:Client 0: webconnect from ::ffff:127.0.0.1]\n")
+                    wsock.send("ok\n")
     return ""
 
 def handle_files(fs, request):

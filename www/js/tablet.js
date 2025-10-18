@@ -715,9 +715,96 @@ const tabletMoveZUp = () => sendMove("Z+");
 const tabletMoveTopLeft = () => sendMove("X-Y+");
 const tabletMoveTop = () => sendMove("Y+");
 const tabletMoveTopRight = () => sendMove("X+Y+");
+// Connection info polling variables
+let connectionInfoInterval = null;
+let connectionInfoAccumulator = [];
+let connectionInfoTimeout = null;
+
 const tabletCalibrationOpen = () => {
   loadCornerValues();
   openModal("calibration-popup");
+  startConnectionInfoPolling();
+}
+
+// Start polling for connection info
+function startConnectionInfoPolling() {
+  // Clear any existing interval
+  stopConnectionInfoPolling();
+  
+  // Query immediately
+  queryConnectionInfo();
+  
+  // Then poll every second
+  connectionInfoInterval = setInterval(queryConnectionInfo, 1000);
+}
+
+// Stop polling for connection info
+function stopConnectionInfoPolling() {
+  if (connectionInfoInterval) {
+    clearInterval(connectionInfoInterval);
+    connectionInfoInterval = null;
+  }
+  if (connectionInfoTimeout) {
+    clearTimeout(connectionInfoTimeout);
+    connectionInfoTimeout = null;
+  }
+  connectionInfoAccumulator = [];
+}
+
+// Query connection info using $CI command
+function queryConnectionInfo() {
+  // Reset accumulator for this query
+  connectionInfoAccumulator = [];
+  sendCommand("$CI");
+  
+  // Set a timeout to process accumulated data after 200ms
+  // (should be enough time to receive all responses)
+  if (connectionInfoTimeout) {
+    clearTimeout(connectionInfoTimeout);
+  }
+  connectionInfoTimeout = setTimeout(processConnectionInfo, 200);
+}
+
+// Accumulate connection info messages
+function accumulateConnectionInfo(msg) {
+  connectionInfoAccumulator.push(msg);
+}
+
+// Process accumulated connection info
+function processConnectionInfo() {
+  const label = id("connection-info-label");
+  if (!label) {
+    return;
+  }
+  
+  // Count webconnect and telnet entries
+  let webconnectCount = 0;
+  let telnetCount = 0;
+  
+  for (const msg of connectionInfoAccumulator) {
+    // Example: [MSG:Client 0: webconnect from ::ffff:192.168.1.10]
+    if (msg.includes('webconnect') || msg.includes('webui')) {
+      webconnectCount++;
+    }
+    if (msg.includes('telnet')) {
+      telnetCount++;
+    }
+  }
+  
+  // Update the label text
+  label.textContent = `Web:${webconnectCount} Tel:${telnetCount}`;
+  
+  // Set background color based on webconnect count
+  if (webconnectCount > 1) {
+    label.style.backgroundColor = '#ff4444'; // Red
+    label.style.color = 'white';
+  } else if (webconnectCount === 1) {
+    label.style.backgroundColor = '#44ff44'; // Green
+    label.style.color = 'black';
+  } else {
+    label.style.backgroundColor = '#cccccc'; // Gray
+    label.style.color = 'black';
+  }
 }
 // Button event handlers - Second Row
 const tabletMoveLeft = () => sendMove("X-");
@@ -1337,6 +1424,11 @@ const hideModal = (modalId) => {
 
   if (modal) {
     modal.style.display = "none";
+  }
+  
+  // Stop connection info polling when calibration modal is closed
+  if (modalId === "calibration-popup") {
+    stopConnectionInfoPolling();
   }
 };
 

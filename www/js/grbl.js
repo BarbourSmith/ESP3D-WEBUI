@@ -814,6 +814,14 @@ const grblHandleMessage = (msg) => {
     grblGetProbeResult(msg);
     return;
   }
+  // Handle $CI (connection info) command response
+  // Collect all client connection messages
+  if (valueStartsWith(msg, ["[MSG:Client "])) {
+    if (typeof accumulateConnectionInfo === 'function') {
+      accumulateConnectionInfo(msg);
+    }
+    return;
+  }
   if (valueStartsWith(msg, ["[MSG:"])) {
     // Check for motor current debugging messages
     if (typeof parseMotorCurrentMessage === 'function' && parseMotorCurrentMessage(msg)) {
