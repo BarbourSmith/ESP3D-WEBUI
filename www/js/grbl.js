@@ -956,8 +956,19 @@ const grblHandleMessage = (msg) => {
     grbl.probePin = probePinValue;
     console.log('[Bit Change] Stored probe pin in grbl.probePin:', grbl.probePin);
     
-    // Update button state now that we have probe info
-    updateBitChangeButton();
+    // Re-evaluate probe availability now that we have the response
+    if (bitChangeState.isChanging) {
+      console.log('[Bit Change] Re-evaluating probe availability after receiving response');
+      const probeNowAvailable = isProbeAvailable();
+      console.log('[Bit Change] Probe now available:', probeNowAvailable);
+      
+      // Update the bit change state with the new probe availability
+      bitChangeState.probeEnabled = probeNowAvailable;
+      console.log('[Bit Change] Updated bitChangeState.probeEnabled to:', bitChangeState.probeEnabled);
+      
+      // Update button to reflect the new state
+      updateBitChangeButton();
+    }
     return;
   }
 
