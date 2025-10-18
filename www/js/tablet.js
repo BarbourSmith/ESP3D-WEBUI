@@ -793,6 +793,23 @@ function tabletInit() {
     id("tablettab_topLeft").addEventListener("click", tabletMoveTopLeft);
     id("tablettab_top").addEventListener("click", tabletMoveTop);
     id("tablettab_topRight").addEventListener("click", tabletMoveTopRight);
+    
+    // Add bit change button event listener with logging
+    console.log('[Bit Change Init] Attaching event listener to bit change button in Maslow tab');
+    const bitChangeBtn = id("bitchangebtn");
+    console.log('[Bit Change Init] Button element lookup result:', bitChangeBtn);
+    
+    if (bitChangeBtn) {
+        console.log('[Bit Change Init] Button element found! Attaching click handler...');
+        bitChangeBtn.addEventListener("click", function() {
+            console.log('[Bit Change] ===== BUTTON CLICKED! =====');
+            StartBitChangeProcess();
+        });
+        console.log('[Bit Change Init] Event listener attached successfully');
+    } else {
+        console.error('[Bit Change Init] ERROR: Failed to find bit change button element with id="bitchangebtn"');
+    }
+    
     id("calibrationBTN").addEventListener("click", tabletCalibrationOpen);
 
     // Buttons - Second Row
