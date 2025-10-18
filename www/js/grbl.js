@@ -587,18 +587,18 @@ var bitChangeState = {
 
 // Query the probe pin setting from FluidNC
 function queryProbePin() {
-  console.log('[Bit Change] Querying $probe.pin setting...');
+  console.log('[Bit Change] Querying $probe/pin setting...');
   // Send command to query probe pin setting
   // The response will be handled in the message processing
-  SendPrinterCommand('$probe.pin', true);
+  SendPrinterCommand('$probe/pin', true);
 }
 
 // Check if probe is actually available (hardware detected)
 function isProbeAvailable() {
   // Check if probe pin is configured in FluidNC settings
-  // Query $probe.pin setting to determine if probe hardware is configured
+  // Query $probe/pin setting to determine if probe hardware is configured
   console.log('[Bit Change] Checking probe availability...');
-  console.log('[Bit Change] - Checking $probe.pin setting');
+  console.log('[Bit Change] - Checking $probe/pin setting');
   
   // Check if we have cached probe pin information
   if (typeof grbl !== 'undefined' && typeof grbl.probePin !== 'undefined') {
