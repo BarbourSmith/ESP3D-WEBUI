@@ -71,6 +71,7 @@ function SendPrinterCommand(prnCmd, echo_on, processfn, errorfn, cmd_code, max_c
         cmd += `&${extra_arg}`;
     }
 
+    console.log('SendPrinterCommand: Sending HTTP request:', cmd);
     SendGetHttp(cmd, procFn, errFn, cmd_code, max_cmd_code);
     //console.log(cmd);
 }
