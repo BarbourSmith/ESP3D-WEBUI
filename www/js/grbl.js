@@ -942,6 +942,24 @@ const grblHandleMessage = (msg) => {
     probe_failed_notification("No probe pin defined");
     return;
   }
+  
+  // Handle probe pin setting response
+  if (msg.startsWith('$/probe/pin=')) {
+    const probePinValue = msg.substring('$/probe/pin='.length).trim();
+    console.log('[Bit Change] Received probe pin response:', msg);
+    console.log('[Bit Change] Parsed probe pin value:', probePinValue);
+    
+    // Store in grbl object for caching
+    if (typeof grbl === 'undefined') {
+      grbl = {};
+    }
+    grbl.probePin = probePinValue;
+    console.log('[Bit Change] Stored probe pin in grbl.probePin:', grbl.probePin);
+    
+    // Update button state now that we have probe info
+    updateBitChangeButton();
+    return;
+  }
 
   // Setting collection
   if (collectedSettings) {
