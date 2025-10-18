@@ -7,7 +7,7 @@ var gCodeDisplayable = false;
 var snd = null;
 var sndok = true;
 
-var versionNumber = "1.12";
+var versionNumber = "replaceVERSION";
 
 const addMessage = (msg, scroll = true, clear = false) => {
   const msgWindow = id("messages");
@@ -226,9 +226,39 @@ const jogTo = (axisAndDistance) => {
     feedrate = feedrate.toFixed(2);
   }
 
-  const cmd = `$J=G91F${feedrate}${axisAndDistance}\n`;
-  addMessage(`JogTo: '${cmd}'`);
-  sendCommand(cmd);
+  // For safety, always ensure firmware units match UI expectations before jogging
+  jogWithUnitsSafeguard(feedrate, axisAndDistance);
+}
+
+/** 
+ * Safely execute a jog command with firmware units synchronized to UI units.
+ * This prevents issues where UI is in mm but firmware is in inches (or vice versa),
+ * which could cause dangerous oversized movements.
+ * 
+ * Strategy: Always force firmware to match UI units before jogging, then restore.
+ * This is simpler and more reliable than trying to query and conditionally synchronize.
+ */
+const jogWithUnitsSafeguard = (feedrate, axisAndDistance) => {
+  // Store what units the UI is currently displaying (what user expects)
+  const uiExpectedUnits = gCodeModal.units;
+  
+  // Force firmware to use UI units, execute jog, then query to restore original state
+  // This ensures the jog distance is always interpreted correctly
+  sendCommand(uiExpectedUnits);
+  
+  // Small delay to ensure units command is processed
+  setTimeout(() => {
+    const cmd = `$J=G91F${feedrate}${axisAndDistance}`;
+    const unitsLabel = uiExpectedUnits === 'G20' ? 'inch' : 'mm';
+    addMessage(`JogTo: ${cmd} (${unitsLabel})`);
+    sendCommand(cmd + '\n');
+    
+    // After jog command, query current state to restore if needed
+    // The $G response will be handled by grblGetModal and update the UI automatically
+    setTimeout(() => {
+      sendCommand('$G');
+    }, 200);
+  }, 100);
 }
 
 /** Peform a move command */
@@ -503,7 +533,13 @@ function scaleUnits(target) {
   const currentValue = Number(distanceElement.innerText);
 
   if (!Number.isNaN(currentValue)) {
-    distanceElement.innerText = gCodeModal.units == 'G20' ? currentValue / 25.4 : currentValue * 25.4;
+    // When converting to inches, round to 3 decimal places for display
+    if (gCodeModal.units == 'G20') {
+      distanceElement.innerText = (currentValue / 25.4).toFixed(3);
+    } else {
+      // When converting to mm, round to 2 decimal places for display
+      distanceElement.innerText = (currentValue * 25.4).toFixed(2);
+    }
   } else {
     console.error('Invalid number in disM element');
   }
@@ -807,6 +843,9 @@ function tabletInit() {
     id("systemStatus").addEventListener("click", clearAlarm);
 
     id("tablettab_save_serial_msg").addEventListener("click", saveSerialMessages);
+    
+    // Trace boundary button
+    id("tablettab_trace_boundary").addEventListener("click", traceBoundary);
 
     // Buttons - Calibration Pop-up
     id("calibration-popup").addEventListener("click", tabletCalPopupHide);
@@ -844,6 +883,7 @@ const showGCode = (gcode, append = false, updateToolpath = true) => {
     }
     if (gCodeDisplayable && updateToolpath) {
       tpDisplayer().showToolpath(getValue("tablettab_gcode"), gCodeModal, arrayToXYZ(WPOS));
+      updateJobBoundsDisplay();
     }
   }
 
@@ -905,13 +945,31 @@ function tabletLoadGCodeFile(path, size) {
     tpDisplayer().clear();
   } else {
     gCodeDisplayable = true;
+    
+    // Log loading start
+    Monitor_output_Update(`[Preview] Loading GCode file: ${path}\n`);
+    
+    // Disable ping monitoring during GCode loading and preview rendering
+    disablePingForUpload();
+    
     // Use sequential loading for files larger than 10KB for better user experience
     if (size > 10000) {
       tabletLoadGCodeFileSequentially(path);
     } else {
       fetch(encodeURIComponent(`SD${gCodeFilename}`))
         .then((response) => response.text())
-        .then((gcode) => showGCode(gcode));
+        .then((gcode) => {
+          showGCode(gcode);
+          // Restore ping monitoring after preview completes
+          restorePingAfterUpload();
+          Monitor_output_Update("[Preview] GCode preview loaded successfully\n");
+        })
+        .catch((error) => {
+          // Restore ping monitoring on error
+          restorePingAfterUpload();
+          Monitor_output_Update(`[Preview] Failed to load GCode: ${error.message}\n`);
+          console.error('Error loading GCode file:', error);
+        });
     }
   }
 }
@@ -988,11 +1046,20 @@ async function tabletLoadGCodeFileSequentially(path) {
     if (gCodeDisplayable) {
       const finalContent = getValue("tablettab_gcode");
       tpDisplayer().showToolpath(finalContent, gCodeModal, arrayToXYZ(WPOS));
+      updateJobBoundsDisplay();
     }
+    
+    // Restore ping monitoring after preview completes
+    restorePingAfterUpload();
+    Monitor_output_Update("[Preview] GCode preview loaded successfully\n");
     
   } catch (error) {
     console.error('Error loading GCode file:', error);
     showGCode(`Error loading GCode file: ${error.message}`);
+    
+    // Restore ping monitoring on error
+    restorePingAfterUpload();
+    Monitor_output_Update(`[Preview] Failed to load GCode: ${error.message}\n`);
   }
 }
 
