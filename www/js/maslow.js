@@ -51,6 +51,8 @@ READY_TO_CUT 7
 const updateDynamicButtons = () => {
 
 	const stateLabel = document.getElementById("state-label");
+	const mainStateLabel = document.getElementById("main-state-label");
+	const mainStateLabelContainer = document.getElementById("main-state-label-container");
 
 	const retractButton = document.getElementById("tablettab_cal_retract");
 	const extendButton = document.getElementById("tablettab_cal_extend");
@@ -60,6 +62,12 @@ const updateDynamicButtons = () => {
 
 	const greenBackground = "#4aa85c"
 	const greyBackground = "#a0a0a0"
+	
+	// State label background colors
+	const redBackground = "#f8d7da"
+	const blueBackground = "#cfe2ff"
+	const greenStateBackground = "#d1e7dd"
+	const yellowBackground = "#fff3cd"
 
 	// #define UNKNOWN 0
 	// #define RETRACTING 1
@@ -75,6 +83,10 @@ const updateDynamicButtons = () => {
 	switch (maslowStatus.state) {
 		case 0: 
 			stateLabel.innerHTML = "State: Unknown";
+			if (mainStateLabel) {
+				mainStateLabel.innerHTML = "State: Unknown";
+				if (mainStateLabelContainer) mainStateLabelContainer.style.backgroundColor = redBackground;
+			}
 
 			//Set the retract and extend buttons to have a green background 
 			retractButton.style.backgroundColor = greenBackground;
@@ -86,6 +98,10 @@ const updateDynamicButtons = () => {
 			break;
 		case 1:
 			stateLabel.innerHTML = "State: Retracting";
+			if (mainStateLabel) {
+				mainStateLabel.innerHTML = "State: Retracting";
+				if (mainStateLabelContainer) mainStateLabelContainer.style.backgroundColor = blueBackground;
+			}
 
 			retractButton.style.backgroundColor = greyBackground;
 			extendButton.style.backgroundColor = greyBackground;
@@ -96,6 +112,10 @@ const updateDynamicButtons = () => {
 			break;
 		case 2:
 			stateLabel.innerHTML = "State: Retracted";
+			if (mainStateLabel) {
+				mainStateLabel.innerHTML = "State: Retracted";
+				if (mainStateLabelContainer) mainStateLabelContainer.style.backgroundColor = greenStateBackground;
+			}
 
 			retractButton.style.backgroundColor = greenBackground;
 			extendButton.style.backgroundColor = greenBackground;
@@ -107,6 +127,10 @@ const updateDynamicButtons = () => {
 			break;
 		case 3:
 			stateLabel.innerHTML = "State: Extending";
+			if (mainStateLabel) {
+				mainStateLabel.innerHTML = "State: Extending";
+				if (mainStateLabelContainer) mainStateLabelContainer.style.backgroundColor = blueBackground;
+			}
 			
 			retractButton.style.backgroundColor = greyBackground;
 			extendButton.style.backgroundColor = greyBackground;
@@ -116,6 +140,10 @@ const updateDynamicButtons = () => {
 			break;
 		case 4:
 			stateLabel.innerHTML = "State: Extended";
+			if (mainStateLabel) {
+				mainStateLabel.innerHTML = "State: Extended";
+				if (mainStateLabelContainer) mainStateLabelContainer.style.backgroundColor = yellowBackground;
+			}
 
 			retractButton.style.backgroundColor = greenBackground;
 			tenseButton.style.backgroundColor = greenBackground;
@@ -127,6 +155,10 @@ const updateDynamicButtons = () => {
 			break;
 		case 5:
 			stateLabel.innerHTML = "State: Taking Slack";
+			if (mainStateLabel) {
+				mainStateLabel.innerHTML = "State: Taking Slack";
+				if (mainStateLabelContainer) mainStateLabelContainer.style.backgroundColor = blueBackground;
+			}
 
 			retractButton.style.backgroundColor = greyBackground;
 			extendButton.style.backgroundColor = greyBackground;
@@ -136,6 +168,10 @@ const updateDynamicButtons = () => {
 			break;
 		case 6:
 			stateLabel.innerHTML = "State: Calibrating";
+			if (mainStateLabel) {
+				mainStateLabel.innerHTML = "State: Calibrating";
+				if (mainStateLabelContainer) mainStateLabelContainer.style.backgroundColor = blueBackground;
+			}
 
 			retractButton.style.backgroundColor = greyBackground;
 			extendButton.style.backgroundColor = greyBackground;
@@ -145,6 +181,10 @@ const updateDynamicButtons = () => {
 			break;
 		case 7:
 			stateLabel.innerHTML = "State: Ready to Cut";
+			if (mainStateLabel) {
+				mainStateLabel.innerHTML = "State: Ready to Cut";
+				if (mainStateLabelContainer) mainStateLabelContainer.style.backgroundColor = greenStateBackground;
+			}
 
 			retractButton.style.backgroundColor = greenBackground;
 			relaxButton.style.backgroundColor = greenBackground;
@@ -156,6 +196,10 @@ const updateDynamicButtons = () => {
 			break;
 		case 8:
 			stateLabel.innerHTML = "State: Releasing Tension";
+			if (mainStateLabel) {
+				mainStateLabel.innerHTML = "State: Releasing Tension";
+				if (mainStateLabelContainer) mainStateLabelContainer.style.backgroundColor = blueBackground;
+			}
 
 			retractButton.style.backgroundColor = greyBackground;
 			extendButton.style.backgroundColor = greyBackground;
@@ -167,6 +211,10 @@ const updateDynamicButtons = () => {
 			break;
 		case 9:
 			stateLabel.innerHTML = "State: Calibration Computing";
+			if (mainStateLabel) {
+				mainStateLabel.innerHTML = "State: Calibration Computing";
+				if (mainStateLabelContainer) mainStateLabelContainer.style.backgroundColor = blueBackground;
+			}
 			// No buttons are active in this state
 			retractButton.style.backgroundColor = greyBackground;
 			extendButton.style.backgroundColor = greyBackground;
@@ -176,6 +224,10 @@ const updateDynamicButtons = () => {
 			break;
 		default:
 			stateLabel.innerHTML = "State: Unknown";
+			if (mainStateLabel) {
+				mainStateLabel.innerHTML = "State: Unknown";
+				if (mainStateLabelContainer) mainStateLabelContainer.style.backgroundColor = redBackground;
+			}
 
 			retractButton.style.backgroundColor = greenBackground;
 			extendButton.style.backgroundColor = greyBackground;

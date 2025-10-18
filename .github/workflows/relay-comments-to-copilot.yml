@@ -35,15 +35,9 @@ jobs:
             }
             
             // Skip build trigger comments that are handled by the compile workflow
-            const buildPatterns = [
-              /(?:^|\s)build(?:\s|$)/i,  // build as a standalone word
-              /(?:^|\s)compile(?:\s|$)/i, // compile as a standalone word  
-              /\/build/i, // /build command
-              /@MaslowBot\s+(please\s+)?build(?:\s|$)/i, // @MaslowBot (please) build
-              /@MaslowBot\s+(please\s+)?compile(?:\s|$)/i // @MaslowBot (please) compile
-            ];
-            
-            const isBuildComment = buildPatterns.some(pattern => pattern.test(originalBody));
+            // Only skip comments that actually trigger compile-webui.yml (which checks for 'please build' or '/build')
+            const lowerBody = originalBody.toLowerCase();
+            const isBuildComment = lowerBody.includes('please build') || lowerBody.includes('/build');
             if (isBuildComment) {
               console.log('Comment appears to be a build trigger, skipping relay to avoid duplication');
               return;

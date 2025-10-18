@@ -49,7 +49,7 @@ function get_icon_svg(name, w, h, color) {
     console.error('Parsing error:', e)
     has_error = true
   }
-  if (has_error) return ''
+  if (has_error || typeof content === 'undefined') return ''
   var icon =
     "<svg width='" +
     w +

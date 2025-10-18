@@ -119,9 +119,9 @@ var Toolpath = function () {
                     z: _this.position.z
                 };
                 var v2 = {
-                    x: _this.translateX(params.X),
-                    y: _this.translateY(params.Y),
-                    z: _this.translateZ(params.Z)
+                    x: _this.translateX(params.X, _this.isRelativeDistance()),
+                    y: _this.translateY(params.Y, _this.isRelativeDistance()),
+                    z: _this.translateZ(params.Z, _this.isRelativeDistance())
                 };
                 var targetPosition = { x: v2.x, y: v2.y, z: v2.z };
 
@@ -155,9 +155,9 @@ var Toolpath = function () {
                     z: _this.position.z
                 };
                 var v2 = {
-                    x: _this.translateX(params.X),
-                    y: _this.translateY(params.Y),
-                    z: _this.translateZ(params.Z)
+                    x: _this.translateX(params.X, _this.isRelativeDistance()),
+                    y: _this.translateY(params.Y, _this.isRelativeDistance()),
+                    z: _this.translateZ(params.Z, _this.isRelativeDistance())
                 };
                 var targetPosition = { x: v2.x, y: v2.y, z: v2.z };
 
@@ -191,9 +191,9 @@ var Toolpath = function () {
 
                 let v1 = _this.position;
                 let v2 = {
-                    x: _this.translateX(params.X),
-                    y: _this.translateY(params.Y),
-                    z: _this.translateZ(params.Z)
+                    x: _this.translateX(params.X, _this.isRelativeDistance()),
+                    y: _this.translateY(params.Y, _this.isRelativeDistance()),
+                    z: _this.translateZ(params.Z, _this.isRelativeDistance())
                 };
                 let v0 = { // fixed point
                     x: _this.translateI(params.I),
@@ -280,9 +280,9 @@ var Toolpath = function () {
 
                 let v1 = _this.position;
                 let v2 = {
-                    x: _this.translateX(params.X),
-                    y: _this.translateY(params.Y),
-                    z: _this.translateZ(params.Z)
+                    x: _this.translateX(params.X, _this.isRelativeDistance()),
+                    y: _this.translateY(params.Y, _this.isRelativeDistance()),
+                    z: _this.translateZ(params.Z, _this.isRelativeDistance())
                 };
                 let v0 = { // fixed point
                     x: _this.translateI(params.I),

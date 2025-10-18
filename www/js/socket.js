@@ -20,6 +20,8 @@ const check_ping = () => {
 };
 
 let interval_ping = -1;
+let ping_state_before_upload = null;
+
 /** Turn ping on or off based on its current value */
 const handlePing = () => {
 	if (enable_ping) {
@@ -34,6 +36,27 @@ const handlePing = () => {
 		clearInterval(interval_ping);
 		interval_ping = -1;
 		console.log("disable ping");
+	}
+};
+
+/** Temporarily disable ping monitoring during uploads */
+const disablePingForUpload = () => {
+	// Store the current ping state so we can restore it later
+	ping_state_before_upload = enable_ping;
+	if (enable_ping) {
+		enable_ping = false;
+		handlePing();
+		console.log("Ping disabled for upload");
+	}
+};
+
+/** Restore ping monitoring after upload completes */
+const restorePingAfterUpload = () => {
+	if (ping_state_before_upload !== null) {
+		enable_ping = ping_state_before_upload;
+		handlePing();
+		ping_state_before_upload = null;
+		console.log("Ping state restored after upload");
 	}
 };
 

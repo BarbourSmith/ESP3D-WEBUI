@@ -91,6 +91,12 @@ font-size: 12px;
 text-align: center;
 }
 
+.maslow-grid-item-btn {
+  aspect-ratio: 1 / .7;
+  min-height: 0;
+  min-width: 0;
+}
+
 #filelist {
 width: 100%;
 

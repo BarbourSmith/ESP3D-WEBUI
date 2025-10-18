@@ -94,8 +94,84 @@ ESP3D SPIFFS:
 ## Installation
 Please use the latest [ESP3D firmware](https://github.com/luc-github/ESP3D/tree/2.1.x) and copy the index.html.gz file on root of SPIFFS, in theory ESP3D have a version of web-ui but it may not be the latest one
 
-## Contribution / development
-Check wiki section [Contribution/Development](https://github.com/luc-github/ESP3D-WEBUI/wiki/Compilation---Development)
+## Compilation & Development
+
+### Quick Start
+The UI can be compiled using modern tools! Here's how to get started:
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Build for English (recommended - ~124KB)
+gulp package --lang en
+
+# 3. Output files will be in:
+#    - dist/index.html.gz (compressed for ESP32)
+#    - dist/index.html (uncompressed for development)
+```
+
+**📖 For complete compilation instructions, see [COMPILATION.md](COMPILATION.md)**
+
+### Available Languages
+```bash
+# Single language builds (fit on ESP32):
+gulp package --lang en      # English (~122KB)
+gulp package --lang fr      # French (~122KB) 
+gulp package --lang es      # Spanish (~125KB)
+gulp package --lang de      # German
+gulp package --lang it      # Italian
+gulp package --lang ja      # Japanese
+gulp package --lang pl      # Polish
+gulp package --lang ptbr    # Portuguese (Brazil)
+gulp package --lang ru      # Russian
+gulp package --lang tr      # Turkish
+gulp package --lang uk      # Ukrainian
+gulp package --lang zh_CN   # Chinese (Simplified)
+gulp package --lang hu      # Hungarian
+
+# Multi-language build (may be too large for ESP32):
+gulp package                 # All languages
+```
+
+### NPM Scripts
+```bash
+npm run build        # Same as: gulp package
+npm run build:en     # Same as: gulp package --lang en
+npm run start        # Build English only (testing on hardware recommended)
+npm run serve        # Not recommended - test on actual hardware instead
+```
+
+### Testing Your Build
+**⚠️ Important: Always test on actual hardware for reliable results.**
+
+Upload `dist/index.html.gz` to your ESP32 device for proper testing. Local testing with the proxy server can introduce bugs and doesn't accurately represent how the UI behaves on the actual hardware.
+
+### Automated Builds via GitHub Actions
+🤖 **Get builds automatically compiled for you!**
+
+**Option 1: Request @MaslowBot as reviewer on your PR**
+- When you create a PR, add @MaslowBot as a reviewer
+- The WebUI will be automatically compiled and attached as a downloadable artifact
+
+**Option 2: Comment on your PR**
+- Comment "please build" or "/build" on any PR
+- The system will compile and provide a download link
+
+Both methods create a downloadable "Updated UI.zip" file with installation instructions.
+
+### Development Requirements
+- **Node.js**: v20+ (tested with v20.19.5)
+- **npm**: v10+ (tested with v10.8.2)  
+- **Python**: v3.12+ (for testing server)
+
+### Build Output
+- **Compressed**: `dist/index.html.gz` (~122-125KB)
+- **Uncompressed**: `dist/index.html` (~535KB)
+- **Build time**: ~3 seconds per language
+
+### Contribution / Development
+For detailed development information, check the [HOWTO-Test-Locally.md](HOWTO-Test-Locally.md) file or the wiki section [Contribution/Development](https://github.com/luc-github/ESP3D-WEBUI/wiki/Compilation---Development)
 
 ## Issues / Questions
 You can submit ticket [here](https://github.com/luc-github/ESP3D-WEBUI/issues) or open discussion if it is not an issue [here](https://github.com/luc-github/ESP3D-WEBUI/discussions) or Join the chat at [![Discord server](https://img.shields.io/discord/752822148795596940?color=blue&label=discord&logo=discord)](https://discord.gg/Z4ujTwE)   

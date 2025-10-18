@@ -109,3 +109,29 @@ const BuildFormDataFiles = (filename, filedata, options) => {
     const blob = new Blob(filedata, options);
     return new File([blob], filename);
 }
+
+/** Check if a file exists in the root directory by listing files
+ * @param {string} filename - Name of the file to check
+ * @param {function} successCallback - Called with true if file exists
+ * @param {function} errorCallback - Called with false if check fails
+ */
+const checkFileExists = (filename, successCallback, errorCallback) => {
+    const cmd = buildHttpFilesCmd({ action: "list", path: "/" });
+    SendGetHttp(
+        cmd,
+        (response) => {
+            try {
+                const data = JSON.parse(response);
+                const exists = data.files && data.files.some(file => file.name === filename);
+                successCallback(exists);
+            } catch (e) {
+                console.error("Error parsing file list:", e);
+                errorCallback();
+            }
+        },
+        (error_code, response) => {
+            console.error("Error checking if file exists:", error_code, response);
+            errorCallback();
+        }
+    );
+}

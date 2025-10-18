@@ -35,8 +35,25 @@ const ControlsPanel = () => {
 
 function loadmacrolist() {
 	control_macrolist.length = 0;
-	const cmd = buildHttpFileGetCmd("macrocfg.json");
-	SendGetHttp(cmd, processMacroGetSuccess, processMacroGetFailed);
+	
+	// Check if macrocfg.json exists before trying to load it
+	checkFileExists(
+		"macrocfg.json",
+		(exists) => {
+			if (exists) {
+				const cmd = buildHttpFileGetCmd("macrocfg.json");
+				SendGetHttp(cmd, processMacroGetSuccess, processMacroGetFailed);
+			} else {
+				console.info("Macro config file not found, using defaults");
+				Macro_build_list("");
+			}
+		},
+		() => {
+			// If check fails, try to load anyway (fallback to old behavior)
+			const cmd = buildHttpFileGetCmd("macrocfg.json");
+			SendGetHttp(cmd, processMacroGetSuccess, processMacroGetFailed);
+		}
+	);
 }
 
 function Macro_build_list(response_text) {

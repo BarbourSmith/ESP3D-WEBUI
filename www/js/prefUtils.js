@@ -50,8 +50,25 @@ const GetPreferencesList = () => {
     processPreferencesGetSuccess(response);
     return;
     //endRemoveIf(production)
-    const cmd = buildHttpFileGetCmd(preferences_file_name);
-    SendGetHttp(cmd, processPreferencesGetSuccess, processPreferencesGetFailed);
+    
+    // Check if preferences file exists before trying to load it
+    checkFileExists(
+        preferences_file_name,
+        (exists) => {
+            if (exists) {
+                const cmd = buildHttpFileGetCmd(preferences_file_name);
+                SendGetHttp(cmd, processPreferencesGetSuccess, processPreferencesGetFailed);
+            } else {
+                console.info("Preferences file not found, using defaults");
+                Preferences_build_list("");
+            }
+        },
+        () => {
+            // If check fails, try to load anyway (fallback to old behavior)
+            const cmd = buildHttpFileGetCmd(preferences_file_name);
+            SendGetHttp(cmd, processPreferencesGetSuccess, processPreferencesGetFailed);
+        }
+    );
 }
 
 const processPreferencesGetSuccess = (response) => {
@@ -76,8 +93,13 @@ const Preferences_build_list = (response_text) => {
 
 /** Determine if the preferences have been modified */
 const PreferencesModified = () => {
-    if (!preferenceslist[0].length) {
+    if (!preferenceslist[0] || !preferenceslist[0].length) {
         // Nothing got loaded, so nothing could have been modified
+        return false;
+    }
+
+    if (!default_preferenceslist || !default_preferenceslist[0]) {
+        // Default preferences not loaded, cannot compare
         return false;
     }
 

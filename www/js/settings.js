@@ -241,7 +241,14 @@ function get_index_from_eeprom_pos(pos) {
   return -1;
 }
 
-const configFileName = "maslow.yaml";
+/** Get the config filename from preferences, defaulting to maslow.yaml */
+const getConfigFileName = () => {
+  if (typeof preferenceslist !== 'undefined' && preferenceslist.length > 0 && preferenceslist[0].config_filename) {
+    return preferenceslist[0].config_filename;
+  }
+  return "maslow.yaml";
+}
+
 const configSaveResultId = "maslow_save_result";
 
 /** Send a command to call Config/Overwrite.
@@ -251,6 +258,7 @@ const configSaveResultId = "maslow_save_result";
  * @see maslow.js maslowErrorMsgHandling()
  */
 const saveMaslowYaml = () => {
+  const configFileName = getConfigFileName();
   console.info(`Calling for a Config Overwrite to save the ${configFileName} file`);
   const cmd = buildHttpCommandCmd(httpCmdType.plain, "$CO");
   SendGetHttp(cmd, saveConfigSuccess, saveConfigFail);
@@ -259,11 +267,13 @@ const saveMaslowYaml = () => {
 const saveConfigClearMessage = () => setTimeout(() => { setHTML(configSaveResultId, ""); }, 5000)
 
 const saveConfigSuccess = (response) => {
+  const configFileName = getConfigFileName();
   setHTML(configSaveResultId, `"Save" ${configFileName} succeeded`);
   saveConfigClearMessage();
 }
 
 const saveConfigFail = (response) => {
+  const configFileName = getConfigFileName();
   setHTML(configSaveResultId, `"Save" ${configFileName} failed`);
   saveConfigClearMessage();
 }
@@ -282,6 +292,7 @@ const build_HTML_setting_list = (filter) => {
 
   const content = [buildTR(buildTD('Click "Set" after changing a value to set it', 2))];
   if (filter === "tree") {
+    const configFileName = getConfigFileName();
     content.push(buildTR(buildTD(`Click "Save" to save any changes you make to ${configFileName}</br>Then click the "restart" icon above, to Restart FluidNC for the changes to take effect`, 2)));
     const instr = buildTD(`"Save" to ${configFileName}`);
     const btnId = "maslow_save_btn";
@@ -331,7 +342,7 @@ const build_HTML_setting_list = (filter) => {
   }
   // set calibration values if exists
   const calRes = calibrationResults;
-  if (Object.keys(calRes).length) {
+  if (calRes && typeof calRes === 'object' && Object.keys(calRes).length) {
     document.querySelector("#setting__kinematics_MaslowKinematics_brX_0").value = calRes.br.x;
     document.querySelector("#setting__kinematics_MaslowKinematics_brY_0").value = calRes.br.y;
     document.querySelector("#setting__kinematics_MaslowKinematics_tlX_0").value = calRes.tl.x;

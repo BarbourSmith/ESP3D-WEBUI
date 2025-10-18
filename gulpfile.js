@@ -92,17 +92,52 @@ function concatApp() {
 var execSync = require('child_process').execSync
 
 function replaceVersion() {
-  return gulp
-    .src('dist/index.html')
-    .pipe(
-      replace(/replaceVERSION/g, function (match, p1) {
-        var buildNumber = execSync('git rev-parse --short HEAD')
-          .toString()
-          .replace(/\r?\n|\r/g, '')
-        return 'github.com/MitchBradley/ESP3D-WEBUI@' + buildNumber
-      })
-    )
-    .pipe(gulp.dest('dist'))
+  // Fetch tags and unshallow the repository to ensure proper version numbering
+  // This fixes the issue where Copilot builds (shallow clones) only show commit hash
+  // instead of the full tag-count-hash format (e.g., v2.1-123-g7e43af4)
+  try {
+    // First, fetch tags from remote
+    execSync('git fetch --tags --force', { stdio: 'ignore' })
+    
+    // If this is a shallow repository, unshallow it to get full history
+    // This is necessary because git describe needs the full commit history
+    // to calculate the distance from the nearest tag
+    try {
+      const isShallow = execSync('git rev-parse --is-shallow-repository').toString().trim()
+      if (isShallow === 'true') {
+        execSync('git fetch --unshallow', { stdio: 'ignore' })
+      }
+    } catch (e) {
+      // Ignore errors from unshallowing - it might not be needed or supported
+    }
+  } catch (e) {
+    console.log('Warning: Could not fetch tags or unshallow repository, version may be incomplete')
+  }
+  
+  var version = execSync('git describe --tags --always --dirty')
+    .toString()
+    .replace(/\r?\n|\r/g, '')
+  
+  // Check if version contains a dash (indicating non-release version)
+  if (version.includes('-')) {
+    console.log('WARNING: Version "' + version + '" contains a dash - this should not be a release version')
+  }
+  
+  return merge(
+    gulp
+      .src('dist/index.html')
+      .pipe(
+        replace(/replaceVERSION/g, 'github.com/BarbourSmith/ESP3D-WEBUI@' + version)
+      )
+      .pipe(gulp.dest('dist')),
+    
+    gulp
+      .src('dist/js/app.js')
+      .pipe(
+        replace(/replaceVERSION/g, version)
+      )
+      .pipe(gulp.dest('dist/js'))
+  )
 }
 
 function replaceSVG() {

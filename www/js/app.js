@@ -85,7 +85,7 @@ function loadApp() {
 			console.error(panel.errMsg, err);
 			panel.msg = "failed";
 		}
-	}
+	};
 
 	let startUpInt = setInterval(() => {
 		// Because things might not be fully resolved yet, we define the function references in here
@@ -117,7 +117,7 @@ function loadApp() {
 
 		// Ensure that we always break out of this
 		failSafe--;
-	}, 500,);
+	}, 500);
 }
 
 window.addEventListener("load", (event) => {
