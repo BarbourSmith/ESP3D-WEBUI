@@ -1,6 +1,5 @@
 //Preferences dialog
 var language_save = language;
-var config_filename_save = "";
 
 var preferences_file_name = 'preferences.json';
 
@@ -44,12 +43,6 @@ function ontogglePing(forcevalue) {
 
 /** Apply the preferences we have to the dialog */
 function applypreferenceslist() {
-    // Ensure preferences list is loaded before applying
-    if (!preferenceslist || !preferenceslist[0]) {
-        console.warn("Preferences list not loaded yet, using defaults");
-        preferenceslist = default_preferenceslist;
-    }
-    
     //Assign each control state
     translate_text(preferenceslist[0].language);
     build_HTML_setting_list(current_setting_filter);
@@ -206,7 +199,6 @@ function showpreferencesdlg() {
     const modal = setactiveModal('preferencesdlg.html');
     if (modal == null) return;
     language_save = language;
-    config_filename_save = GetPrefOrDefault("config_filename");
     build_dlg_preferences_list();
     displayNone('preferencesdlg_upload_msg');
     showModal();
@@ -273,6 +265,8 @@ function build_dlg_preferences_list() {
     id('preferences_proberetract').value = Number.parseFloat(GetPrefOrDefault("proberetract"));
     //probetouchplatethickness
     id('preferences_probetouchplatethickness').value = Number.parseFloat(GetPrefOrDefault("probetouchplatethickness"));
+    //bitChangeHeight
+    id('preferences_bitchangeheight').value = Number.parseFloat(GetPrefOrDefault("bitChangeHeight"));
 
     //file filters
     if (typeof (preferenceslist[0].f_filters) !== 'undefined') {
@@ -281,79 +275,6 @@ function build_dlg_preferences_list() {
     } else {
         console.log("Use default filters");
         id('preferences_filters').value = String(default_preferenceslist[0].f_filters);
-    }
-
-    //config filename - fetch yaml files and populate dropdown
-    fetchYamlFiles();
-}
-
-/** Fetch YAML files from filesystem and populate the config filename dropdown */
-function fetchYamlFiles() {
-    const cmd = buildHttpFilesCmd({ action: 'list', path: '/' });
-    SendGetHttp(cmd, populateConfigFilenameDropdown, handleYamlFilesFetchError);
-}
-
-/** Populate config filename dropdown with YAML files from the response */
-function populateConfigFilenameDropdown(response) {
-    try {
-        const data = JSON.parse(response);
-        const dropdown = id('preferences_config_filename');
-        
-        if (!dropdown) {
-            console.error('Config filename dropdown not found');
-            return;
-        }
-
-        // Clear existing options
-        dropdown.innerHTML = '';
-
-        // Filter for .yaml files
-        const yamlFiles = data.files.filter(file => 
-            file.name.toLowerCase().endsWith('.yaml') && file.size !== '-1'
-        );
-
-        // Add yaml files to dropdown
-        yamlFiles.forEach(file => {
-            const option = document.createElement('option');
-            option.value = file.name;
-            option.textContent = file.name;
-            dropdown.appendChild(option);
-        });
-
-        // If no yaml files found, add default option
-        if (yamlFiles.length === 0) {
-            const option = document.createElement('option');
-            option.value = 'maslow.yaml';
-            option.textContent = 'maslow.yaml';
-            dropdown.appendChild(option);
-        }
-
-        // Set the selected value from preferences
-        const savedFilename = GetPrefOrDefault("config_filename");
-        if (savedFilename) {
-            dropdown.value = savedFilename;
-        }
-    } catch (error) {
-        console.error('Error parsing yaml files response:', error);
-        handleYamlFilesFetchError(0, response);
-    }
-}
-
-/** Handle error when fetching YAML files */
-function handleYamlFilesFetchError(errorCode, response) {
-    console.warn('Failed to fetch yaml files, using default');
-    const dropdown = id('preferences_config_filename');
-    if (dropdown) {
-        // Set default option if fetch failed
-        dropdown.innerHTML = '<option value="maslow.yaml">maslow.yaml</option>';
-        const savedFilename = GetPrefOrDefault("config_filename");
-        if (savedFilename && savedFilename !== 'maslow.yaml') {
-            const option = document.createElement('option');
-            option.value = savedFilename;
-            option.textContent = savedFilename;
-            dropdown.appendChild(option);
-            dropdown.value = savedFilename;
-        }
     }
 }
 
@@ -388,7 +309,8 @@ const getPreferencesForSave = () => {
         !Checkvalues("preferences_probemaxtravel") ||
         !Checkvalues("preferences_probefeedrate") ||
         !Checkvalues("preferences_proberetract") ||
-        !Checkvalues("preferences_probetouchplatethickness")
+        !Checkvalues("preferences_probetouchplatethickness") ||
+        !Checkvalues("preferences_bitchangeheight")
     ) {
         return newPrefsList;
     }
@@ -440,12 +362,12 @@ const getPreferencesForSave = () => {
     saveprefs.push(`"probefeedrate":"${getValue('preferences_probefeedrate') || ""}"`);
     saveprefs.push(`"probetouchplatethickness":"${getValue('preferences_probetouchplatethickness') || ""}"`);
     saveprefs.push(`"proberetract":"${getValue('preferences_proberetract') || ""}"`);
+    saveprefs.push(`"bitChangeHeight":"${getValue('preferences_bitchangeheight') || ""}"`);
 
     saveprefs.push(`"enable_files_panel":"${getChecked('show_files_panel')}"`);
     saveprefs.push(`"has_TFT_SD":"${getChecked('has_tft_sd')}"`);
     saveprefs.push(`"has_TFT_USB":"${getChecked('has_tft_usb')}"`);
     saveprefs.push(`"f_filters":"${getValue('preferences_filters') || ""}"`);
-    saveprefs.push(`"config_filename":"${getValue('preferences_config_filename') || "maslow.yaml"}"`);
 
     saveprefs.push(`"enable_commands_panel":"${getChecked('show_commands_panel')}"`);
     saveprefs.push(`"enable_autoscroll":"${getChecked('preferences_autoscroll')}"`);
@@ -503,113 +425,6 @@ function preferencesdlgUploadProgressDisplay(oEvent) {
 function preferencesUploadsuccess(response) {
     console.info("Preferences successfully saved");
     displayNone('preferencesdlg_upload_msg');
-    
-    // Check if config filename changed
-    const newConfigFilename = preferenceslist[0].config_filename;
-    if (newConfigFilename && newConfigFilename !== config_filename_save) {
-        console.log(`Config filename changed from '${config_filename_save}' to '${newConfigFilename}'`);
-        // Show message that settings are being reloaded
-        setHTML('preferencesdlg_upload_percent', '');
-        const msgElem = id('preferencesdlg_upload_msg');
-        if (msgElem) {
-            // Get the "Saving" text element and replace it with "Switching configuration file..."
-            const savingText = msgElem.querySelector('span[translate]');
-            if (savingText) {
-                savingText.textContent = 'Switching configuration file...';
-            }
-        }
-        displayBlock('preferencesdlg_upload_msg');
-        
-        // Update FluidNC's Config/Filename setting and reload settings
-        // Pass callback to close modal after settings are reloaded
-        updateFluidNCConfigFilename(newConfigFilename, function() {
-            // Settings have been reloaded, now close the modal
-            displayNone('preferencesdlg_upload_msg');
-            applypreferenceslist();
-            init_grbl_panel();
-            closeModal('ok');
-        });
-    } else {
-        // No config change, proceed normally
-        applypreferenceslist();
-        init_grbl_panel();
-        closeModal('ok');
-    }
-}
-
-/** Update FluidNC's Config/Filename setting and reload configuration */
-function updateFluidNCConfigFilename(newFilename, callback) {
-    // Send ESP401 command to update Config/Filename setting in FluidNC
-    // The P parameter is the setting position for Config/Filename
-    // We need to find the Config/Filename setting in scl array
-    const configFilenameSetting = scl.find(s => s.label === "Config/Filename");
-    
-    if (configFilenameSetting) {
-        const cmd = buildHttpCommandCmd(httpCmdType.plain, `[ESP401]P=${configFilenameSetting.pos} T=${configFilenameSetting.type} V=${newFilename}`);
-        console.log(`Updating FluidNC Config/Filename to: ${newFilename}`);
-        SendGetHttp(cmd, 
-            function(response) { handleConfigFilenameUpdateSuccess(response, callback); }, 
-            function(error_code, response) { handleConfigFilenameUpdateFail(error_code, response, callback); }
-        );
-    } else {
-        console.warn("Config/Filename setting not found in settings list");
-        displayNone('preferencesdlg_upload_msg');
-        alertdlg(translate_text_item("Error"), translate_text_item("Config/Filename setting not found. Cannot change config file."));
-        // Close the modal
-        applypreferenceslist();
-        init_grbl_panel();
-        closeModal('ok');
-    }
-}
-
-function handleConfigFilenameUpdateSuccess(response, callback) {
-    console.log("FluidNC Config/Filename updated successfully, saving settings to flash");
-    
-    // Send $SS command to save settings to flash so they persist after reset
-    const saveCmd = buildHttpCommandCmd(httpCmdType.plain, "$SS");
-    SendGetHttp(saveCmd, 
-        function(saveResponse) {
-            console.log("Settings saved to flash");
-            // Config filename has been saved, but FluidNC needs to restart to load the new file
-            // Show a message to the user with option to restart
-            displayNone('preferencesdlg_upload_msg');
-            
-            const newFilename = preferenceslist[0].config_filename;
-            confirmdlg(
-                translate_text_item("Config File Changed"),
-                `Configuration file changed to ${newFilename}. FluidNC must be restarted to load settings from the new file. Restart now?`,
-                function(answer) {
-                    if (answer) {
-                        // User chose to restart
-                        if (typeof restart_esp === 'function') {
-                            restart_esp();
-                        }
-                    } else {
-                        // User chose not to restart now
-                        applypreferenceslist();
-                        init_grbl_panel();
-                        closeModal('ok');
-                    }
-                }
-            );
-        },
-        function(error_code, response) {
-            console.error(`Failed to save settings to flash: ${error_code}`, response);
-            displayNone('preferencesdlg_upload_msg');
-            alertdlg(translate_text_item("Error"), translate_text_item("Failed to save config filename setting"));
-            // Still close the modal
-            applypreferenceslist();
-            init_grbl_panel();
-            closeModal('ok');
-        }
-    );
-}
-
-function handleConfigFilenameUpdateFail(error_code, response, callback) {
-    console.error(`Failed to update FluidNC Config/Filename: ${error_code}`, response);
-    displayNone('preferencesdlg_upload_msg');
-    alertdlg(translate_text_item("Error"), translate_text_item("Failed to update config filename setting in FluidNC"));
-    // Close the modal
     applypreferenceslist();
     init_grbl_panel();
     closeModal('ok');
@@ -692,6 +507,13 @@ function Checkvalues(id_2_check) {
             value = Number.parseFloat(id(id_2_check).value);
             if (!(!Number.isNaN(value) && value >= 0 && value <= 9999)) {
                 error_message = translate_text_item("Value of probe touch plate thickness must be between 0 mm and 9999 mm !");
+                status = false;
+            }
+            break;
+        case "preferences_bitchangeheight":
+            value = Number.parseFloat(id(id_2_check).value);
+            if (!(!Number.isNaN(value) && value >= 0 && value <= 9999)) {
+                error_message = translate_text_item("Value of bit change height must be between 0 mm and 9999 mm !");
                 status = false;
             }
             break;
