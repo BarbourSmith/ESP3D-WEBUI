@@ -588,7 +588,27 @@ var bitChangeState = {
 // Check if probe is actually available (hardware detected)
 function isProbeAvailable() {
   // Check if probe hardware is detected (same logic as show_grbl_probe_status)
-  return typeof grbl !== 'undefined' && grbl.pins && grbl.pins.indexOf('P') !== -1;
+  console.log('[Bit Change] Checking probe availability...');
+  console.log('[Bit Change] - typeof grbl:', typeof grbl);
+  console.log('[Bit Change] - grbl object:', grbl);
+  
+  if (typeof grbl === 'undefined') {
+    console.log('[Bit Change] Probe check: grbl is undefined');
+    return false;
+  }
+  
+  console.log('[Bit Change] - grbl.pins:', grbl.pins);
+  
+  if (!grbl.pins) {
+    console.log('[Bit Change] Probe check: grbl.pins is not defined');
+    return false;
+  }
+  
+  const hasPinP = grbl.pins.indexOf('P') !== -1;
+  console.log('[Bit Change] - grbl.pins.indexOf("P"):', grbl.pins.indexOf('P'));
+  console.log('[Bit Change] Probe check result: probe', hasPinP ? 'DETECTED' : 'NOT DETECTED');
+  
+  return hasPinP;
 }
 
 function updateBitChangeButton() {
