@@ -114,6 +114,7 @@ const probeValues = {
   feedrate: { fldId: "grblpanel_probefeedrate", prefId: "probefeedrate", valType: "float", valTitle: "probe feedrate", minVal: 1, maxVal: 9999, units: "mm/min" },
   retract: { fldId: "grblpanel_proberetract", prefId: "proberetract", valType: "float", valTitle: "probe retract", minVal: 0, maxVal: 999, units: "mm" },
   plateThickness: { fldId: "grblpanel_probetouchplatethickness", prefId: "probetouchplatethickness", valType: "float", valTitle: "probe touch plate thickness", minVal: 0, maxVal: 999, units: "mm" },
+  bitChangeHeight: { fldId: "grblpanel_bitchangeheight", prefId: "bitChangeHeight", valType: "float", valTitle: "bit change height", minVal: 0, maxVal: 999, units: "mm" },
 };
 
 /** This must be done after the preferences have been set */
@@ -577,6 +578,138 @@ function show_grbl_probe_status(probed) {
   grbl_set_probe_detected(probed)
 }
 
+// Bit change functionality
+var bitChangeState = {
+  isChanging: false,
+  storedZPosition: null,
+  probeEnabled: false
+};
+
+// Check if probe is actually available (hardware detected)
+function isProbeAvailable() {
+  // Check if probe hardware is detected (same logic as show_grbl_probe_status)
+  return typeof grbl !== 'undefined' && grbl.pins && grbl.pins.indexOf('P') !== -1;
+}
+
+function updateBitChangeButton() {
+  const button = id('bitchangebtn');
+  console.log('[Bit Change] updateBitChangeButton called, button element:', button ? 'found' : 'NOT FOUND');
+  
+  if (!button) {
+    console.error('[Bit Change] Button element not found!');
+    return;
+  }
+  
+  console.log('[Bit Change] Current state for button update - isChanging:', bitChangeState.isChanging, 'probeEnabled:', bitChangeState.probeEnabled);
+  
+  if (bitChangeState.isChanging) {
+    if (bitChangeState.probeEnabled) {
+      setHTML('bitchangebtn', translate_text_item('Probe for bit length'));
+      console.log('[Bit Change] Button text set to: Probe for bit length');
+    } else {
+      setHTML('bitchangebtn', translate_text_item('Lower bit'));
+      console.log('[Bit Change] Button text set to: Lower bit');
+    }
+  } else {
+    setHTML('bitchangebtn', translate_text_item('Change bit'));
+    console.log('[Bit Change] Button text set to: Change bit');
+  }
+}
+
+function StartBitChangeProcess() {
+  console.log('[Bit Change] StartBitChangeProcess called');
+  
+  // Get bit change height directly from preferences instead of UI field
+  const preferences = prefList();
+  const bitChangeHeightValue = floatOrZero(preferences.bitChangeHeight);
+  console.log('[Bit Change] Bit change height from preferences:', bitChangeHeightValue);
+  
+  // Validate the value
+  if (Number.isNaN(bitChangeHeightValue) || bitChangeHeightValue > 999 || bitChangeHeightValue < 0) {
+    alertdlgOOR("bit change height", 0, 999, "mm");
+    console.error('[Bit Change] Invalid bit change height value');
+    return;
+  }
+  
+  // Store the validated value in probeValues for use in movement commands
+  probeValues.bitChangeHeight.value = bitChangeHeightValue;
+
+  console.log('[Bit Change] Current state - isChanging:', bitChangeState.isChanging);
+  
+  if (!bitChangeState.isChanging) {
+    // Store current Z position and move to bit change height
+    // Read Z position from WPOS global variable (work coordinates)
+    let currentZ = null;
+    if (WPOS && WPOS.length > 2 && !Number.isNaN(WPOS[2])) {
+      currentZ = WPOS[2];
+    }
+    
+    console.log('[Bit Change] Current Z position from WPOS:', currentZ);
+    
+    if (currentZ === null || Number.isNaN(currentZ)) {
+      console.error('[Bit Change] Unable to get current Z position - position is NaN or WPOS not available');
+      alertdlg("Please wait for position data to be available before changing bit", "Error");
+      return;
+    }
+    
+    bitChangeState.storedZPosition = currentZ;
+    bitChangeState.isChanging = true;
+    bitChangeState.probeEnabled = isProbeAvailable();
+    
+    console.log('[Bit Change] Stored Z position (work coordinates):', bitChangeState.storedZPosition);
+    console.log('[Bit Change] Probe enabled:', bitChangeState.probeEnabled);
+    
+    // Move to bit change height (in machine coordinates relative to machine home)
+    // Using G53 (machine coordinates) so movement is relative to machine home set during calibration
+    // Use $J command with fixed feedrate F300 for controlled movement
+    const cmd = `$J=G53G90F300Z${probeValues.bitChangeHeight.value}`;
+    console.log('[Bit Change] Sending command to move to bit change height (machine coords) at feedrate 300:', cmd);
+    SendPrinterCommand(cmd, true);
+    
+    setClickability('bitchangebtn', false);
+    setTimeout(() => {
+      setClickability('bitchangebtn', true);
+      updateBitChangeButton();
+      console.log('[Bit Change] Button re-enabled, text updated');
+    }, 1000); // Give movement time to start
+    
+  } else {
+    console.log('[Bit Change] In second phase - returning to original position or probing');
+    
+    // Return to original position or start probing
+    if (bitChangeState.probeEnabled) {
+      console.log('[Bit Change] Starting probe process');
+      // Start probe process
+      StartProbeProcess();
+      // After probing is complete, we'll return to stored position
+      bitChangeState.isChanging = false;
+      bitChangeState.storedZPosition = null;
+      updateBitChangeButton();
+    } else {
+      console.log('[Bit Change] Returning to stored position (work coordinates):', bitChangeState.storedZPosition);
+      // Return to stored position (using work coordinates) and ensure work coordinate mode
+      // Use $J command with feedrate (same as Z jog buttons) for controlled movement
+      if (bitChangeState.storedZPosition !== null) {
+        const zFeedrate = GetAxisFeedRate("Z");
+        const cmd = `G54\n$J=G90 F${zFeedrate} Z${bitChangeState.storedZPosition}`;
+        console.log('[Bit Change] Sending command to return to original position (work coords) at feedrate', zFeedrate, ':', cmd);
+        SendPrinterCommand(cmd, true);
+        
+        setClickability('bitchangebtn', false);
+        setTimeout(() => {
+          setClickability('bitchangebtn', true);
+          bitChangeState.isChanging = false;
+          bitChangeState.storedZPosition = null;
+          updateBitChangeButton();
+          console.log('[Bit Change] Bit change process complete, button reset');
+        }, 1000); // Give movement time to start
+      } else {
+        console.error('[Bit Change] Cannot return - stored position is null');
+      }
+    }
+  }
+}
+
 function SendRealtimeCmd(code) {
   var cmd = String.fromCharCode(code)
   SendPrinterCommand(cmd, false, null, null, code, 1)
@@ -863,6 +996,7 @@ const onprobemaxtravelChange = () => !Number.isNaN(checkProbeValue(probeValues.t
 const onprobefeedrateChange = () => !Number.isNaN(checkProbeValue(probeValues.feedrate));
 const onproberetractChange = () => !Number.isNaN(checkProbeValue(probeValues.retract));
 const onprobetouchplatethicknessChange = () => !Number.isNaN(checkProbeValue(probeValues.plateThickness));
+const onbitchangeheightChange = () => !Number.isNaN(checkProbeValue(probeValues.bitChangeHeight));
 
 function StartProbeProcess() {
   for (const key in probeValues) {

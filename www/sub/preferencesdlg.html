@@ -15,25 +15,6 @@
             <br>
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <span translate>Frame definition</span>
-                </div>
-                <div class="panel-body">
-                    <table>
-                        <tr>
-                            <td>
-                                <span><span translate>Config filename</span>:&nbsp;</span>
-                            </td>
-                            <td>
-                                <select id="preferences_config_filename" class="form-control w25">
-                                    <option value="maslow.yaml">maslow.yaml</option>
-                                </select>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            <div class="panel panel-default">
-                <div class="panel-heading">
                     <div class="checkbox">
                         <label>
                             <input id="enable_lock_UI" type="checkbox" />
@@ -376,6 +357,31 @@
                                                     type="number" min="0" max="99999" step="any"
                                                     onchange="Checkvalues('preferences_probetouchplatethickness')" />
                                                 <span id="preferences_probetouchplatethickness_icon"
+                                                    class="form-control-feedback ico_feedback"></span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                                <input class="hide_it"></input>
+                                                <span class="input-group-addon form_control" translate>mm</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <br>
+                            <div id="preferences_bitchangeheight_group">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <span><span translate>Bit change height</span>:&nbsp;</span>
+                                        </td>
+                                        <td>
+                                            <div class="input-group has-control">
+                                                <input id="preferences_bitchangeheight" class="form-control w8"
+                                                    type="number" min="0" max="99999" step="any"
+                                                    onchange="Checkvalues('preferences_bitchangeheight')" />
+                                                <span id="preferences_bitchangeheight_icon"
                                                     class="form-control-feedback ico_feedback"></span>
                                             </div>
                                         </td>
