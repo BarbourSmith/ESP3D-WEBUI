@@ -753,9 +753,12 @@ function stopConnectionInfoPolling() {
 
 // Query connection info using $CI command
 function queryConnectionInfo() {
+  console.log('queryConnectionInfo: Sending $CI command');
   // Don't reset accumulator here - let it accumulate across polls
   // It will be reset after processing
-  sendCommand("$CI");
+  
+  // Send $CI command with a custom callback that doesn't interfere with position updates
+  SendPrinterCommand("$CI", false, null, null);
   
   // Set a timeout to process accumulated data after 500ms
   // (increased from 200ms to give more time for response to arrive)
