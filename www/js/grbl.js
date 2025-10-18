@@ -134,14 +134,23 @@ function init_grbl_panel() {
 
   for (const pvFld in probeValues) {
     const pv = probeValues[pvFld];
-    if (!(pv.prefId in preferences)) {
-      continue;
+    let prefValue;
+    
+    // Use preference value if it exists, otherwise use default from prefDefs
+    if (pv.prefId in preferences) {
+      prefValue = preferences[pv.prefId];
+    } else if (default_preferenceslist && default_preferenceslist.length > 0 && pv.prefId in default_preferenceslist[0]) {
+      // Get default value from prefDefs
+      prefValue = default_preferenceslist[0][pv.prefId];
     }
-
-    const prefValue = preferences[pv.prefId];
-    const val = Number.parseFloat(prefValue);
-    if (!Number.isNaN(val)) {
-      setValue(pv.fldId, val);
+    
+    if (prefValue !== undefined) {
+      const val = Number.parseFloat(prefValue);
+      if (!Number.isNaN(val)) {
+        setValue(pv.fldId, val);
+        // Store the value in the probeValues object for use
+        pv.value = val;
+      }
     }
   };
 
@@ -652,9 +661,22 @@ function StartBitChangeProcess() {
   // Query probe pin setting to update detection
   queryProbePin();
   
-  // Get bit change height directly from preferences instead of UI field
+  // Get bit change height from preferences, or use default if not set
   const preferences = prefList();
-  const bitChangeHeightValue = floatOrZero(preferences.bitChangeHeight);
+  let bitChangeHeightValue;
+  
+  if ('bitChangeHeight' in preferences && preferences.bitChangeHeight !== undefined) {
+    bitChangeHeightValue = floatOrZero(preferences.bitChangeHeight);
+  } else if (default_preferenceslist && default_preferenceslist.length > 0) {
+    // Use default value from prefDefs
+    bitChangeHeightValue = floatOrZero(default_preferenceslist[0].bitChangeHeight);
+    console.log('[Bit Change] No saved preference, using default value:', bitChangeHeightValue);
+  } else {
+    // Fallback to hardcoded default
+    bitChangeHeightValue = 70;
+    console.log('[Bit Change] Using fallback default value:', bitChangeHeightValue);
+  }
+  
   console.log('[Bit Change] Bit change height from preferences:', bitChangeHeightValue);
   
   // Validate the value
