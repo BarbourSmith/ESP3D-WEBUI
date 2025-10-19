@@ -392,6 +392,14 @@ function tabletShowMessage(msg, collecting) {
     return; //We don't want to display these messages
   }
 
+  // Filter out $CI channel names from Serial Messages display
+  // Note: Uses exact matching (^word$ in regex terms), so "websocket" is filtered
+  // but "websocket connection established" is NOT filtered
+  const ciChannelNames = ["usbcdc", "macros", "websocket", "telnet"];
+  if (ciChannelNames.includes(msg)) {
+    return; //We don't want to display bare $CI channel names
+  }
+
   addMessage(`${maslowErrorMsgHandling(msg) || msg}`);
 }
 
