@@ -596,7 +596,6 @@ var bitChangeState = {
 
 // Query the probe pin setting from FluidNC
 function queryProbePin() {
-  console.log('[Bit Change] Querying $probe/pin setting...');
   // Send command to query probe pin setting
   // The response will be handled in the message processing
   SendPrinterCommand('$probe/pin', true);
@@ -606,58 +605,41 @@ function queryProbePin() {
 function isProbeAvailable() {
   // Check if probe pin is configured in FluidNC settings
   // Query $probe/pin setting to determine if probe hardware is configured
-  console.log('[Bit Change] Checking probe availability...');
-  console.log('[Bit Change] - Checking $probe/pin setting');
   
   // Check if we have cached probe pin information
   if (typeof grbl !== 'undefined' && typeof grbl.probePin !== 'undefined') {
-    console.log('[Bit Change] - Cached grbl.probePin:', grbl.probePin);
     const hasProbe = grbl.probePin !== null && grbl.probePin !== '' && grbl.probePin !== 'NO_PIN';
-    console.log('[Bit Change] Probe check result from cache: probe', hasProbe ? 'DETECTED' : 'NOT DETECTED');
     return hasProbe;
   }
   
   // Also check grbl.pins for backward compatibility (Pn: status field)
   if (typeof grbl !== 'undefined' && grbl.pins) {
-    console.log('[Bit Change] - Checking grbl.pins:', grbl.pins);
     const hasPinP = grbl.pins.indexOf('P') !== -1;
-    console.log('[Bit Change] - grbl.pins.indexOf("P"):', grbl.pins.indexOf('P'));
-    console.log('[Bit Change] Probe check result from pins: probe', hasPinP ? 'DETECTED' : 'NOT DETECTED');
     return hasPinP;
   }
   
-  console.log('[Bit Change] Probe check: No probe information available');
   return false;
 }
 
 function updateBitChangeButton() {
   const button = id('bitchangebtn');
-  console.log('[Bit Change] updateBitChangeButton called, button element:', button ? 'found' : 'NOT FOUND');
   
   if (!button) {
-    console.error('[Bit Change] Button element not found!');
     return;
   }
-  
-  console.log('[Bit Change] Current state for button update - isChanging:', bitChangeState.isChanging, 'probeEnabled:', bitChangeState.probeEnabled);
   
   if (bitChangeState.isChanging) {
     if (bitChangeState.probeEnabled) {
       setHTML('bitchangebtn', translate_text_item('Probe for bit length'));
-      console.log('[Bit Change] Button text set to: Probe for bit length');
     } else {
       setHTML('bitchangebtn', translate_text_item('Lower bit'));
-      console.log('[Bit Change] Button text set to: Lower bit');
     }
   } else {
     setHTML('bitchangebtn', translate_text_item('Change bit'));
-    console.log('[Bit Change] Button text set to: Change bit');
   }
 }
 
 function StartBitChangeProcess() {
-  console.log('[Bit Change] StartBitChangeProcess called');
-  
   // Query probe pin setting to update detection
   queryProbePin();
   
@@ -670,26 +652,19 @@ function StartBitChangeProcess() {
   } else if (default_preferenceslist && default_preferenceslist.length > 0) {
     // Use default value from prefDefs
     bitChangeHeightValue = floatOrZero(default_preferenceslist[0].bitChangeHeight);
-    console.log('[Bit Change] No saved preference, using default value:', bitChangeHeightValue);
   } else {
     // Fallback to hardcoded default
     bitChangeHeightValue = 70;
-    console.log('[Bit Change] Using fallback default value:', bitChangeHeightValue);
   }
-  
-  console.log('[Bit Change] Bit change height from preferences:', bitChangeHeightValue);
   
   // Validate the value
   if (Number.isNaN(bitChangeHeightValue) || bitChangeHeightValue > 999 || bitChangeHeightValue < 0) {
     alertdlgOOR("bit change height", 0, 999, "mm");
-    console.error('[Bit Change] Invalid bit change height value');
     return;
   }
   
   // Store the validated value in probeValues for use in movement commands
   probeValues.bitChangeHeight.value = bitChangeHeightValue;
-
-  console.log('[Bit Change] Current state - isChanging:', bitChangeState.isChanging);
   
   if (!bitChangeState.isChanging) {
     // Store current Z position and move to bit change height
@@ -699,10 +674,7 @@ function StartBitChangeProcess() {
       currentZ = WPOS[2];
     }
     
-    console.log('[Bit Change] Current Z position from WPOS:', currentZ);
-    
     if (currentZ === null || Number.isNaN(currentZ)) {
-      console.error('[Bit Change] Unable to get current Z position - position is NaN or WPOS not available');
       alertdlg("Please wait for position data to be available before changing bit", "Error");
       return;
     }
@@ -711,14 +683,10 @@ function StartBitChangeProcess() {
     bitChangeState.isChanging = true;
     bitChangeState.probeEnabled = isProbeAvailable();
     
-    console.log('[Bit Change] Stored Z position (work coordinates):', bitChangeState.storedZPosition);
-    console.log('[Bit Change] Probe enabled:', bitChangeState.probeEnabled);
-    
     // Move to bit change height (in machine coordinates relative to machine home)
     // Using G53 (machine coordinates) so movement is relative to machine home set during calibration
     // Use $J command with fixed feedrate F300 for controlled movement
     const cmd = `$J=G53G90F300Z${probeValues.bitChangeHeight.value}`;
-    console.log('[Bit Change] Sending command to move to bit change height (machine coords) at feedrate 300:', cmd);
     SendPrinterCommand(cmd, true);
     
     setClickability('bitchangebtn', false);
