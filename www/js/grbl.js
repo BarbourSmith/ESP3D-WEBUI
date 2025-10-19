@@ -821,7 +821,6 @@ const grblHandleMessage = (msg) => {
   // Only capture these specific channel names, not "ok" or other messages
   const trimmedMsg = msg.trim();
   if (['usbcdc', 'macros', 'websocket', 'telnet'].includes(trimmedMsg)) {
-    console.log('WebSocket: Received $CI channel name:', trimmedMsg);
     if (typeof accumulateConnectionInfo === 'function') {
       accumulateConnectionInfo(trimmedMsg);
     }

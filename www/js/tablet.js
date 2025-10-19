@@ -753,7 +753,6 @@ function stopConnectionInfoPolling() {
 
 // Query connection info using $CI command
 function queryConnectionInfo() {
-  console.log('queryConnectionInfo: Sending $CI command');
   // Don't reset accumulator here - let it accumulate across polls
   // It will be reset after processing
   
@@ -770,17 +769,13 @@ function queryConnectionInfo() {
 
 // Accumulate connection info messages
 function accumulateConnectionInfo(msg) {
-  console.log('accumulateConnectionInfo called with:', msg);
   connectionInfoAccumulator.push(msg);
-  console.log('Accumulator now has:', connectionInfoAccumulator.length, 'items');
 }
 
 // Process accumulated connection info
 function processConnectionInfo() {
-  console.log('processConnectionInfo called, accumulator has:', connectionInfoAccumulator.length, 'items:', connectionInfoAccumulator);
   const label = id("connection-info-label");
   if (!label) {
-    console.log('connection-info-label element not found!');
     return;
   }
   
@@ -799,8 +794,6 @@ function processConnectionInfo() {
     }
   }
   
-  console.log('Counted - websocket:', websocketCount, 'telnet:', telnetCount);
-  
   // Update the label text
   label.textContent = `Web:${websocketCount} Tel:${telnetCount}`;
   
@@ -816,11 +809,8 @@ function processConnectionInfo() {
     label.style.color = 'black';
   }
   
-  console.log('Display updated to:', label.textContent, 'with background:', label.style.backgroundColor);
-  
   // Reset accumulator after processing to prepare for next poll
   connectionInfoAccumulator = [];
-  console.log('Accumulator reset for next poll');
 }
 // Button event handlers - Second Row
 const tabletMoveLeft = () => sendMove("X-");

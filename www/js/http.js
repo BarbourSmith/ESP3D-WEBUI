@@ -261,13 +261,12 @@ function ProcessGetHttp(cmd) {
     xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState === 4) {
             if (xmlhttp.status === 200) {
-                console.log("HTTP GET success for:", cmd.cmd, "responseText length:", xmlhttp.responseText.length, "content:", xmlhttp.responseText);
+                //console.log("*** " + url + " done");
                 http_resultfn(cmd, xmlhttp.responseText);
             } else {
                 if (xmlhttp.status === 401) {
                     GetIdentificationStatus();
                 }
-                console.log("HTTP GET failed for:", cmd.cmd, "status:", xmlhttp.status);
                 http_errorfn(cmd, xmlhttp.status, xmlhttp.responseText);
             }
         }
