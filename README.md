@@ -160,6 +160,8 @@ Upload `dist/index.html.gz` to your ESP32 device for proper testing. Local testi
 
 Both methods create a downloadable "Updated UI.zip" file with installation instructions.
 
+**📖 For complete automation documentation, see [AUTOMATION.md](AUTOMATION.md)**
+
 ### Development Requirements
 - **Node.js**: v20+ (tested with v20.19.5)
 - **npm**: v10+ (tested with v10.8.2)  
