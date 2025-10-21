@@ -15,13 +15,14 @@ This repository uses GitHub Actions to automate various tasks for issue manageme
 - Skips issues created by `BarbourSmith` (repository owner)
 
 **How it works:**
-- Uses GitHub's built-in `GITHUB_TOKEN` with `issues: write` permission
-- Runs the GitHub CLI (`gh`) command to add the assignee
+- Uses the `USER_GITHUB_TOKEN` Personal Access Token for authentication
+- Uses GitHub's CLI (`gh`) command to add the assignee
 - Executes immediately when a new issue is created
 
 **Permissions required:**
-- `issues: write` - To modify issue assignments
-- `contents: read` - To access repository content
+- The `USER_GITHUB_TOKEN` Personal Access Token must have:
+  - `repo` scope - Full control of private repositories
+  - `workflow` scope - Update GitHub Action workflows
 
 ### 2. Relay Comments to Copilot (`relay-comments-to-copilot.yml`)
 
@@ -36,15 +37,15 @@ This repository uses GitHub Actions to automate various tasks for issue manageme
 - Ignores build trigger comments (handled by `compile-webui.yml`)
 
 **How it works:**
-- Uses GitHub's built-in `GITHUB_TOKEN` with `issues: write` and `pull-requests: write` permissions
+- Uses the `USER_GITHUB_TOKEN` Personal Access Token for authentication
 - Uses `actions/github-script@v7` to process and relay comments
 - Formats relayed comments with clear attribution and dividers
 - Includes safety checks to prevent infinite loops and unnecessary relays
 
 **Permissions required:**
-- `issues: write` - To create comments on issues
-- `pull-requests: write` - To create comments on pull requests
-- `contents: read` - To access repository content
+- The `USER_GITHUB_TOKEN` Personal Access Token must have:
+  - `repo` scope - Full control of private repositories  
+  - `workflow` scope - Update GitHub Action workflows
 
 **Example workflow:**
 1. User comments: "@MaslowBot can you help with this issue?"
@@ -73,26 +74,26 @@ This repository uses GitHub Actions to automate various tasks for issue manageme
 
 ## Migration Notes (Repository Move)
 
-When this repository was moved from a personal account to the `MaslowCNC` organization, the automation workflows were updated to work properly in the organization context:
+When this repository was moved from a personal account to the `MaslowCNC` organization, the automation workflows continued to use the existing `USER_GITHUB_TOKEN` secret that was already configured.
 
-### Changes Made:
-1. **Token Update**: Changed from `secrets.USER_GITHUB_TOKEN` to `secrets.GITHUB_TOKEN`
-   - The built-in `GITHUB_TOKEN` is automatically available and properly scoped
-   - No manual secret configuration required
-   
-2. **Permission Grants**: Added explicit `permissions:` blocks to workflows
-   - Makes security requirements clear and follows GitHub best practices
-   - Ensures workflows have exactly the permissions they need
-   
-3. **Organization Compatibility**: Workflows now work seamlessly in the organization context
-   - No dependency on personal access tokens
-   - Proper integration with organization-level security policies
+### Current Configuration:
+- **Token Used**: `secrets.USER_GITHUB_TOKEN` (Personal Access Token)
+- **Configuration**: Must be set in repository or organization secrets
+- **Permissions**: The PAT must have appropriate permissions for:
+  - Reading repository contents
+  - Writing to issues (creating, editing, assigning)
+  - Writing to pull requests (commenting)
 
-### Why These Changes Were Needed:
-- Personal Access Tokens (`USER_GITHUB_TOKEN`) are tied to individual users
-- When a repository moves to an organization, these tokens don't automatically transfer
-- The built-in `GITHUB_TOKEN` is organization-aware and automatically available
-- Explicit permissions improve security and make the workflow intentions clear
+### How to Configure USER_GITHUB_TOKEN:
+1. Create a Personal Access Token with the following scopes:
+   - `repo` (Full control of private repositories)
+   - `workflow` (Update GitHub Action workflows)
+2. Add the token to repository secrets:
+   - Go to repository Settings → Secrets and variables → Actions
+   - Create a new secret named `USER_GITHUB_TOKEN`
+   - Paste the Personal Access Token value
+
+The token is already configured in this repository and the workflows are functioning properly.
 
 ## Using the Automation
 
@@ -102,22 +103,25 @@ When this repository was moved from a personal account to the `MaslowCNC` organi
 - **Need a build?**: Request `@MaslowBot` as a reviewer or comment "please build"
 
 ### For Maintainers:
-- All workflows use the built-in `GITHUB_TOKEN` - no secret configuration needed
-- Workflows follow the principle of least privilege with explicit permissions
+- All workflows use the `USER_GITHUB_TOKEN` secret - ensure it's properly configured
+- The token should have `repo` and `workflow` scopes
 - Check the Actions tab for workflow run history and logs
+- Rotate the token periodically for security
 
 ## Troubleshooting
 
 ### Issue Assignment Not Working:
-1. Check that the workflow has `issues: write` permission
-2. Verify the issue was created by someone other than `BarbourSmith`
-3. Check the Actions tab for workflow execution logs
+1. Check that the `USER_GITHUB_TOKEN` secret is properly configured
+2. Verify the token has `repo` and `workflow` scopes
+3. Verify the issue was created by someone other than `BarbourSmith`
+4. Check the Actions tab for workflow execution logs
 
 ### Comment Relaying Not Working:
-1. Ensure the comment includes `@MaslowBot` or `@maslowbot`
-2. Check that the comment is long enough (>10 characters)
-3. Verify the workflow has `issues: write` and `pull-requests: write` permissions
-4. Check the Actions tab for workflow execution logs
+1. Check that the `USER_GITHUB_TOKEN` secret is properly configured
+2. Verify the token has `repo` and `workflow` scopes
+3. Ensure the comment includes `@MaslowBot` or `@maslowbot`
+4. Check that the comment is long enough (>10 characters)
+5. Check the Actions tab for workflow execution logs
 
 ### Build Not Triggering:
 1. Verify `@MaslowBot` was added as a reviewer (for review-based triggers)
@@ -127,18 +131,25 @@ When this repository was moved from a personal account to the `MaslowCNC` organi
 
 ## Security
 
-All workflows use GitHub's built-in `GITHUB_TOKEN` which:
-- Is automatically provided by GitHub Actions
-- Has appropriate permissions scoped to the repository
-- Expires after the workflow run completes
-- Follows organization security policies
-- Cannot be leaked or misused outside the workflow context
+All workflows use the `USER_GITHUB_TOKEN` Personal Access Token which:
+- Must be created with appropriate scopes (`repo` and `workflow`)
+- Is stored as an encrypted secret in the repository
+- Is only accessible to workflow runs in this repository
+- Should be rotated periodically for security
+- Must be kept confidential and never exposed in logs
 
 The workflows follow security best practices:
-- Explicit permission grants (principle of least privilege)
 - Input validation and safety checks
 - No exposure of sensitive data
 - Proper error handling
+- Minimal required permissions
+
+### Token Security Best Practices:
+1. Use a dedicated bot account or service account for the PAT
+2. Rotate the token regularly (recommended: every 90 days)
+3. Monitor the token's usage in the account's security log
+4. Revoke and regenerate if compromised
+5. Never commit the token value to the repository
 
 ## Further Reading
 
