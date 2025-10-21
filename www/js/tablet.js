@@ -1,4 +1,4 @@
-// When we can change to proper ESM - uncomment this
+// When we can change to proper ESM - uncomment this 
 // import { checkHomed, maslowErrorMsgHandling, maslowInfoMsgHandling, maslowMsgHandling, sendCommand } from "maslow";
 
 var gCodeLoaded = false;
