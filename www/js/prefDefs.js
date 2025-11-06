@@ -22,12 +22,12 @@ var default_preferenceslist = [{
     "probefeedrate": "100",
     "probetouchplatethickness": "0.5",
     "proberetract": "1.0",
+    "bitChangeHeight": "70",
     "enable_files_panel": "true",
     "has_TFT_SD": "false",
     "has_TFT_USB": "false",
     "f_filters": "g;gc;gco;gcode;nc;txt;G;GC;GCO;GCODE;NC;TXT",
     "enable_commands_panel": "true",
     "enable_autoscroll": "true",
-    "enable_verbose_mode": "true",
-    "config_filename": "maslow.yaml"
+    "enable_verbose_mode": "true"
 }];

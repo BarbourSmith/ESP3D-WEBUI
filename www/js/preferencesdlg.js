@@ -273,6 +273,8 @@ function build_dlg_preferences_list() {
     id('preferences_proberetract').value = Number.parseFloat(GetPrefOrDefault("proberetract"));
     //probetouchplatethickness
     id('preferences_probetouchplatethickness').value = Number.parseFloat(GetPrefOrDefault("probetouchplatethickness"));
+    //bitChangeHeight
+    id('preferences_bitchangeheight').value = Number.parseFloat(GetPrefOrDefault("bitChangeHeight"));
 
     //file filters
     if (typeof (preferenceslist[0].f_filters) !== 'undefined') {
@@ -388,7 +390,8 @@ const getPreferencesForSave = () => {
         !Checkvalues("preferences_probemaxtravel") ||
         !Checkvalues("preferences_probefeedrate") ||
         !Checkvalues("preferences_proberetract") ||
-        !Checkvalues("preferences_probetouchplatethickness")
+        !Checkvalues("preferences_probetouchplatethickness") ||
+        !Checkvalues("preferences_bitchangeheight")
     ) {
         return newPrefsList;
     }
@@ -440,6 +443,7 @@ const getPreferencesForSave = () => {
     saveprefs.push(`"probefeedrate":"${getValue('preferences_probefeedrate') || ""}"`);
     saveprefs.push(`"probetouchplatethickness":"${getValue('preferences_probetouchplatethickness') || ""}"`);
     saveprefs.push(`"proberetract":"${getValue('preferences_proberetract') || ""}"`);
+    saveprefs.push(`"bitChangeHeight":"${getValue('preferences_bitchangeheight') || ""}"`);
 
     saveprefs.push(`"enable_files_panel":"${getChecked('show_files_panel')}"`);
     saveprefs.push(`"has_TFT_SD":"${getChecked('has_tft_sd')}"`);

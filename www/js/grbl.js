@@ -114,6 +114,7 @@ const probeValues = {
   feedrate: { fldId: "grblpanel_probefeedrate", prefId: "probefeedrate", valType: "float", valTitle: "probe feedrate", minVal: 1, maxVal: 9999, units: "mm/min" },
   retract: { fldId: "grblpanel_proberetract", prefId: "proberetract", valType: "float", valTitle: "probe retract", minVal: 0, maxVal: 999, units: "mm" },
   plateThickness: { fldId: "grblpanel_probetouchplatethickness", prefId: "probetouchplatethickness", valType: "float", valTitle: "probe touch plate thickness", minVal: 0, maxVal: 999, units: "mm" },
+  bitChangeHeight: { fldId: "grblpanel_bitchangeheight", prefId: "bitChangeHeight", valType: "float", valTitle: "bit change height", minVal: 0, maxVal: 999, units: "mm" },
 };
 
 /** This must be done after the preferences have been set */
@@ -133,14 +134,23 @@ function init_grbl_panel() {
 
   for (const pvFld in probeValues) {
     const pv = probeValues[pvFld];
-    if (!(pv.prefId in preferences)) {
-      continue;
+    let prefValue;
+    
+    // Use preference value if it exists, otherwise use default from prefDefs
+    if (pv.prefId in preferences) {
+      prefValue = preferences[pv.prefId];
+    } else if (default_preferenceslist && default_preferenceslist.length > 0 && pv.prefId in default_preferenceslist[0]) {
+      // Get default value from prefDefs
+      prefValue = default_preferenceslist[0][pv.prefId];
     }
-
-    const prefValue = preferences[pv.prefId];
-    const val = Number.parseFloat(prefValue);
-    if (!Number.isNaN(val)) {
-      setValue(pv.fldId, val);
+    
+    if (prefValue !== undefined) {
+      const val = Number.parseFloat(prefValue);
+      if (!Number.isNaN(val)) {
+        setValue(pv.fldId, val);
+        // Store the value in the probeValues object for use
+        pv.value = val;
+      }
     }
   };
 
@@ -577,6 +587,152 @@ function show_grbl_probe_status(probed) {
   grbl_set_probe_detected(probed)
 }
 
+// Bit change functionality
+var bitChangeState = {
+  isChanging: false,
+  storedZPosition: null,
+  probeEnabled: false
+};
+
+// Query the probe pin setting from FluidNC
+function queryProbePin() {
+  // Send command to query probe pin setting
+  // The response will be handled in the message processing
+  SendPrinterCommand('$probe/pin', true);
+}
+
+// Check if probe is actually available (hardware detected)
+function isProbeAvailable() {
+  // Check if probe pin is configured in FluidNC settings
+  // Query $probe/pin setting to determine if probe hardware is configured
+  
+  // Check if we have cached probe pin information
+  if (typeof grbl !== 'undefined' && typeof grbl.probePin !== 'undefined') {
+    const hasProbe = grbl.probePin !== null && grbl.probePin !== '' && grbl.probePin !== 'NO_PIN';
+    return hasProbe;
+  }
+  
+  // Also check grbl.pins for backward compatibility (Pn: status field)
+  if (typeof grbl !== 'undefined' && grbl.pins) {
+    const hasPinP = grbl.pins.indexOf('P') !== -1;
+    return hasPinP;
+  }
+  
+  return false;
+}
+
+function updateBitChangeButton() {
+  const button = id('bitchangebtn');
+  
+  if (!button) {
+    return;
+  }
+  
+  if (bitChangeState.isChanging) {
+    if (bitChangeState.probeEnabled) {
+      setHTML('bitchangebtn', translate_text_item('Probe for bit length'));
+    } else {
+      setHTML('bitchangebtn', translate_text_item('Lower bit'));
+    }
+  } else {
+    setHTML('bitchangebtn', translate_text_item('Change bit'));
+  }
+}
+
+function StartBitChangeProcess() {
+  // Query probe pin setting to update detection
+  queryProbePin();
+  
+  // Get bit change height from preferences, or use default if not set
+  const preferences = prefList();
+  let bitChangeHeightValue;
+  
+  if ('bitChangeHeight' in preferences && preferences.bitChangeHeight !== undefined) {
+    bitChangeHeightValue = floatOrZero(preferences.bitChangeHeight);
+  } else if (default_preferenceslist && default_preferenceslist.length > 0) {
+    // Use default value from prefDefs
+    bitChangeHeightValue = floatOrZero(default_preferenceslist[0].bitChangeHeight);
+  } else {
+    // Fallback to hardcoded default
+    bitChangeHeightValue = 70;
+  }
+  
+  // Validate the value
+  if (Number.isNaN(bitChangeHeightValue) || bitChangeHeightValue > 999 || bitChangeHeightValue < 0) {
+    alertdlgOOR("bit change height", 0, 999, "mm");
+    return;
+  }
+  
+  // Store the validated value in probeValues for use in movement commands
+  probeValues.bitChangeHeight.value = bitChangeHeightValue;
+  
+  if (!bitChangeState.isChanging) {
+    // Store current Z position and move to bit change height
+    // Read Z position from WPOS global variable (work coordinates)
+    let currentZ = null;
+    if (WPOS && WPOS.length > 2 && !Number.isNaN(WPOS[2])) {
+      currentZ = WPOS[2];
+    }
+    
+    if (currentZ === null || Number.isNaN(currentZ)) {
+      alertdlg("Please wait for position data to be available before changing bit", "Error");
+      return;
+    }
+    
+    bitChangeState.storedZPosition = currentZ;
+    bitChangeState.isChanging = true;
+    bitChangeState.probeEnabled = isProbeAvailable();
+    
+    // Move to bit change height (in machine coordinates relative to machine home)
+    // Using G53 (machine coordinates) so movement is relative to machine home set during calibration
+    // Use $J command with fixed feedrate F300 for controlled movement
+    const cmd = `$J=G53G90F300Z${probeValues.bitChangeHeight.value}`;
+    SendPrinterCommand(cmd, true);
+    
+    setClickability('bitchangebtn', false);
+    setTimeout(() => {
+      setClickability('bitchangebtn', true);
+      updateBitChangeButton();
+      console.log('[Bit Change] Button re-enabled, text updated');
+    }, 1000); // Give movement time to start
+    
+  } else {
+    console.log('[Bit Change] In second phase - returning to original position or probing');
+    
+    // Return to original position or start probing
+    if (bitChangeState.probeEnabled) {
+      console.log('[Bit Change] Starting probe process');
+      // Start probe process
+      StartProbeProcess();
+      // After probing is complete, we'll return to stored position
+      bitChangeState.isChanging = false;
+      bitChangeState.storedZPosition = null;
+      updateBitChangeButton();
+    } else {
+      console.log('[Bit Change] Returning to stored position (work coordinates):', bitChangeState.storedZPosition);
+      // Return to stored position (using work coordinates) and ensure work coordinate mode
+      // Use $J command with feedrate (same as Z jog buttons) for controlled movement
+      if (bitChangeState.storedZPosition !== null) {
+        const zFeedrate = GetAxisFeedRate("Z");
+        const cmd = `G54\n$J=G90 F${zFeedrate} Z${bitChangeState.storedZPosition}`;
+        console.log('[Bit Change] Sending command to return to original position (work coords) at feedrate', zFeedrate, ':', cmd);
+        SendPrinterCommand(cmd, true);
+        
+        setClickability('bitchangebtn', false);
+        setTimeout(() => {
+          setClickability('bitchangebtn', true);
+          bitChangeState.isChanging = false;
+          bitChangeState.storedZPosition = null;
+          updateBitChangeButton();
+          console.log('[Bit Change] Bit change process complete, button reset');
+        }, 1000); // Give movement time to start
+      } else {
+        console.error('[Bit Change] Cannot return - stored position is null');
+      }
+    }
+  }
+}
+
 function SendRealtimeCmd(code) {
   var cmd = String.fromCharCode(code)
   SendPrinterCommand(cmd, false, null, null, code, 1)
@@ -776,6 +932,35 @@ const grblHandleMessage = (msg) => {
     probe_failed_notification("No probe pin defined");
     return;
   }
+  
+  // Handle probe pin setting response
+  if (msg.startsWith('$/probe/pin=')) {
+    const probePinValue = msg.substring('$/probe/pin='.length).trim();
+    console.log('[Bit Change] Received probe pin response:', msg);
+    console.log('[Bit Change] Parsed probe pin value:', probePinValue);
+    
+    // Store in grbl object for caching
+    if (typeof grbl === 'undefined') {
+      grbl = {};
+    }
+    grbl.probePin = probePinValue;
+    console.log('[Bit Change] Stored probe pin in grbl.probePin:', grbl.probePin);
+    
+    // Re-evaluate probe availability now that we have the response
+    if (bitChangeState.isChanging) {
+      console.log('[Bit Change] Re-evaluating probe availability after receiving response');
+      const probeNowAvailable = isProbeAvailable();
+      console.log('[Bit Change] Probe now available:', probeNowAvailable);
+      
+      // Update the bit change state with the new probe availability
+      bitChangeState.probeEnabled = probeNowAvailable;
+      console.log('[Bit Change] Updated bitChangeState.probeEnabled to:', bitChangeState.probeEnabled);
+      
+      // Update button to reflect the new state
+      updateBitChangeButton();
+    }
+    return;
+  }
 
   // Setting collection
   if (collectedSettings) {
@@ -863,6 +1048,7 @@ const onprobemaxtravelChange = () => !Number.isNaN(checkProbeValue(probeValues.t
 const onprobefeedrateChange = () => !Number.isNaN(checkProbeValue(probeValues.feedrate));
 const onproberetractChange = () => !Number.isNaN(checkProbeValue(probeValues.retract));
 const onprobetouchplatethicknessChange = () => !Number.isNaN(checkProbeValue(probeValues.plateThickness));
+const onbitchangeheightChange = () => !Number.isNaN(checkProbeValue(probeValues.bitChangeHeight));
 
 function StartProbeProcess() {
   for (const key in probeValues) {
