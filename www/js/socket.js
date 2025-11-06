@@ -183,10 +183,20 @@ const startSocket = () => {
 					const thismsg = wsmsg.trim();
 					wsmsg = "";
 					msg = "";
-					Monitor_output_Update(thismsg);
+					// Filter out $CI channel names from both Monitor output and console
+					// Note: ciChannelNames uses exact matching (^word$ in regex terms)
+					// so "websocket" is filtered but "websocket connection established" is not
+					const ciChannelNames = ["usbcdc", "macros", "websocket", "telnet"];
+					const isCIChannelName = ciChannelNames.includes(thismsg);
+					
+					if (!isCIChannelName) {
+						Monitor_output_Update(thismsg);
+					}
 					process_socket_response(thismsg);
+					
+					// Also filter from console log
 					const noNeedToShowMsg = ["<", "ok T:", "X:", "FR:", "echo:E0 Flow"].some((msgStart) => thismsg.startsWith(msgStart));
-					if (!noNeedToShowMsg && thismsg !== "ok") {
+					if (!noNeedToShowMsg && thismsg !== "ok" && !isCIChannelName) {
 						console.log(thismsg);
 					}
 					

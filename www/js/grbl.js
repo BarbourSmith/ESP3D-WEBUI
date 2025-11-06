@@ -814,6 +814,19 @@ const grblHandleMessage = (msg) => {
     grblGetProbeResult(msg);
     return;
   }
+
+  // Handle $CI responses (channel names)
+  // $CI returns plain channel names like "usbcdc", "macros", "websocket", "telnet"
+  // Each active connection appears as a separate line
+  // Only capture these specific channel names, not "ok" or other messages
+  const trimmedMsg = msg.trim();
+  if (['usbcdc', 'macros', 'websocket', 'telnet'].includes(trimmedMsg)) {
+    if (typeof accumulateConnectionInfo === 'function') {
+      accumulateConnectionInfo(trimmedMsg);
+    }
+    return;
+  }
+
   if (valueStartsWith(msg, ["[MSG:"])) {
     // Check for motor current debugging messages
     if (typeof parseMotorCurrentMessage === 'function' && parseMotorCurrentMessage(msg)) {

@@ -392,6 +392,14 @@ function tabletShowMessage(msg, collecting) {
     return; //We don't want to display these messages
   }
 
+  // Filter out $CI channel names from Serial Messages display
+  // Note: Uses exact matching (^word$ in regex terms), so "websocket" is filtered
+  // but "websocket connection established" is NOT filtered
+  const ciChannelNames = ["usbcdc", "macros", "websocket", "telnet"];
+  if (ciChannelNames.includes(msg)) {
+    return; //We don't want to display bare $CI channel names
+  }
+
   addMessage(`${maslowErrorMsgHandling(msg) || msg}`);
 }
 
@@ -715,9 +723,102 @@ const tabletMoveZUp = () => sendMove("Z+");
 const tabletMoveTopLeft = () => sendMove("X-Y+");
 const tabletMoveTop = () => sendMove("Y+");
 const tabletMoveTopRight = () => sendMove("X+Y+");
+// Connection info polling variables
+let connectionInfoInterval = null;
+let connectionInfoAccumulator = [];
+let connectionInfoTimeout = null;
+
 const tabletCalibrationOpen = () => {
   loadCornerValues();
   openModal("calibration-popup");
+  startConnectionInfoPolling();
+}
+
+// Start polling for connection info
+function startConnectionInfoPolling() {
+  // Clear any existing interval
+  stopConnectionInfoPolling();
+  
+  // Query immediately
+  queryConnectionInfo();
+  
+  // Then poll every second
+  connectionInfoInterval = setInterval(queryConnectionInfo, 1000);
+}
+
+// Stop polling for connection info
+function stopConnectionInfoPolling() {
+  if (connectionInfoInterval) {
+    clearInterval(connectionInfoInterval);
+    connectionInfoInterval = null;
+  }
+  if (connectionInfoTimeout) {
+    clearTimeout(connectionInfoTimeout);
+    connectionInfoTimeout = null;
+  }
+  connectionInfoAccumulator = [];
+}
+
+// Query connection info using $CI command
+function queryConnectionInfo() {
+  // Don't reset accumulator here - let it accumulate across polls
+  // It will be reset after processing
+  
+  // Send $CI command with a custom callback that doesn't interfere with position updates
+  SendPrinterCommand("$CI", false, null, null);
+  
+  // Set a timeout to process accumulated data after 500ms
+  // (increased from 200ms to give more time for response to arrive)
+  if (connectionInfoTimeout) {
+    clearTimeout(connectionInfoTimeout);
+  }
+  connectionInfoTimeout = setTimeout(processConnectionInfo, 500);
+}
+
+// Accumulate connection info messages
+function accumulateConnectionInfo(msg) {
+  connectionInfoAccumulator.push(msg);
+}
+
+// Process accumulated connection info
+function processConnectionInfo() {
+  const label = id("connection-info-label");
+  if (!label) {
+    return;
+  }
+  
+  // Count websocket and telnet channel occurrences
+  // $CI returns channel names for each active connection
+  // If there are 2 websocket connections, "websocket" appears twice
+  let websocketCount = 0;
+  let telnetCount = 0;
+  
+  for (const msg of connectionInfoAccumulator) {
+    const lowerMsg = msg.toLowerCase().trim();
+    if (lowerMsg === 'websocket') {
+      websocketCount++;
+    } else if (lowerMsg === 'telnet') {
+      telnetCount++;
+    }
+  }
+  
+  // Update the label text
+  label.textContent = `Web:${websocketCount} Tel:${telnetCount}`;
+  
+  // Set background color based on websocket count
+  if (websocketCount > 1) {
+    label.style.backgroundColor = '#ffcccc'; // Red - multiple browsers
+    label.style.color = 'black';
+  } else if (websocketCount === 1) {
+    label.style.backgroundColor = '#ccffcc'; // Green - single connection
+    label.style.color = 'black';
+  } else {
+    label.style.backgroundColor = '#eeeeee'; // Gray - disconnected
+    label.style.color = 'black';
+  }
+  
+  // Reset accumulator after processing to prepare for next poll
+  connectionInfoAccumulator = [];
 }
 // Button event handlers - Second Row
 const tabletMoveLeft = () => sendMove("X-");
@@ -1337,6 +1438,11 @@ const hideModal = (modalId) => {
 
   if (modal) {
     modal.style.display = "none";
+  }
+  
+  // Stop connection info polling when calibration modal is closed
+  if (modalId === "calibration-popup") {
+    stopConnectionInfoPolling();
   }
 };
 

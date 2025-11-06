@@ -28,7 +28,41 @@ function SendPrinterCommand(prnCmd, echo_on, processfn, errorfn, cmd_code, max_c
     if (!prnCmd.startsWith("[ESP")) {
         grbl_processfn = procFn;
         grbl_errorfn = errFn;
-        procFn = noop;
+        // For GRBL commands, route HTTP responses through the GRBL message processor
+        procFn = function(response) {
+            console.log('Processing GRBL response for command:', prnCmd.trim(), 'response:', response);
+            // Special handling for $CI command - response is plain channel names
+            if (prnCmd.trim() === '$CI') {
+                console.log('Special $CI handling');
+                const lines = response.split('\n');
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    console.log('Processing line:', trimmed);
+                    // $CI returns plain channel names like "websocket", "telnet", "usbcdc", "macros"
+                    if (trimmed.length > 0 && /^[a-z]+$/.test(trimmed)) {
+                        console.log('Line matches channel name pattern, calling accumulateConnectionInfo');
+                        if (typeof accumulateConnectionInfo === 'function') {
+                            accumulateConnectionInfo(trimmed);
+                        } else {
+                            console.log('accumulateConnectionInfo is not a function!');
+                        }
+                    } else if (trimmed === 'ok' && typeof process_grbl_data === 'function') {
+                        // Process the "ok" response
+                        console.log('Processing ok response');
+                        process_grbl_data(trimmed);
+                    }
+                }
+            } else {
+                // For other GRBL commands, process normally
+                const lines = response.split('\n');
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (trimmed.length > 0 && typeof process_grbl_data === 'function') {
+                        process_grbl_data(trimmed);
+                    }
+                }
+            }
+        };
         errFn = noop;
     }
 
