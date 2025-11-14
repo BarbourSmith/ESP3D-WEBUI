@@ -317,6 +317,7 @@ var zh_CN_trans = {
 "Flood":"&#20919;&#21364;&#28082;",
 "Spindle":"&#20027;&#36724;",
 "Connection monitoring":"&#36830;&#25509;&#30417;&#35270;",
+"Enable version compatibility check":"&#21551;&#29992;&#29256;&#26412;&#20860;&#23481;&#24615;&#26816;&#26597;",
 "XY Feedrate value must be at least 1 mm/min!":"XY Feedrate value must be at least 1 &#27627;&#31859;/&#20998;&#38047;!",
 "Z Feedrate value must be at least 1 mm/min!":"Z Feedrate value must be at least 1 &#27627;&#31859;/&#20998;&#38047;!",
 "Hold:0":"&#24050;&#23436;&#25104;&#12290;&#20934;&#22791;&#24674;&#22797;&#12290;",

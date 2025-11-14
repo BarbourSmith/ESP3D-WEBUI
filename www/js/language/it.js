@@ -313,6 +313,7 @@ var italiantrans = {
 "Flood":"Getto",
 "Spindle":"Mandrino",
 "Connection monitoring":"Monitoraggio della connessione",
+"Enable version compatibility check":"Abilita controllo compatibilit&agrave; versioni",
 "XY Feedrate value must be at least 1 mm/min!":"Avanzamento XY deve essere almeno 1 mm/min!",
 "Z Feedrate value must be at least 1 mm/min!":"Avanzamento Z deve essere almeno 1 mm/min!",
 "Hold:0":"Sosp Completata. Pronto a riprendere.",

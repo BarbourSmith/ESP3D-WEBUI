@@ -314,6 +314,7 @@ var polishtrans = {
 "Flood":"Flood",
 "Spindle":"Spindle",
 "Connection monitoring":"Monitorowanie po&lstrok;&aogon;czenia",
+"Enable version compatibility check":"W&lstrok;&aogon;cz sprawdzanie zgodno&sacute;ci wersji",
 "XY Feedrate value must be at least 1 mm/min!":"Minimalna warto&sacute;&cacute; XY Feedrate to 1 mm/min!",
 "Z Feedrate value must be at least 1 mm/min!":"Minimalna warto&sacute;&cacute; Z Feedrate to 1 mm/min!",
 "Hold:0":"Wstrzymanie zako&nacute;czone. Gotowo&sacute;&cacute; do wznowienia.",

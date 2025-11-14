@@ -322,6 +322,7 @@ var ptbrtrans = {
 "Flood":"Flood",
 "Spindle":"Spindle",
 "Connection monitoring":"Monitorando conex&atilde;o",
+"Enable version compatibility check":"Habilitar verifica&ccedil;&atilde;o de compatibilidade de vers&atilde;o",
 "XY Feedrate value must be at least 1 mm/min!":"Valor do avan&ccedil;o XY deve ser de pelo menos 1 mm/min!",
 "Z Feedrate value must be at least 1 mm/min!":"Valor do avan&ccedil;o Z deve ser de pelo menos 1 mm/min!",
 "Hold:0":"Hold complete. Ready to resume.",

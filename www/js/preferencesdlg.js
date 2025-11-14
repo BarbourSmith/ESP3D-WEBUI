@@ -410,6 +410,7 @@ const getPreferencesForSave = () => {
     let saveprefs = [`[{"language":"${language}"`];
     saveprefs.push(`"enable_lock_UI":"${getChecked('enable_lock_UI')}"`);
     saveprefs.push(`"enable_ping":"${getChecked('enable_ping')}"`);
+    saveprefs.push(`"enable_version_check":"${getChecked('enable_version_check')}"`);
     saveprefs.push(`"enable_DHT":"${getChecked('enable_DHT')}"`);
 
     saveprefs.push(`"enable_camera":"${getChecked('show_camera_panel')}"`);

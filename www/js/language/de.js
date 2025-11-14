@@ -313,6 +313,7 @@ var germantrans = {
 "Flood":"Kühlmittelzufuhr",
 "Spindle":"Spindel",
 "Connection monitoring":"Verbindungs&uuml;berwachung",
+"Enable version compatibility check":"Versionskompatibilit&auml;tspr&uuml;fung aktivieren",
 "XY Feedrate value must be at least 1 mm/min!":"XY-Vorschub muss mindesten 1 mm/min betragen!",
 "Z Feedrate value must be at least 1 mm/min!":"Z-Vorschub muss mindesten 1 mm/min betragen!",
 "Hold:0":"Hold complete. Ready to resume.",

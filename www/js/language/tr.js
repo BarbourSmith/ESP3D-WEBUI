@@ -316,6 +316,7 @@ var turkishtrans = {
 "Flood":"Flood",
 "Spindle":"Spindle",
 "Connection monitoring":"Ba&gbreve;lant&inodot; kontrol&uuml;",
+"Enable version compatibility check":"S&uuml;r&uuml;m uyumluluk denetimini etkinle&scirc;tir",
 "XY Feedrate value must be at least 1 mm/min!":"XY Feedrate de&gbreve;eri en az 1 mm/dk olmal&inodot;d&inodot;r!",
 "Z Feedrate value must be at least 1 mm/min!":"Z Feedrate de&gbreve;eri en az 1 mm/dk olmal&inodot;d&inodot;r!",
 "Hold:0":"Hold complete. Ready to resume.",

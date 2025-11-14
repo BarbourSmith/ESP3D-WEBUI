@@ -316,6 +316,7 @@ var hungariantrans = {
 "Flood":"Áradás",
 "Spindle":"Orsó",
 "Connection monitoring":"A kapcsolat figyelése",
+"Enable version compatibility check":"Verziókompatibilitás-ellenőrzés engedélyezése",
 "XY Feedrate value must be at least 1 mm/min!":"A XY előtolás értékének legalább 1 mm / perc-nek kell lennie!",
 "Z Feedrate value must be at least 1 mm/min!":"Z Az előtolás értékének legalább 1 mm / perc-nek kell lennie!",
 "Hold:0":"Tartsa teljes. Készen áll a folytatásra.",

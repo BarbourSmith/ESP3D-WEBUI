@@ -6,6 +6,7 @@ const checkFields = {
     enable_DHT: "enable_DHT",
     enable_lock_UI: "enable_lock_UI",
     enable_ping: "enable_ping",
+    enable_version_check: "enable_version_check",
     show_control_panel: "enable_control_panel",
     show_grbl_panel: "enable_grbl_panel",
     show_grbl_probe_tab: "enable_grbl_probe_panel",

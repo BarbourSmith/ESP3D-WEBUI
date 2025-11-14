@@ -311,6 +311,7 @@ var russiantrans = {
 "Flood": "Flood",
 "Spindle": "Spindle",
 "Connection monitoring": "Мониторинг соединения",
+"Enable version compatibility check": "Включить проверку совместимости версий",
 "XY Feedrate value must be at least 1 mm/min!": "Значение подачи осей XY должно быть не менее 1 мм/мин!",
 "Z Feedrate value must be at least 1 mm/min!": "Значение подачи оси Z должно быть не менее 1 мм/мин!",
 "Hold:0": "Остановлен. Готов к продолжению печати.",

@@ -190,6 +190,12 @@ if (typeof document !== "undefined") {
  * Shows warning popup if versions appear incompatible
  */
 const checkVersionCompatibility = () => {
+	// Skip check if feature is disabled in preferences
+	if (preferenceslist && preferenceslist[0] && preferenceslist[0].enable_version_check !== 'true') {
+		console.log("Version compatibility check disabled in preferences");
+		return;
+	}
+	
 	// Skip check if either version is not available
 	if (!fw_version || !web_ui_version || fw_version === "" || web_ui_version === "") {
 		console.log("Version compatibility check skipped: missing version information");

@@ -312,6 +312,7 @@ var frenchtrans = {
 "Flood":"Arrosage",
 "Spindle":"Broche",
 "Connection monitoring":"Surveillance de la connexion",
+"Enable version compatibility check":"Activer la v&eacute;rification de compatibilit&eacute; des versions",
 "XY Feedrate value must be at least 1 mm/min!":"La valeur de l'acc&eacute;l&eacute;ration XY doit &ecirc;tre sup&eacute;rieure &agrave; 1mm/min !",
 "Z Feedrate value must be at least 1 mm/min!":"La valeur de l'acc&eacute;l&eacute;ration Z doit &ecirc;tre sup&eacute;rieure &agrave; 1mm/min !",
 "Hold:0":"Suspension compl&egrave;te. Pr&ecirc;t &agrave; red&eacute;marrer.",

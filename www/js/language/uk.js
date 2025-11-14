@@ -312,6 +312,7 @@ var ukrtrans = {
 "Flood": "Flood",
 "Spindle": "Spindle",
 "Connection monitoring": "Моніторинг з'єднання",
+"Enable version compatibility check": "Увімкнути перевірку сумісності версій",
 "XY Feedrate value must be at least 1 mm/min!": "Значення подачі осей XY має бути не менше 1 мм/хв!",
 "Z Feedrate value must be at least 1 mm/min!": "Значення подачі осі Z має бути не менше 1 мм/хв!",
 "Hold:0": "Зупинений. Готовий до продовження друку.",

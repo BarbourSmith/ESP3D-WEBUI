@@ -313,6 +313,7 @@ var spanishtrans = {
 "Flood":"Flood",
 "Spindle":"Spindle",
 "Connection monitoring":"Monitoreo de conexi&oacute;n",
+"Enable version compatibility check":"Habilitar verificaci&oacute;n de compatibilidad de versiones",
 "XY Feedrate value must be at least 1 mm/min!":"XY Feedrate value must be at least 1 mm/min!",
 "Z Feedrate value must be at least 1 mm/min!":"Z Feedrate value must be at least 1 mm/min!",
 "Hold:0":"Hold complete. Ready to resume.",
