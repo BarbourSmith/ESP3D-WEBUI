@@ -30,6 +30,5 @@ var default_preferenceslist = [{
     "enable_autoscroll": "true",
     "enable_verbose_mode": "true",
     "config_filename": "maslow.yaml",
-    "version_check_enabled": "true",
     "dismissed_version": ""
 }];

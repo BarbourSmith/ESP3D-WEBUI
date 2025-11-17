@@ -411,7 +411,6 @@ const getPreferencesForSave = () => {
     saveprefs.push(`"enable_lock_UI":"${getChecked('enable_lock_UI')}"`);
     saveprefs.push(`"enable_ping":"${getChecked('enable_ping')}"`);
     saveprefs.push(`"enable_DHT":"${getChecked('enable_DHT')}"`);
-    saveprefs.push(`"version_check_enabled":"${getChecked('enable_version_check')}"`);
 
     saveprefs.push(`"enable_camera":"${getChecked('show_camera_panel')}"`);
     saveprefs.push(`"auto_load_camera":"${getChecked('autoload_camera_panel')}"`);
@@ -452,10 +451,8 @@ const getPreferencesForSave = () => {
     saveprefs.push(`"enable_autoscroll":"${getChecked('preferences_autoscroll')}"`);
     saveprefs.push(`"enable_verbose_mode":"${getChecked('preferences_verbose_mode')}"`);
     
-    // Preserve version check preferences if they exist
-    const versionCheckEnabled = typeof preferenceslist[0].version_check_enabled !== 'undefined' ? preferenceslist[0].version_check_enabled : "true";
+    // Preserve dismissed version if it exists
     const dismissedVersion = typeof preferenceslist[0].dismissed_version !== 'undefined' ? preferenceslist[0].dismissed_version : "";
-    saveprefs.push(`"version_check_enabled":"${versionCheckEnabled}"`);
     saveprefs.push(`"dismissed_version":"${dismissedVersion}"}]`);
     try {
         newPrefsList = JSON.parse(saveprefs.join(","));

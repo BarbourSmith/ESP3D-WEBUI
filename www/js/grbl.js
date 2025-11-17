@@ -819,6 +819,15 @@ const grblHandleMessage = (msg) => {
     if (typeof parseMotorCurrentMessage === 'function' && parseMotorCurrentMessage(msg)) {
       return;
     }
+    // Check for firmware version update notification
+    // Format: [MSG:INFO: New version available: vX.Y.Z]
+    if (msg.includes("New version available:") || msg.includes("new version available:")) {
+      const versionMatch = msg.match(/v?(\d+\.\d+\.\d+)/);
+      if (versionMatch && typeof showNewVersionPopup === 'function') {
+        showNewVersionPopup(versionMatch[0]);
+      }
+      return;
+    }
     return;
   }
   if (valueStartsWith(msg, ["error:"])) {
