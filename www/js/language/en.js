@@ -62,5 +62,16 @@ var englishtrans = {
 "error:63":"SD Card directory not found",
 "error:64":"SD Card file empty",
 "error:70":"Bluetooth failed to start",
+"Version Warnings":"Version Warnings",
+"Current status":"Current status",
+"Enabled":"Enabled",
+"Disabled":"Disabled",
+"Suppressed until next release":"Suppressed until next release",
+"Firmware":"Firmware",
+"WebUI":"WebUI",
+"Disable version warnings":"Disable version warnings",
+"Enable version warnings":"Enable version warnings",
+"Confirm":"Confirm",
+"Are you sure you want to permanently disable version compatibility warnings?":"Are you sure you want to permanently disable version compatibility warnings?"
 };
 //endRemoveIf(en_lang_disabled)

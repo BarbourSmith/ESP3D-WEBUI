@@ -196,28 +196,49 @@ const checkVersionCompatibility = () => {
 		return;
 	}
 
-	// Extract version information for comparison
-	const fwVersionInfo = extractVersionInfo(fw_version);
-	const uiVersionInfo = extractVersionInfo(web_ui_version);
+	// Extract git describe format versions for comparison
+	const fwGitVersion = extractGitDescribeVersion(fw_version);
+	const uiGitVersion = extractGitDescribeVersion(web_ui_version);
 	
-	console.log(`Checking version compatibility: FW=${fw_version}, UI=${web_ui_version}`);
+	console.log(`Checking version compatibility: FW=${fwGitVersion}, UI=${uiGitVersion}`);
 	
 	// Add version check info to serial messages log
 	if (typeof addMessage === 'function') {
-		addMessage(`Version Check: FW=${fw_version}, UI=${web_ui_version}`, true, false);
+		addMessage(`Version Check: FW=${fwGitVersion}, UI=${uiGitVersion}`, true, false);
+	}
+	
+	// Check if version warnings are suppressed
+	const suppressedVersions = getVersionSuppressionPreference();
+	if (suppressedVersions) {
+		if (suppressedVersions === "do_not_alert") {
+			console.log("Version warnings are permanently disabled");
+			if (typeof addMessage === 'function') {
+				addMessage(`Version warnings are disabled by user preference`, true, false);
+			}
+			return;
+		}
+		
+		// Check if we're still on the same versions that were suppressed
+		if (suppressedVersions.fw === fwGitVersion && suppressedVersions.ui === uiGitVersion) {
+			console.log("Version warning suppressed for these versions");
+			if (typeof addMessage === 'function') {
+				addMessage(`Version warning suppressed until next release`, true, false);
+			}
+			return;
+		}
 	}
 	
 	// Check if versions are compatible
-	if (!areVersionsCompatible(fwVersionInfo, uiVersionInfo)) {
+	if (!areGitVersionsCompatible(fwGitVersion, uiGitVersion)) {
 		const warningTitle = "Version Compatibility Warning";
 		const warningMessage = `<p><strong>Firmware and WebUI versions may not be compatible:</strong></p>
-			<p>• Firmware version: <code>${fw_version}</code></p>
-			<p>• WebUI version: <code>${web_ui_version}</code></p>
+			<p>• Firmware version: <code>${fwGitVersion}</code></p>
+			<p>• WebUI version: <code>${uiGitVersion}</code></p>
 			<p><br/>This may cause unexpected behavior or missing features. Consider updating to matching versions.</p>`;
 		
 		// Add warning to serial messages log
 		if (typeof addMessage === 'function') {
-			addMessage(`WARNING: Version mismatch detected! FW: ${fw_version} vs UI: ${web_ui_version}`, true, false);
+			addMessage(`WARNING: Version mismatch detected! FW: ${fwGitVersion} vs UI: ${uiGitVersion}`, true, false);
 		}
 		
 		// Show warning dialog with a longer delay to ensure UI initialization is complete
@@ -229,11 +250,11 @@ const checkVersionCompatibility = () => {
 				closeModal("Version check - closing previous modal");
 			}
 			
-			// Then show the version warning
-			alertdlg(warningTitle, warningMessage);
+			// Then show the version warning with custom buttons
+			showVersionWarningDialog(warningTitle, warningMessage, fwGitVersion, uiGitVersion);
 		}, 3000); // 3 second delay to allow full UI initialization
 		
-		console.warn("Version compatibility warning shown:", { fw_version, web_ui_version });
+		console.warn("Version compatibility warning shown:", { fwGitVersion, uiGitVersion });
 	} else {
 		console.log("Version compatibility check passed");
 		// Add success message to serial log
@@ -244,120 +265,157 @@ const checkVersionCompatibility = () => {
 };
 
 /**
- * Extract version information from version string
- * Handles various version formats (semantic versioning, git hashes, etc.)
+ * Extract git describe version from firmware or UI version string
+ * Examples:
+ *   - "FluidNC v3.6.7 (Devt-5692a7c1-dirty)" -> "v3.6.7-devt-5692a7c1-dirty"
+ *   - "github.com/BarbourSmith/ESP3D-WEBUI@v1.14-1-g472d4ea" -> "v1.14-1-g472d4ea"
+ *   - "v1.14-6-g7fe778c0" -> "v1.14-6-g7fe778c0"
  */
-const extractVersionInfo = (versionString) => {
-	if (!versionString) return { type: "unknown", version: "" };
+const extractGitDescribeVersion = (versionString) => {
+	if (!versionString) return "";
 	
-	const version = versionString.toLowerCase().trim();
+	const version = versionString.trim();
 	
-	// Check for git hash pattern (github.com/repo@hash) first, as it's most specific
-	const gitHashMatch = version.match(/github\.com\/[^@]+@([a-f0-9]+)/);
-	if (gitHashMatch) {
-		return {
-			type: "git",
-			hash: gitHashMatch[1],
-			full: version
-		};
+	// Check for github.com format: github.com/BarbourSmith/ESP3D-WEBUI@v1.14-1-g472d4ea
+	const githubMatch = version.match(/github\.com\/[^@]+@(.+)$/);
+	if (githubMatch) {
+		return githubMatch[1];
 	}
 	
-	// Check for simple git hash (7+ hex characters) - in firmware or elsewhere
-	const simpleHashMatch = version.match(/[a-f0-9]{7,}/);
-	if (simpleHashMatch) {
-		return {
-			type: "git",
-			hash: simpleHashMatch[0],
-			full: version
-		};
+	// Check for FluidNC format: FluidNC v3.6.7 (Devt-5692a7c1-dirty)
+	// Convert to git describe format: v3.6.7-devt-5692a7c1-dirty
+	const fluidncMatch = version.match(/FluidNC\s+v?([\d.]+)\s*\(([\w-]+)\)/i);
+	if (fluidncMatch) {
+		return `v${fluidncMatch[1]}-${fluidncMatch[2].toLowerCase()}`;
 	}
 	
-	// Check for semantic versioning pattern (x.y.z)
-	const semverMatch = version.match(/(\d+)\.(\d+)\.(\d+)/);
-	if (semverMatch) {
-		// Also check if there's a git hash in the same string (e.g., "v3.6.7 (devt-abc1234)")
-		const hashInSemver = version.match(/[a-f0-9]{7,}/);
-		if (hashInSemver) {
-			return {
-				type: "mixed",  // Contains both semver and git hash
-				major: parseInt(semverMatch[1]),
-				minor: parseInt(semverMatch[2]),
-				patch: parseInt(semverMatch[3]),
-				hash: hashInSemver[0],
-				full: version
-			};
-		}
-		return {
-			type: "semver",
-			major: parseInt(semverMatch[1]),
-			minor: parseInt(semverMatch[2]),
-			patch: parseInt(semverMatch[3]),
-			full: version
-		};
+	// Check for FluidNC format without parentheses: FluidNC v3.6.7
+	const fluidncSimpleMatch = version.match(/FluidNC\s+v?([\d.]+)/i);
+	if (fluidncSimpleMatch) {
+		return `v${fluidncSimpleMatch[1]}`;
 	}
 	
-	return {
-		type: "other",
-		full: version
-	};
+	// Otherwise assume it's already in git describe format
+	return version;
 };
 
 /**
- * Determine if two versions are compatible
+ * Determine if two git describe versions are compatible
+ * Compatible if they have the same base version tag (e.g., v1.14)
  */
-const areVersionsCompatible = (fwVersion, uiVersion) => {
-	// If either version type is unknown, assume compatible to avoid false positives
-	if (fwVersion.type === "unknown" || uiVersion.type === "unknown") {
+const areGitVersionsCompatible = (fwVersion, uiVersion) => {
+	if (!fwVersion || !uiVersion) {
+		return true; // If we can't extract versions, don't show warning
+	}
+	
+	// Exact match is always compatible
+	if (fwVersion === uiVersion) {
 		return true;
 	}
 	
-	// If both are semantic versions, check major.minor compatibility
-	if (fwVersion.type === "semver" && uiVersion.type === "semver") {
-		// Compatible if major and minor versions match
-		return fwVersion.major === uiVersion.major && fwVersion.minor === uiVersion.minor;
+	// Extract base version tag (e.g., "v1.14" from "v1.14-6-g7fe778c0")
+	const fwBaseMatch = fwVersion.match(/^v?(\d+\.\d+)/);
+	const uiBaseMatch = uiVersion.match(/^v?(\d+\.\d+)/);
+	
+	if (!fwBaseMatch || !uiBaseMatch) {
+		// If we can't parse the base version, be conservative and show warning
+		return false;
 	}
 	
-	// If both are git hashes, they should match for perfect compatibility
-	if (fwVersion.type === "git" && uiVersion.type === "git") {
-		// If hash prefixes match (first 7 chars), consider compatible
-		const fwPrefix = fwVersion.hash.substring(0, 7);
-		const uiPrefix = uiVersion.hash.substring(0, 7);
-		return fwPrefix === uiPrefix;
+	// Compatible if base versions match (e.g., both are v1.14.x)
+	return fwBaseMatch[1] === uiBaseMatch[1];
+};
+
+/**
+ * Get version suppression preference from preferenceslist
+ * Returns either "do_not_alert" or an object with {fw, ui} versions, or null
+ */
+const getVersionSuppressionPreference = () => {
+	if (!preferenceslist || !preferenceslist[0]) {
+		return null;
 	}
 	
-	// Handle mixed type (firmware with both semver and git hash)
-	if (fwVersion.type === "mixed") {
-		// If UI is git type, compare hashes
-		if (uiVersion.type === "git") {
-			const fwPrefix = fwVersion.hash.substring(0, 7);
-			const uiPrefix = uiVersion.hash.substring(0, 7);
-			return fwPrefix === uiPrefix;
+	const suppressed = preferenceslist[0].suppress_version_warning;
+	if (!suppressed) {
+		return null;
+	}
+	
+	if (suppressed === "do_not_alert") {
+		return "do_not_alert";
+	}
+	
+	try {
+		return JSON.parse(suppressed);
+	} catch (e) {
+		console.error("Failed to parse suppressed version:", e);
+		return null;
+	}
+};
+
+/**
+ * Save version suppression preference to preferenceslist and file
+ */
+const saveVersionSuppressionPreference = (value) => {
+	if (!preferenceslist || !preferenceslist[0]) {
+		console.error("Cannot save version suppression: preferences not loaded");
+		return;
+	}
+	
+	if (value === "do_not_alert") {
+		preferenceslist[0].suppress_version_warning = "do_not_alert";
+	} else if (value && value.fw && value.ui) {
+		preferenceslist[0].suppress_version_warning = JSON.stringify(value);
+	} else {
+		delete preferenceslist[0].suppress_version_warning;
+	}
+	
+	// Save preferences to file
+	SavePreferences(true);
+};
+
+/**
+ * Show version warning dialog with custom buttons
+ */
+const showVersionWarningDialog = (title, message, fwVersion, uiVersion) => {
+	const modal = setactiveModal("alertdlg.html");
+	if (modal === null) {
+		return;
+	}
+
+	const titleElem = modal.element.getElementsByClassName("modal-title")[0];
+	const bodyElem = modal.element.getElementsByClassName("modal-text")[0];
+	const footer = modal.element.getElementsByClassName("modal-footer")[0];
+	
+	titleElem.innerHTML = title;
+	bodyElem.innerHTML = message;
+	
+	// Replace footer with custom buttons
+	footer.innerHTML = `
+		<button id="versionWarnDismiss" class="btn btn-default">Dismiss</button>
+		<button id="versionWarnSuppress" class="btn btn-warning">Don't warn until next release</button>
+	`;
+	
+	// Set up event listeners
+	id("versionWarnDismiss").addEventListener("click", () => {
+		closeModal("dismiss");
+	});
+	
+	id("versionWarnSuppress").addEventListener("click", () => {
+		saveVersionSuppressionPreference({ fw: fwVersion, ui: uiVersion });
+		console.log("Version warning suppressed for:", { fw: fwVersion, ui: uiVersion });
+		if (typeof addMessage === 'function') {
+			addMessage(`Version warning suppressed until next release`, true, false);
 		}
-		// If UI is semver, compare semantic versions
-		if (uiVersion.type === "semver") {
-			return fwVersion.major === uiVersion.major && fwVersion.minor === uiVersion.minor;
-		}
+		closeModal("suppress");
+	});
+	
+	// Also handle the X button
+	const closeBtn = id("cancelAlertDlg");
+	if (closeBtn) {
+		closeBtn.addEventListener("click", () => {
+			closeModal("cancel");
+		});
 	}
 	
-	// If UI is mixed type
-	if (uiVersion.type === "mixed") {
-		// If FW is git type, compare hashes
-		if (fwVersion.type === "git") {
-			const fwPrefix = fwVersion.hash.substring(0, 7);
-			const uiPrefix = uiVersion.hash.substring(0, 7);
-			return fwPrefix === uiPrefix;
-		}
-		// If FW is semver, compare semantic versions
-		if (fwVersion.type === "semver") {
-			return fwVersion.major === uiVersion.major && fwVersion.minor === uiVersion.minor;
-		}
-	}
-	
-	// If different version types, check for exact string match
-	if (fwVersion.full === uiVersion.full) {
-		return true;
-	}
-	
-	// For other mixed cases, be conservative and show warning
-	return false;
+	showModal();
 };
