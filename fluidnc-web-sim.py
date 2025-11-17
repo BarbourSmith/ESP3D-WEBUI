@@ -184,7 +184,7 @@ sdfiles = '{"files":[{"name":"localfs","shortname":"localfs","size":"-1","dateti
 
 gresp = "[GC:G1 G54 G17 G21 G90 G94 M5 M9 T0 F1000 S0]"
 
-esp800resp = 'FW version: FluidNC v1.13 (v1.13-5-g1234567) # FW target:grbl-embedded  # FW HW:Direct SD  # primary sd:/sd # secondary sd:none  # authentication:no # webcommunication: Sync: ' + fluidnc_websocket() + ' # hostname:fluidnc # axis:3'
+esp800resp = 'FW version: FluidNC v1.14 (v1.14) # FW target:grbl-embedded  # FW HW:Direct SD  # primary sd:/sd # secondary sd:none  # authentication:no # webcommunication: Sync: ' + fluidnc_websocket() + ' # hostname:fluidnc # axis:3'
 
 esp400resp = '''
 {"EEPROM":[

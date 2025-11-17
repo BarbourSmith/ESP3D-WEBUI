@@ -301,29 +301,17 @@ const extractGitDescribeVersion = (versionString) => {
 
 /**
  * Determine if two git describe versions are compatible
- * Compatible if they have the same base version tag (e.g., v1.14)
+ * Compatible only if they are exactly the same
  */
 const areGitVersionsCompatible = (fwVersion, uiVersion) => {
 	if (!fwVersion || !uiVersion) {
 		return true; // If we can't extract versions, don't show warning
 	}
 	
-	// Exact match is always compatible
-	if (fwVersion === uiVersion) {
-		return true;
-	}
-	
-	// Extract base version tag (e.g., "v1.14" from "v1.14-6-g7fe778c0")
-	const fwBaseMatch = fwVersion.match(/^v?(\d+\.\d+)/);
-	const uiBaseMatch = uiVersion.match(/^v?(\d+\.\d+)/);
-	
-	if (!fwBaseMatch || !uiBaseMatch) {
-		// If we can't parse the base version, be conservative and show warning
-		return false;
-	}
-	
-	// Compatible if base versions match (e.g., both are v1.14.x)
-	return fwBaseMatch[1] === uiBaseMatch[1];
+	// Only exact match is compatible
+	// v1.14 and v1.14-2-gabcd123 are NOT compatible (release vs development)
+	// v1.14-2-gabcd123 and v1.14-3-gdef4567 are NOT compatible (different commits)
+	return fwVersion === uiVersion;
 };
 
 /**
