@@ -3,9 +3,9 @@
 
 /** Check if version checking is enabled and show popup if new version available */
 const checkForNewVersion = () => {
-    // Check if version checking is disabled in preferences
+    // Check if version checking is enabled in preferences
     const versionCheckPref = GetPrefOrDefault("version_check_enabled");
-    if (versionCheckPref === "never") {
+    if (versionCheckPref === "false" || versionCheckPref === "never") {
         console.log("Version checking disabled in preferences");
         return;
     }
