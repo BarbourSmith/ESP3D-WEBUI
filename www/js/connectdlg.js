@@ -192,7 +192,6 @@ if (typeof document !== "undefined") {
 const checkVersionCompatibility = () => {
 	// Skip check if either version is not available
 	if (!fw_version || !web_ui_version || fw_version === "" || web_ui_version === "") {
-		console.log("Version compatibility check skipped: missing version information");
 		return;
 	}
 
@@ -200,25 +199,10 @@ const checkVersionCompatibility = () => {
 	const fwVersionInfo = extractVersionInfo(fw_version);
 	const uiVersionInfo = extractVersionInfo(web_ui_version);
 	
-	console.log(`Checking version compatibility: FW=${fw_version}, UI=${web_ui_version}`);
-	
-	// Add version check info to serial messages log
-	if (typeof addMessage === 'function') {
-		addMessage(`Version Check: FW=${fw_version}, UI=${web_ui_version}`, true, false);
-	}
-	
 	// Check if versions are compatible
 	if (!areVersionsCompatible(fwVersionInfo, uiVersionInfo)) {
-		const warningTitle = "Version Compatibility Warning";
-		const warningMessage = `<p><strong>Firmware and WebUI versions may not be compatible:</strong></p>
-			<p>• Firmware version: <code>${fw_version}</code></p>
-			<p>• WebUI version: <code>${web_ui_version}</code></p>
-			<p><br/>This may cause unexpected behavior or missing features. Consider updating to matching versions.</p>`;
-		
-		// Add warning to serial messages log
-		if (typeof addMessage === 'function') {
-			addMessage(`WARNING: Version mismatch detected! FW: ${fw_version} vs UI: ${web_ui_version}`, true, false);
-		}
+		// Simplified warning message to reduce memory footprint
+		const warningMessage = `<p><strong>Version mismatch:</strong> FW: ${fw_version}, UI: ${web_ui_version}<br/>Update to matching versions for best compatibility.</p>`;
 		
 		// Show warning dialog with a longer delay to ensure UI initialization is complete
 		// and any existing modals are closed
@@ -230,16 +214,8 @@ const checkVersionCompatibility = () => {
 			}
 			
 			// Then show the version warning
-			alertdlg(warningTitle, warningMessage);
+			alertdlg("Version Warning", warningMessage);
 		}, 3000); // 3 second delay to allow full UI initialization
-		
-		console.warn("Version compatibility warning shown:", { fw_version, web_ui_version });
-	} else {
-		console.log("Version compatibility check passed");
-		// Add success message to serial log
-		if (typeof addMessage === 'function') {
-			addMessage(`Version compatibility check PASSED`, true, false);
-		}
 	}
 };
 
