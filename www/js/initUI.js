@@ -191,6 +191,14 @@ function initUI_4() {
 		build_HTML_setting_list(current_setting_filter);
 		closeModal();
 		show_main_UI();
+		
+		// Check for new version after UI is initialized
+		// Delay to ensure all components are loaded and to avoid interfering with startup
+		setTimeout(() => {
+			if (typeof checkForNewVersion === 'function') {
+				checkForNewVersion();
+			}
+		}, 5000); // 5 second delay after UI is shown
 	}
 }
 

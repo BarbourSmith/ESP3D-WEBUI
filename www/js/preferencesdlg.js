@@ -449,7 +449,13 @@ const getPreferencesForSave = () => {
 
     saveprefs.push(`"enable_commands_panel":"${getChecked('show_commands_panel')}"`);
     saveprefs.push(`"enable_autoscroll":"${getChecked('preferences_autoscroll')}"`);
-    saveprefs.push(`"enable_verbose_mode":"${getChecked('preferences_verbose_mode')}"}]`);
+    saveprefs.push(`"enable_verbose_mode":"${getChecked('preferences_verbose_mode')}"`);
+    
+    // Preserve version check preferences if they exist
+    const versionCheckEnabled = typeof preferenceslist[0].version_check_enabled !== 'undefined' ? preferenceslist[0].version_check_enabled : "true";
+    const dismissedVersion = typeof preferenceslist[0].dismissed_version !== 'undefined' ? preferenceslist[0].dismissed_version : "";
+    saveprefs.push(`"version_check_enabled":"${versionCheckEnabled}"`);
+    saveprefs.push(`"dismissed_version":"${dismissedVersion}"}]`);
     try {
         newPrefsList = JSON.parse(saveprefs.join(","));
     } catch (error) {
