@@ -202,47 +202,26 @@ const checkVersionCompatibility = () => {
 	
 	console.log(`Checking version compatibility: FW=${fwGitVersion}, UI=${uiGitVersion}`);
 	
-	// Add version check info to serial messages log
-	if (typeof addMessage === 'function') {
-		addMessage(`Version Check: FW=${fwGitVersion}, UI=${uiGitVersion}`, true, false);
-	}
-	
 	// Check if version warnings are suppressed
 	const suppressedVersions = getVersionSuppressionPreference();
 	if (suppressedVersions) {
 		if (suppressedVersions === "do_not_alert") {
-			console.log("Version warnings are permanently disabled");
-			if (typeof addMessage === 'function') {
-				addMessage(`Version warnings are disabled by user preference`, true, false);
-			}
+			console.log("Version warnings disabled");
 			return;
 		}
 		
 		// Check if we're still on the same versions that were suppressed
 		if (suppressedVersions.fw === fwGitVersion && suppressedVersions.ui === uiGitVersion) {
-			console.log("Version warning suppressed for these versions");
-			if (typeof addMessage === 'function') {
-				addMessage(`Version warning suppressed until next release`, true, false);
-			}
+			console.log("Version warning suppressed");
 			return;
 		}
 	}
 	
 	// Check if versions are compatible
 	if (!areGitVersionsCompatible(fwGitVersion, uiGitVersion)) {
-		const warningTitle = "Version Compatibility Warning";
-		const warningMessage = `<p><strong>Firmware and WebUI versions may not be compatible:</strong></p>
-			<p>• Firmware version: <code>${fwGitVersion}</code></p>
-			<p>• WebUI version: <code>${uiGitVersion}</code></p>
-			<p><br/>This may cause unexpected behavior or missing features. Consider updating to matching versions.</p>`;
+		console.warn("Version mismatch:", fwGitVersion, "vs", uiGitVersion);
 		
-		// Add warning to serial messages log
-		if (typeof addMessage === 'function') {
-			addMessage(`WARNING: Version mismatch detected! FW: ${fwGitVersion} vs UI: ${uiGitVersion}`, true, false);
-		}
-		
-		// Show warning dialog with a longer delay to ensure UI initialization is complete
-		// and any existing modals are closed
+		// Show warning dialog with a delay to ensure UI initialization is complete
 		setTimeout(() => {
 			// Force close any existing modals first
 			const activeModal = getactiveModal ? getactiveModal() : null;
@@ -251,16 +230,10 @@ const checkVersionCompatibility = () => {
 			}
 			
 			// Then show the version warning with custom buttons
-			showVersionWarningDialog(warningTitle, warningMessage, fwGitVersion, uiGitVersion);
+			showVersionWarningDialog(fwGitVersion, uiGitVersion);
 		}, 3000); // 3 second delay to allow full UI initialization
-		
-		console.warn("Version compatibility warning shown:", { fwGitVersion, uiGitVersion });
 	} else {
-		console.log("Version compatibility check passed");
-		// Add success message to serial log
-		if (typeof addMessage === 'function') {
-			addMessage(`Version compatibility check PASSED`, true, false);
-		}
+		console.log("Version check passed");
 	}
 };
 
@@ -363,8 +336,9 @@ const saveVersionSuppressionPreference = (value) => {
 
 /**
  * Show version warning dialog with custom buttons
+ * Optimized for minimal memory usage
  */
-const showVersionWarningDialog = (title, message, fwVersion, uiVersion) => {
+const showVersionWarningDialog = (fwVersion, uiVersion) => {
 	const modal = setactiveModal("alertdlg.html");
 	if (modal === null) {
 		return;
@@ -374,35 +348,58 @@ const showVersionWarningDialog = (title, message, fwVersion, uiVersion) => {
 	const bodyElem = modal.element.getElementsByClassName("modal-text")[0];
 	const footer = modal.element.getElementsByClassName("modal-footer")[0];
 	
-	titleElem.innerHTML = title;
-	bodyElem.innerHTML = message;
+	// Use textContent for title to avoid HTML parsing
+	titleElem.textContent = "Version Compatibility Warning";
 	
-	// Replace footer with custom buttons
-	footer.innerHTML = `
-		<button id="versionWarnDismiss" class="btn btn-default">Dismiss</button>
-		<button id="versionWarnSuppress" class="btn btn-warning">Don't warn until next release</button>
-	`;
+	// Build minimal message using DOM methods instead of large HTML strings
+	bodyElem.innerHTML = "";
+	const p1 = document.createElement("p");
+	p1.innerHTML = "<strong>Firmware and WebUI versions may not be compatible:</strong>";
+	bodyElem.appendChild(p1);
 	
-	// Set up event listeners
-	id("versionWarnDismiss").addEventListener("click", () => {
+	const p2 = document.createElement("p");
+	p2.textContent = "• Firmware version: " + fwVersion;
+	bodyElem.appendChild(p2);
+	
+	const p3 = document.createElement("p");
+	p3.textContent = "• WebUI version: " + uiVersion;
+	bodyElem.appendChild(p3);
+	
+	const p4 = document.createElement("p");
+	p4.innerHTML = "<br/>This may cause unexpected behavior or missing features. Consider updating to matching versions.";
+	bodyElem.appendChild(p4);
+	
+	// Create buttons efficiently
+	footer.innerHTML = "";
+	const dismissBtn = document.createElement("button");
+	dismissBtn.id = "versionWarnDismiss";
+	dismissBtn.className = "btn btn-default";
+	dismissBtn.textContent = "Dismiss";
+	footer.appendChild(dismissBtn);
+	
+	const suppressBtn = document.createElement("button");
+	suppressBtn.id = "versionWarnSuppress";
+	suppressBtn.className = "btn btn-warning";
+	suppressBtn.textContent = "Don't warn until next release";
+	footer.appendChild(suppressBtn);
+	
+	// Use named functions instead of arrow functions to reduce closure memory
+	dismissBtn.onclick = function() {
 		closeModal("dismiss");
-	});
+	};
 	
-	id("versionWarnSuppress").addEventListener("click", () => {
+	suppressBtn.onclick = function() {
 		saveVersionSuppressionPreference({ fw: fwVersion, ui: uiVersion });
-		console.log("Version warning suppressed for:", { fw: fwVersion, ui: uiVersion });
-		if (typeof addMessage === 'function') {
-			addMessage(`Version warning suppressed until next release`, true, false);
-		}
+		console.log("Version warning suppressed");
 		closeModal("suppress");
-	});
+	};
 	
-	// Also handle the X button
+	// Handle X button
 	const closeBtn = id("cancelAlertDlg");
 	if (closeBtn) {
-		closeBtn.addEventListener("click", () => {
+		closeBtn.onclick = function() {
 			closeModal("cancel");
-		});
+		};
 	}
 	
 	showModal();
