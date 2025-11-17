@@ -14,6 +14,10 @@ function initpreferences() {
     id("preferencesDlgClose").addEventListener("click", closePreferencesDialog);
     id("preferencesDlgCancel").addEventListener("click", closePreferencesDialog);
     id("preferencesDlgSave").addEventListener("click", savingPreferences);
+    
+    // Add event listeners for version warning buttons
+    id("disable_version_warnings_btn").addEventListener("click", disableVersionWarnings);
+    id("enable_version_warnings_btn").addEventListener("click", enableVersionWarnings);
 
     const checkBoxes = Array.from(document.getElementsByTagName("input")).filter((inpElem) => inpElem.type === "checkbox" && inpElem.disabled !== true);
     for (const checkBox of checkBoxes) {
@@ -208,6 +212,7 @@ function showpreferencesdlg() {
     language_save = language;
     config_filename_save = GetPrefOrDefault("config_filename");
     build_dlg_preferences_list();
+    updateVersionWarningStatus();
     displayNone('preferencesdlg_upload_msg');
     showModal();
 }
@@ -449,7 +454,16 @@ const getPreferencesForSave = () => {
 
     saveprefs.push(`"enable_commands_panel":"${getChecked('show_commands_panel')}"`);
     saveprefs.push(`"enable_autoscroll":"${getChecked('preferences_autoscroll')}"`);
-    saveprefs.push(`"enable_verbose_mode":"${getChecked('preferences_verbose_mode')}"}]`);
+    saveprefs.push(`"enable_verbose_mode":"${getChecked('preferences_verbose_mode')}"`);
+    
+    // Include version warning suppression if it exists
+    if (typeof preferenceslist[0].suppress_version_warning !== 'undefined') {
+        saveprefs.push(`"suppress_version_warning":"${preferenceslist[0].suppress_version_warning.replace(/"/g, '\\"')}"`);
+    } else {
+        saveprefs.push(`"suppress_version_warning":""`);
+    }
+    
+    saveprefs.push(`}]`);
     try {
         newPrefsList = JSON.parse(saveprefs.join(","));
     } catch (error) {
@@ -717,4 +731,76 @@ function Checkvalues(id_2_check) {
         alertdlg(translate_text_item("Out of range"), error_message);
     }
     return status;
+}
+
+/** Update version warning status display in preferences dialog */
+function updateVersionWarningStatus() {
+    if (!preferenceslist || !preferenceslist[0]) {
+        return;
+    }
+    
+    const suppressionValue = preferenceslist[0].suppress_version_warning || "";
+    const statusText = id("version_warning_status_text");
+    const disableBtn = id("disable_version_warnings_btn");
+    const enableBtn = id("enable_version_warnings_btn");
+    const suppressedInfo = id("version_suppressed_info");
+    
+    if (suppressionValue === "do_not_alert") {
+        setHTML("version_warning_status_text", translate_text_item("Disabled"));
+        displayNone("disable_version_warnings_btn");
+        displayBlock("enable_version_warnings_btn");
+        displayNone("version_suppressed_info");
+    } else if (suppressionValue && suppressionValue !== "") {
+        try {
+            const versions = JSON.parse(suppressionValue);
+            setHTML("version_warning_status_text", translate_text_item("Suppressed until next release"));
+            displayBlock("disable_version_warnings_btn");
+            displayNone("enable_version_warnings_btn");
+            displayBlock("version_suppressed_info");
+            setHTML("suppressed_fw_version", versions.fw || "N/A");
+            setHTML("suppressed_ui_version", versions.ui || "N/A");
+        } catch (e) {
+            setHTML("version_warning_status_text", translate_text_item("Enabled"));
+            displayBlock("disable_version_warnings_btn");
+            displayNone("enable_version_warnings_btn");
+            displayNone("version_suppressed_info");
+        }
+    } else {
+        setHTML("version_warning_status_text", translate_text_item("Enabled"));
+        displayBlock("disable_version_warnings_btn");
+        displayNone("enable_version_warnings_btn");
+        displayNone("version_suppressed_info");
+    }
+}
+
+/** Disable version warnings permanently */
+function disableVersionWarnings() {
+    if (!preferenceslist || !preferenceslist[0]) {
+        console.error("Cannot disable version warnings: preferences not loaded");
+        return;
+    }
+    
+    confirmdlg(
+        translate_text_item("Confirm"),
+        translate_text_item("Are you sure you want to permanently disable version compatibility warnings?"),
+        function(answer) {
+            if (answer === 'yes') {
+                preferenceslist[0].suppress_version_warning = "do_not_alert";
+                updateVersionWarningStatus();
+                console.log("Version warnings permanently disabled");
+            }
+        }
+    );
+}
+
+/** Enable version warnings */
+function enableVersionWarnings() {
+    if (!preferenceslist || !preferenceslist[0]) {
+        console.error("Cannot enable version warnings: preferences not loaded");
+        return;
+    }
+    
+    preferenceslist[0].suppress_version_warning = "";
+    updateVersionWarningStatus();
+    console.log("Version warnings enabled");
 }

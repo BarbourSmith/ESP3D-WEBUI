@@ -196,32 +196,32 @@ const checkVersionCompatibility = () => {
 		return;
 	}
 
-	// Extract version information for comparison
-	const fwVersionInfo = extractVersionInfo(fw_version);
-	const uiVersionInfo = extractVersionInfo(web_ui_version);
+	// Extract git describe format versions for comparison
+	const fwGitVersion = extractGitDescribeVersion(fw_version);
+	const uiGitVersion = extractGitDescribeVersion(web_ui_version);
 	
-	console.log(`Checking version compatibility: FW=${fw_version}, UI=${web_ui_version}`);
+	console.log(`Checking version compatibility: FW=${fwGitVersion}, UI=${uiGitVersion}`);
 	
-	// Add version check info to serial messages log
-	if (typeof addMessage === 'function') {
-		addMessage(`Version Check: FW=${fw_version}, UI=${web_ui_version}`, true, false);
+	// Check if version warnings are suppressed
+	const suppressedVersions = getVersionSuppressionPreference();
+	if (suppressedVersions) {
+		if (suppressedVersions === "do_not_alert") {
+			console.log("Version warnings disabled");
+			return;
+		}
+		
+		// Check if we're still on the same versions that were suppressed
+		if (suppressedVersions.fw === fwGitVersion && suppressedVersions.ui === uiGitVersion) {
+			console.log("Version warning suppressed");
+			return;
+		}
 	}
 	
 	// Check if versions are compatible
-	if (!areVersionsCompatible(fwVersionInfo, uiVersionInfo)) {
-		const warningTitle = "Version Compatibility Warning";
-		const warningMessage = `<p><strong>Firmware and WebUI versions may not be compatible:</strong></p>
-			<p>• Firmware version: <code>${fw_version}</code></p>
-			<p>• WebUI version: <code>${web_ui_version}</code></p>
-			<p><br/>This may cause unexpected behavior or missing features. Consider updating to matching versions.</p>`;
+	if (!areGitVersionsCompatible(fwGitVersion, uiGitVersion)) {
+		console.warn("Version mismatch:", fwGitVersion, "vs", uiGitVersion);
 		
-		// Add warning to serial messages log
-		if (typeof addMessage === 'function') {
-			addMessage(`WARNING: Version mismatch detected! FW: ${fw_version} vs UI: ${web_ui_version}`, true, false);
-		}
-		
-		// Show warning dialog with a longer delay to ensure UI initialization is complete
-		// and any existing modals are closed
+		// Show warning dialog with a delay to ensure UI initialization is complete
 		setTimeout(() => {
 			// Force close any existing modals first
 			const activeModal = getactiveModal ? getactiveModal() : null;
@@ -229,135 +229,178 @@ const checkVersionCompatibility = () => {
 				closeModal("Version check - closing previous modal");
 			}
 			
-			// Then show the version warning
-			alertdlg(warningTitle, warningMessage);
+			// Then show the version warning with custom buttons
+			showVersionWarningDialog(fwGitVersion, uiGitVersion);
 		}, 3000); // 3 second delay to allow full UI initialization
-		
-		console.warn("Version compatibility warning shown:", { fw_version, web_ui_version });
 	} else {
-		console.log("Version compatibility check passed");
-		// Add success message to serial log
-		if (typeof addMessage === 'function') {
-			addMessage(`Version compatibility check PASSED`, true, false);
-		}
+		console.log("Version check passed");
 	}
 };
 
 /**
- * Extract version information from version string
- * Handles various version formats (semantic versioning, git hashes, etc.)
+ * Extract git describe version from firmware or UI version string
+ * Examples:
+ *   - "FluidNC v3.6.7 (Devt-5692a7c1-dirty)" -> "v3.6.7-devt-5692a7c1-dirty"
+ *   - "github.com/BarbourSmith/ESP3D-WEBUI@v1.14-1-g472d4ea" -> "v1.14-1-g472d4ea"
+ *   - "v1.14-6-g7fe778c0" -> "v1.14-6-g7fe778c0"
  */
-const extractVersionInfo = (versionString) => {
-	if (!versionString) return { type: "unknown", version: "" };
+const extractGitDescribeVersion = (versionString) => {
+	if (!versionString) return "";
 	
-	const version = versionString.toLowerCase().trim();
+	const version = versionString.trim();
 	
-	// Check for git hash pattern (github.com/repo@hash) first, as it's most specific
-	const gitHashMatch = version.match(/github\.com\/[^@]+@([a-f0-9]+)/);
-	if (gitHashMatch) {
-		return {
-			type: "git",
-			hash: gitHashMatch[1],
-			full: version
-		};
+	// Check for github.com format: github.com/BarbourSmith/ESP3D-WEBUI@v1.14-1-g472d4ea
+	const githubMatch = version.match(/github\.com\/[^@]+@(.+)$/);
+	if (githubMatch) {
+		return githubMatch[1];
 	}
 	
-	// Check for simple git hash (7+ hex characters) - in firmware or elsewhere
-	const simpleHashMatch = version.match(/[a-f0-9]{7,}/);
-	if (simpleHashMatch) {
-		return {
-			type: "git",
-			hash: simpleHashMatch[0],
-			full: version
-		};
+	// Check for FluidNC format: FluidNC v3.6.7 (Devt-5692a7c1-dirty)
+	// Convert to git describe format: v3.6.7-devt-5692a7c1-dirty
+	const fluidncMatch = version.match(/FluidNC\s+v?([\d.]+)\s*\(([\w-]+)\)/i);
+	if (fluidncMatch) {
+		return `v${fluidncMatch[1]}-${fluidncMatch[2].toLowerCase()}`;
 	}
 	
-	// Check for semantic versioning pattern (x.y.z)
-	const semverMatch = version.match(/(\d+)\.(\d+)\.(\d+)/);
-	if (semverMatch) {
-		// Also check if there's a git hash in the same string (e.g., "v3.6.7 (devt-abc1234)")
-		const hashInSemver = version.match(/[a-f0-9]{7,}/);
-		if (hashInSemver) {
-			return {
-				type: "mixed",  // Contains both semver and git hash
-				major: parseInt(semverMatch[1]),
-				minor: parseInt(semverMatch[2]),
-				patch: parseInt(semverMatch[3]),
-				hash: hashInSemver[0],
-				full: version
-			};
-		}
-		return {
-			type: "semver",
-			major: parseInt(semverMatch[1]),
-			minor: parseInt(semverMatch[2]),
-			patch: parseInt(semverMatch[3]),
-			full: version
-		};
+	// Check for FluidNC format without parentheses: FluidNC v3.6.7
+	const fluidncSimpleMatch = version.match(/FluidNC\s+v?([\d.]+)/i);
+	if (fluidncSimpleMatch) {
+		return `v${fluidncSimpleMatch[1]}`;
 	}
 	
-	return {
-		type: "other",
-		full: version
+	// Otherwise assume it's already in git describe format
+	return version;
+};
+
+/**
+ * Determine if two git describe versions are compatible
+ * Compatible only if they are exactly the same
+ */
+const areGitVersionsCompatible = (fwVersion, uiVersion) => {
+	if (!fwVersion || !uiVersion) {
+		return true; // If we can't extract versions, don't show warning
+	}
+	
+	// Only exact match is compatible
+	// v1.14 and v1.14-2-gabcd123 are NOT compatible (release vs development)
+	// v1.14-2-gabcd123 and v1.14-3-gdef4567 are NOT compatible (different commits)
+	return fwVersion === uiVersion;
+};
+
+/**
+ * Get version suppression preference from preferenceslist
+ * Returns either "do_not_alert" or an object with {fw, ui} versions, or null
+ */
+const getVersionSuppressionPreference = () => {
+	if (!preferenceslist || !preferenceslist[0]) {
+		return null;
+	}
+	
+	const suppressed = preferenceslist[0].suppress_version_warning;
+	if (!suppressed) {
+		return null;
+	}
+	
+	if (suppressed === "do_not_alert") {
+		return "do_not_alert";
+	}
+	
+	try {
+		return JSON.parse(suppressed);
+	} catch (e) {
+		console.error("Failed to parse suppressed version:", e);
+		return null;
+	}
+};
+
+/**
+ * Save version suppression preference to preferenceslist and file
+ */
+const saveVersionSuppressionPreference = (value) => {
+	if (!preferenceslist || !preferenceslist[0]) {
+		console.error("Cannot save version suppression: preferences not loaded");
+		return;
+	}
+	
+	if (value === "do_not_alert") {
+		preferenceslist[0].suppress_version_warning = "do_not_alert";
+	} else if (value && value.fw && value.ui) {
+		preferenceslist[0].suppress_version_warning = JSON.stringify(value);
+	} else {
+		delete preferenceslist[0].suppress_version_warning;
+	}
+	
+	// Save preferences to file
+	SavePreferences(true);
+};
+
+/**
+ * Show version warning dialog with custom buttons
+ * Optimized for minimal memory usage
+ */
+const showVersionWarningDialog = (fwVersion, uiVersion) => {
+	const modal = setactiveModal("alertdlg.html");
+	if (modal === null) {
+		return;
+	}
+
+	const titleElem = modal.element.getElementsByClassName("modal-title")[0];
+	const bodyElem = modal.element.getElementsByClassName("modal-text")[0];
+	const footer = modal.element.getElementsByClassName("modal-footer")[0];
+	
+	// Use textContent for title to avoid HTML parsing
+	titleElem.textContent = "Version Compatibility Warning";
+	
+	// Build minimal message using DOM methods instead of large HTML strings
+	bodyElem.innerHTML = "";
+	const p1 = document.createElement("p");
+	p1.innerHTML = "<strong>Firmware and WebUI versions may not be compatible:</strong>";
+	bodyElem.appendChild(p1);
+	
+	const p2 = document.createElement("p");
+	p2.textContent = "• Firmware version: " + fwVersion;
+	bodyElem.appendChild(p2);
+	
+	const p3 = document.createElement("p");
+	p3.textContent = "• WebUI version: " + uiVersion;
+	bodyElem.appendChild(p3);
+	
+	const p4 = document.createElement("p");
+	p4.innerHTML = "<br/>This may cause unexpected behavior or missing features. Consider updating to matching versions.";
+	bodyElem.appendChild(p4);
+	
+	// Create buttons efficiently
+	footer.innerHTML = "";
+	const dismissBtn = document.createElement("button");
+	dismissBtn.id = "versionWarnDismiss";
+	dismissBtn.className = "btn btn-default";
+	dismissBtn.textContent = "Dismiss";
+	footer.appendChild(dismissBtn);
+	
+	const suppressBtn = document.createElement("button");
+	suppressBtn.id = "versionWarnSuppress";
+	suppressBtn.className = "btn btn-warning";
+	suppressBtn.textContent = "Don't warn until next release";
+	footer.appendChild(suppressBtn);
+	
+	// Use named functions instead of arrow functions to reduce closure memory
+	dismissBtn.onclick = function() {
+		closeModal("dismiss");
 	};
-};
-
-/**
- * Determine if two versions are compatible
- */
-const areVersionsCompatible = (fwVersion, uiVersion) => {
-	// If either version type is unknown, assume compatible to avoid false positives
-	if (fwVersion.type === "unknown" || uiVersion.type === "unknown") {
-		return true;
+	
+	suppressBtn.onclick = function() {
+		saveVersionSuppressionPreference({ fw: fwVersion, ui: uiVersion });
+		console.log("Version warning suppressed");
+		closeModal("suppress");
+	};
+	
+	// Handle X button
+	const closeBtn = id("cancelAlertDlg");
+	if (closeBtn) {
+		closeBtn.onclick = function() {
+			closeModal("cancel");
+		};
 	}
 	
-	// If both are semantic versions, check major.minor compatibility
-	if (fwVersion.type === "semver" && uiVersion.type === "semver") {
-		// Compatible if major and minor versions match
-		return fwVersion.major === uiVersion.major && fwVersion.minor === uiVersion.minor;
-	}
-	
-	// If both are git hashes, they should match for perfect compatibility
-	if (fwVersion.type === "git" && uiVersion.type === "git") {
-		// If hash prefixes match (first 7 chars), consider compatible
-		const fwPrefix = fwVersion.hash.substring(0, 7);
-		const uiPrefix = uiVersion.hash.substring(0, 7);
-		return fwPrefix === uiPrefix;
-	}
-	
-	// Handle mixed type (firmware with both semver and git hash)
-	if (fwVersion.type === "mixed") {
-		// If UI is git type, compare hashes
-		if (uiVersion.type === "git") {
-			const fwPrefix = fwVersion.hash.substring(0, 7);
-			const uiPrefix = uiVersion.hash.substring(0, 7);
-			return fwPrefix === uiPrefix;
-		}
-		// If UI is semver, compare semantic versions
-		if (uiVersion.type === "semver") {
-			return fwVersion.major === uiVersion.major && fwVersion.minor === uiVersion.minor;
-		}
-	}
-	
-	// If UI is mixed type
-	if (uiVersion.type === "mixed") {
-		// If FW is git type, compare hashes
-		if (fwVersion.type === "git") {
-			const fwPrefix = fwVersion.hash.substring(0, 7);
-			const uiPrefix = uiVersion.hash.substring(0, 7);
-			return fwPrefix === uiPrefix;
-		}
-		// If FW is semver, compare semantic versions
-		if (fwVersion.type === "semver") {
-			return fwVersion.major === uiVersion.major && fwVersion.minor === uiVersion.minor;
-		}
-	}
-	
-	// If different version types, check for exact string match
-	if (fwVersion.full === uiVersion.full) {
-		return true;
-	}
-	
-	// For other mixed cases, be conservative and show warning
-	return false;
+	showModal();
 };

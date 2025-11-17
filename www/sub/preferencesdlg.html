@@ -491,6 +491,30 @@
                     </div>
                 </div>
             </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <span translate>Version Warnings</span>
+                </div>
+                <div class="panel-body">
+                    <div id="version_warning_status">
+                        <p><span translate>Current status</span>: <span id="version_warning_status_text"></span></p>
+                        <div id="version_suppressed_info" class="hide_it">
+                            <p><small>
+                                <span translate>Firmware</span>: <code id="suppressed_fw_version"></code><br/>
+                                <span translate>WebUI</span>: <code id="suppressed_ui_version"></code>
+                            </small></p>
+                        </div>
+                    </div>
+                    <div class="topmarginspace">
+                        <button id="disable_version_warnings_btn" class="btn btn-warning">
+                            <span translate>Disable version warnings</span>
+                        </button>
+                        <button id="enable_version_warnings_btn" class="btn btn-success hide_it">
+                            <span translate>Enable version warnings</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="modal-footer">
             <div class="pull-left" id="preferencesdlg_upload_msg">
