@@ -449,7 +449,11 @@ const getPreferencesForSave = () => {
 
     saveprefs.push(`"enable_commands_panel":"${getChecked('show_commands_panel')}"`);
     saveprefs.push(`"enable_autoscroll":"${getChecked('preferences_autoscroll')}"`);
-    saveprefs.push(`"enable_verbose_mode":"${getChecked('preferences_verbose_mode')}"}]`);
+    saveprefs.push(`"enable_verbose_mode":"${getChecked('preferences_verbose_mode')}"`);
+    
+    // Preserve dismissed version if it exists
+    const dismissedVersion = typeof preferenceslist[0].dismissed_version !== 'undefined' ? preferenceslist[0].dismissed_version : "";
+    saveprefs.push(`"dismissed_version":"${dismissedVersion}"}]`);
     try {
         newPrefsList = JSON.parse(saveprefs.join(","));
     } catch (error) {
