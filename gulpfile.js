@@ -90,6 +90,7 @@ function concatApp() {
 }
 
 var execSync = require('child_process').execSync
+var buildVersion = '' // Store version globally for use in compress()
 
 function replaceVersion() {
   // Fetch tags and unshallow the repository to ensure proper version numbering
@@ -117,6 +118,8 @@ function replaceVersion() {
   var version = execSync('git describe --tags --always --dirty')
     .toString()
     .replace(/\r?\n|\r/g, '')
+  
+  buildVersion = version // Store for use in compress()
   
   // Check if version contains a dash (indicating non-release version)
   if (version.includes('-')) {
@@ -368,6 +371,7 @@ function smoosh() {
 }
 
 function compress() {
+  console.log('Version: ' + buildVersion)
   return gulp
     .src('dist/index.html')
     .pipe(gzip({ gzipOptions: { level: 9 } }))

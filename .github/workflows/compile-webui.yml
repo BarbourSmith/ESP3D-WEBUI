@@ -57,6 +57,12 @@ jobs:
         
     - name: Build WebUI
       run: gulp package --lang en
+    
+    - name: Get version
+      id: version
+      run: |
+        VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "unknown")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
         
     - name: Create README for artifact
       run: |
@@ -113,6 +119,7 @@ jobs:
           ✅ Successfully compiled ESP3D WebUI for English language
           
           **Build Details:**
+          - Version: \`${{ steps.version.outputs.version }}\`
           - Commit: \`${commitSha}\`
           - Language: \`en\` (English)
           - WebUI size: ${fileSizeInKB} KB (compressed)
